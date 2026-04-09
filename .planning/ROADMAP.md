@@ -36,7 +36,7 @@ Plans:
 - [x] 01-01-PLAN.md — Project scaffolding, design system CSS tokens, test infrastructure
 - [x] 01-02-PLAN.md — Circuit data model, netlister, validator, error translator (pure TypeScript)
 - [ ] 01-03-PLAN.md — ngspice WASM build, Web Worker, simulation controller, output parser
-- [ ] 01-04-PLAN.md — React Flow canvas, custom IEEE/IEC component SVG nodes
+- [x] 01-04-PLAN.md — React Flow canvas, custom IEEE/IEC component SVG nodes
 - [ ] 01-05-PLAN.md — Zustand state stores (circuit with undo/redo, simulation, UI)
 - [ ] 01-06-PLAN.md — Wire routing, canvas interactions, keyboard shortcuts
 - [ ] 01-07-PLAN.md — Waveform viewer (uPlot), Bode plots, cursors, measurements
