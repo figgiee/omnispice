@@ -1,0 +1,24 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+
+# Test coverage
+coverage
+
+# Vite
+.vite
+
+# Local env files
+*.local
+
+# Editor
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
