@@ -20,12 +20,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Component Library
 
-- [ ] **COMP-01**: Library includes core passives (resistor, capacitor, inductor, transformer)
-- [ ] **COMP-02**: Library includes diodes (generic, Zener, Schottky) with default SPICE models
-- [ ] **COMP-03**: Library includes BJTs (NPN, PNP) with default SPICE models
-- [ ] **COMP-04**: Library includes MOSFETs (NMOS, PMOS) with default SPICE models
-- [ ] **COMP-05**: Library includes op-amps (ideal and real models including uA741, LM741)
-- [ ] **COMP-06**: Library includes independent voltage/current sources (DC, AC, pulse, sinusoidal, PWL)
+- [x] **COMP-01**: Library includes core passives (resistor, capacitor, inductor, transformer)
+- [x] **COMP-02**: Library includes diodes (generic, Zener, Schottky) with default SPICE models
+- [x] **COMP-03**: Library includes BJTs (NPN, PNP) with default SPICE models
+- [x] **COMP-04**: Library includes MOSFETs (NMOS, PMOS) with default SPICE models
+- [x] **COMP-05**: Library includes op-amps (ideal and real models including uA741, LM741)
+- [x] **COMP-06**: Library includes independent voltage/current sources (DC, AC, pulse, sinusoidal, PWL)
 - [ ] **COMP-07**: User can search the component library by name, type, or value with fuzzy search
 - [ ] **COMP-08**: User can import third-party SPICE models (.mod / .lib files) for advanced components
 
@@ -41,10 +41,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Error Handling
 
-- [ ] **ERR-01**: Simulation errors display human-readable messages (not raw ngspice output)
-- [ ] **ERR-02**: Convergence failures include specific guidance ("Node X has no DC path to ground — add a ground connection")
-- [ ] **ERR-03**: Pre-simulation circuit validation catches common wiring mistakes before running ngspice (floating nodes, missing ground, short circuits)
-- [ ] **ERR-04**: Component model errors identify the specific component by name and value
+- [x] **ERR-01**: Simulation errors display human-readable messages (not raw ngspice output)
+- [x] **ERR-02**: Convergence failures include specific guidance ("Node X has no DC path to ground — add a ground connection")
+- [x] **ERR-03**: Pre-simulation circuit validation catches common wiring mistakes before running ngspice (floating nodes, missing ground, short circuits)
+- [x] **ERR-04**: Component model errors identify the specific component by name and value
 
 ### Waveform Viewer
 
@@ -158,12 +158,12 @@ Deferred to v2. Tracked but not in current roadmap.
 | SCHEM-06 | Phase 1 — Core Simulator | Complete |
 | SCHEM-07 | Phase 1 — Core Simulator | Complete |
 | SCHEM-08 | Phase 1 — Core Simulator | Pending |
-| COMP-01 | Phase 1 — Core Simulator | Pending |
-| COMP-02 | Phase 1 — Core Simulator | Pending |
-| COMP-03 | Phase 1 — Core Simulator | Pending |
-| COMP-04 | Phase 1 — Core Simulator | Pending |
-| COMP-05 | Phase 1 — Core Simulator | Pending |
-| COMP-06 | Phase 1 — Core Simulator | Pending |
+| COMP-01 | Phase 1 — Core Simulator | Complete |
+| COMP-02 | Phase 1 — Core Simulator | Complete |
+| COMP-03 | Phase 1 — Core Simulator | Complete |
+| COMP-04 | Phase 1 — Core Simulator | Complete |
+| COMP-05 | Phase 1 — Core Simulator | Complete |
+| COMP-06 | Phase 1 — Core Simulator | Complete |
 | COMP-07 | Phase 1 — Core Simulator | Pending |
 | COMP-08 | Phase 1 — Core Simulator | Pending |
 | SIM-01 | Phase 1 — Core Simulator | Pending |
@@ -173,10 +173,10 @@ Deferred to v2. Tracked but not in current roadmap.
 | SIM-05 | Phase 1 — Core Simulator | Pending |
 | SIM-06 | Phase 1 — Core Simulator | Pending |
 | SIM-07 | Phase 1 — Core Simulator | Pending |
-| ERR-01 | Phase 1 — Core Simulator | Pending |
-| ERR-02 | Phase 1 — Core Simulator | Pending |
-| ERR-03 | Phase 1 — Core Simulator | Pending |
-| ERR-04 | Phase 1 — Core Simulator | Pending |
+| ERR-01 | Phase 1 — Core Simulator | Complete |
+| ERR-02 | Phase 1 — Core Simulator | Complete |
+| ERR-03 | Phase 1 — Core Simulator | Complete |
+| ERR-04 | Phase 1 — Core Simulator | Complete |
 | WAVE-01 | Phase 1 — Core Simulator | Pending |
 | WAVE-02 | Phase 1 — Core Simulator | Pending |
 | WAVE-03 | Phase 1 — Core Simulator | Pending |

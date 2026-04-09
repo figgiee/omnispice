@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [x] 01-01-PLAN.md — Project scaffolding, design system CSS tokens, test infrastructure
-- [ ] 01-02-PLAN.md — Circuit data model, netlister, validator, error translator (pure TypeScript)
+- [x] 01-02-PLAN.md — Circuit data model, netlister, validator, error translator (pure TypeScript)
 - [ ] 01-03-PLAN.md — ngspice WASM build, Web Worker, simulation controller, output parser
 - [ ] 01-04-PLAN.md — React Flow canvas, custom IEEE/IEC component SVG nodes
 - [ ] 01-05-PLAN.md — Zustand state stores (circuit with undo/redo, simulation, UI)
