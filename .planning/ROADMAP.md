@@ -30,7 +30,18 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can run an AC analysis and see a Bode plot (magnitude and phase) for the circuit
   4. When a user submits a circuit with a floating node, they see a plain-English error message identifying the specific node and suggesting a fix — not raw ngspice output
   5. User can search the component library by typing "741" and find the LM741 op-amp, place it, and simulate with it
-**Plans**: TBD
+**Plans:** 8 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Project scaffolding, design system CSS tokens, test infrastructure
+- [ ] 01-02-PLAN.md — Circuit data model, netlister, validator, error translator (pure TypeScript)
+- [ ] 01-03-PLAN.md — ngspice WASM build, Web Worker, simulation controller, output parser
+- [ ] 01-04-PLAN.md — React Flow canvas, custom IEEE/IEC component SVG nodes
+- [ ] 01-05-PLAN.md — Zustand state stores (circuit with undo/redo, simulation, UI)
+- [ ] 01-06-PLAN.md — Wire routing, canvas interactions, keyboard shortcuts
+- [ ] 01-07-PLAN.md — Waveform viewer (uPlot), Bode plots, cursors, measurements
+- [ ] 01-08-PLAN.md — UI shell integration (sidebar, toolbar, bottom panel, layout wiring)
+
 **Key risks**:
   - ngspice WASM build reproducibility with ngspice 45.x + current Emscripten (budget 1-2 week spike)
   - React Flow orthogonal wire routing with T-junctions needs proof-of-concept before committing (budget 1-week spike)
@@ -106,7 +117,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Core Simulator | 0/TBD | Not started | - |
+| 1. Core Simulator | 0/8 | Planning complete | - |
 | 2. Cloud and Compatibility | 0/TBD | Not started | - |
 | 3. Classroom Features | 0/TBD | Not started | - |
 | 4. Institutional Features | 0/TBD | Not started | - |
