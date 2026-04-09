@@ -31,13 +31,13 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Simulation
 
-- [ ] **SIM-01**: User can run DC operating point analysis and see node voltages and branch currents
-- [ ] **SIM-02**: User can run transient analysis with configurable stop time and timestep
-- [ ] **SIM-03**: User can run AC analysis (frequency sweep) with configurable range and points
-- [ ] **SIM-04**: User can run DC sweep analysis with configurable source and range
-- [ ] **SIM-05**: Simulation runs in a Web Worker (non-blocking — UI stays responsive)
-- [ ] **SIM-06**: User sees a progress indicator while simulation is running
-- [ ] **SIM-07**: User can cancel a running simulation
+- [x] **SIM-01**: User can run DC operating point analysis and see node voltages and branch currents
+- [x] **SIM-02**: User can run transient analysis with configurable stop time and timestep
+- [x] **SIM-03**: User can run AC analysis (frequency sweep) with configurable range and points
+- [x] **SIM-04**: User can run DC sweep analysis with configurable source and range
+- [x] **SIM-05**: Simulation runs in a Web Worker (non-blocking — UI stays responsive)
+- [x] **SIM-06**: User sees a progress indicator while simulation is running
+- [x] **SIM-07**: User can cancel a running simulation
 
 ### Error Handling
 
@@ -166,13 +166,13 @@ Deferred to v2. Tracked but not in current roadmap.
 | COMP-06 | Phase 1 — Core Simulator | Complete |
 | COMP-07 | Phase 1 — Core Simulator | Pending |
 | COMP-08 | Phase 1 — Core Simulator | Pending |
-| SIM-01 | Phase 1 — Core Simulator | Pending |
-| SIM-02 | Phase 1 — Core Simulator | Pending |
-| SIM-03 | Phase 1 — Core Simulator | Pending |
-| SIM-04 | Phase 1 — Core Simulator | Pending |
-| SIM-05 | Phase 1 — Core Simulator | Pending |
-| SIM-06 | Phase 1 — Core Simulator | Pending |
-| SIM-07 | Phase 1 — Core Simulator | Pending |
+| SIM-01 | Phase 1 — Core Simulator | Complete |
+| SIM-02 | Phase 1 — Core Simulator | Complete |
+| SIM-03 | Phase 1 — Core Simulator | Complete |
+| SIM-04 | Phase 1 — Core Simulator | Complete |
+| SIM-05 | Phase 1 — Core Simulator | Complete |
+| SIM-06 | Phase 1 — Core Simulator | Complete |
+| SIM-07 | Phase 1 — Core Simulator | Complete |
 | ERR-01 | Phase 1 — Core Simulator | Complete |
 | ERR-02 | Phase 1 — Core Simulator | Complete |
 | ERR-03 | Phase 1 — Core Simulator | Complete |
