@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SimulationController } from '../controller';
 import type { SimResponse, VectorData } from '../protocol';
 
@@ -165,10 +165,7 @@ describe('SimulationController', () => {
       await initPromise;
 
       // Start simulation
-      controller.runSimulation(
-        '* test\n.tran 1u 1m\n.end',
-        'transient',
-      );
+      controller.runSimulation('* test\n.tran 1u 1m\n.end', 'transient');
 
       const worker = currentMockWorker!;
       worker.simulateResponse({ type: 'STDOUT', text: 'loaded' });
@@ -188,8 +185,8 @@ describe('SimulationController', () => {
       currentMockWorker!.simulateResponse({ type: 'READY' });
       await initPromise;
 
-      // Start simulation
-      controller.runSimulation('* test\n.end', 'dc_op');
+      // Start simulation -- capture the promise to handle its rejection
+      const runPromise = controller.runSimulation('* test\n.end', 'dc_op');
 
       const worker = currentMockWorker!;
       worker.simulateResponse({ type: 'STDOUT', text: 'loaded' });
@@ -200,6 +197,9 @@ describe('SimulationController', () => {
         message: 'singular matrix',
         raw: 'Error: singular matrix at node 7',
       });
+
+      // The run promise should reject with the error
+      await expect(runPromise).rejects.toThrow('singular matrix');
 
       expect(onError).toHaveBeenCalled();
     });
