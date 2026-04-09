@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-04-09T19:35:53.073Z"
-last_activity: 2026-04-09 — Roadmap created; v1 requirements mapped to phases 1-2, v2 requirements to phases 3-5
+status: executing
+stopped_at: Phase 1 UI-SPEC approved
+last_updated: "2026-04-09T19:27:42.482Z"
+last_activity: 2026-04-09 -- Phase 01 execution started
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 8
-  completed_plans: 1
+  completed_plans: 0
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-09)
 
 **Core value:** Students can simulate circuits accurately in a modern, intuitive interface that helps them understand circuits — not just compute them.
-**Current focus:** Phase 1 — Core Simulator
+**Current focus:** Phase 01 — core-simulator
 
 ## Current Position
 
-Phase: 1 of 5 (Core Simulator)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-04-09 — Roadmap created; v1 requirements mapped to phases 1-2, v2 requirements to phases 3-5
+Phase: 01 (core-simulator) — EXECUTING
+Plan: 1 of 8
+Status: Executing Phase 01
+Last activity: 2026-04-09 -- Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -52,7 +52,6 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: —
 
 *Updated after each plan completion*
-| Phase 01 P02 | 6min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -64,8 +63,6 @@ Recent decisions affecting current work:
 - [Research]: React Flow chosen over tldraw — tldraw requires $6,000/yr commercial license; React Flow is MIT
 - [Research]: No SharedArrayBuffer anywhere — single-threaded ngspice in Web Worker to avoid COOP/COEP headers breaking LMS embeds
 - [Research]: ngspice pipe-mode vs shared-library API unresolved — must spike in Phase 1 week 1
-- [Phase 01]: Transformer modeled as two coupled inductors (L + K coupling statement) matching ngspice syntax
-- [Phase 01]: MOSFET bulk terminal tied to source by default for undergrad-level simplicity
 
 ### Pending Todos
 
@@ -79,6 +76,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-09T19:35:53.071Z
-Stopped at: Completed 01-02-PLAN.md
-Resume file: None
+Last session: 2026-04-09T17:40:16.911Z
+Stopped at: Phase 1 UI-SPEC approved
+Resume file: .planning/phases/01-core-simulator/01-UI-SPEC.md
