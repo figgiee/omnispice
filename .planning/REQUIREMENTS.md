@@ -146,23 +146,90 @@ Deferred to v2. Tracked but not in current roadmap.
 
 ## Traceability
 
+### v1 Requirements (47 total — all mapped)
+
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCHEM-01 – SCHEM-08 | Phase 1 | Pending |
-| COMP-01 – COMP-08 | Phase 1 | Pending |
-| SIM-01 – SIM-07 | Phase 1 | Pending |
-| ERR-01 – ERR-04 | Phase 1 | Pending |
-| WAVE-01 – WAVE-06 | Phase 1 | Pending |
-| LIVE-01 – LIVE-03 | Phase 2 | Pending |
-| CLOUD-01 – CLOUD-05 | Phase 2 | Pending |
-| LTSP-01 – LTSP-02 | Phase 2 | Pending |
-| EXP-01 – EXP-03 | Phase 2 | Pending |
+| SCHEM-01 | Phase 1 — Core Simulator | Pending |
+| SCHEM-02 | Phase 1 — Core Simulator | Pending |
+| SCHEM-03 | Phase 1 — Core Simulator | Pending |
+| SCHEM-04 | Phase 1 — Core Simulator | Pending |
+| SCHEM-05 | Phase 1 — Core Simulator | Pending |
+| SCHEM-06 | Phase 1 — Core Simulator | Pending |
+| SCHEM-07 | Phase 1 — Core Simulator | Pending |
+| SCHEM-08 | Phase 1 — Core Simulator | Pending |
+| COMP-01 | Phase 1 — Core Simulator | Pending |
+| COMP-02 | Phase 1 — Core Simulator | Pending |
+| COMP-03 | Phase 1 — Core Simulator | Pending |
+| COMP-04 | Phase 1 — Core Simulator | Pending |
+| COMP-05 | Phase 1 — Core Simulator | Pending |
+| COMP-06 | Phase 1 — Core Simulator | Pending |
+| COMP-07 | Phase 1 — Core Simulator | Pending |
+| COMP-08 | Phase 1 — Core Simulator | Pending |
+| SIM-01 | Phase 1 — Core Simulator | Pending |
+| SIM-02 | Phase 1 — Core Simulator | Pending |
+| SIM-03 | Phase 1 — Core Simulator | Pending |
+| SIM-04 | Phase 1 — Core Simulator | Pending |
+| SIM-05 | Phase 1 — Core Simulator | Pending |
+| SIM-06 | Phase 1 — Core Simulator | Pending |
+| SIM-07 | Phase 1 — Core Simulator | Pending |
+| ERR-01 | Phase 1 — Core Simulator | Pending |
+| ERR-02 | Phase 1 — Core Simulator | Pending |
+| ERR-03 | Phase 1 — Core Simulator | Pending |
+| ERR-04 | Phase 1 — Core Simulator | Pending |
+| WAVE-01 | Phase 1 — Core Simulator | Pending |
+| WAVE-02 | Phase 1 — Core Simulator | Pending |
+| WAVE-03 | Phase 1 — Core Simulator | Pending |
+| WAVE-04 | Phase 1 — Core Simulator | Pending |
+| WAVE-05 | Phase 1 — Core Simulator | Pending |
+| WAVE-06 | Phase 1 — Core Simulator | Pending |
+| LIVE-01 | Phase 2 — Cloud and Compatibility | Pending |
+| LIVE-02 | Phase 2 — Cloud and Compatibility | Pending |
+| LIVE-03 | Phase 2 — Cloud and Compatibility | Pending |
+| CLOUD-01 | Phase 2 — Cloud and Compatibility | Pending |
+| CLOUD-02 | Phase 2 — Cloud and Compatibility | Pending |
+| CLOUD-03 | Phase 2 — Cloud and Compatibility | Pending |
+| CLOUD-04 | Phase 2 — Cloud and Compatibility | Pending |
+| CLOUD-05 | Phase 2 — Cloud and Compatibility | Pending |
+| LTSP-01 | Phase 2 — Cloud and Compatibility | Pending |
+| LTSP-02 | Phase 2 — Cloud and Compatibility | Pending |
+| EXP-01 | Phase 2 — Cloud and Compatibility | Pending |
+| EXP-02 | Phase 2 — Cloud and Compatibility | Pending |
+| EXP-03 | Phase 2 — Cloud and Compatibility | Pending |
 
 **Coverage:**
 - v1 requirements: 47 total
 - Mapped to phases: 47
-- Unmapped: 0 ✓
+- Unmapped: 0
+
+### v2 Requirements (planned phases 3-5)
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| CLASS-01 | Phase 3 — Classroom Features | v2 |
+| CLASS-02 | Phase 3 — Classroom Features | v2 |
+| CLASS-03 | Phase 3 — Classroom Features | v2 |
+| CLASS-04 | Phase 3 — Classroom Features | v2 |
+| CLASS-05 | Phase 3 — Classroom Features | v2 |
+| LMS-01 | Phase 4 — Institutional Features | v2 |
+| LMS-02 | Phase 4 — Institutional Features | v2 |
+| LMS-03 | Phase 4 — Institutional Features | v2 |
+| LAB-01 | Phase 4 — Institutional Features | v2 |
+| LAB-02 | Phase 4 — Institutional Features | v2 |
+| LAB-03 | Phase 4 — Institutional Features | v2 |
+| RPT-01 | Phase 4 — Institutional Features | v2 |
+| RPT-02 | Phase 4 — Institutional Features | v2 |
+| COLLAB-01 | Phase 5 — Collaboration and Polish | v2 |
+| COLLAB-02 | Phase 5 — Collaboration and Polish | v2 |
+| COLLAB-03 | Phase 5 — Collaboration and Polish | v2 |
+| INSIGHT-01 | Phase 5 — Collaboration and Polish | v2 |
+| INSIGHT-02 | Phase 5 — Collaboration and Polish | v2 |
+| OFFLINE-01 | Phase 5 — Collaboration and Polish | v2 |
+| OFFLINE-02 | Phase 5 — Collaboration and Polish | v2 |
+| ADVSIM-01 | v2 — unscheduled | v2 |
+| ADVSIM-02 | v2 — unscheduled | v2 |
+| ADVSIM-03 | v2 — unscheduled | v2 |
 
 ---
 *Requirements defined: 2026-04-09*
-*Last updated: 2026-04-09 after initial definition*
+*Last updated: 2026-04-09 — traceability expanded after roadmap creation*
