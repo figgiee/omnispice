@@ -14,8 +14,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **SCHEM-03**: User can select, move, rotate, copy, and delete components and wire segments
 - [ ] **SCHEM-04**: User can edit component values inline (resistance, capacitance, voltage, etc.) with a single click
 - [ ] **SCHEM-05**: User can undo/redo all schematic edits
-- [ ] **SCHEM-06**: User can pan and zoom the canvas with scroll wheel and trackpad gestures
-- [ ] **SCHEM-07**: Schematic renders cleanly with proper EE symbols (not flowchart boxes)
+- [x] **SCHEM-06**: User can pan and zoom the canvas with scroll wheel and trackpad gestures
+- [x] **SCHEM-07**: Schematic renders cleanly with proper EE symbols (not flowchart boxes)
 - [ ] **SCHEM-08**: User can add and connect ground, voltage reference, and port symbols
 
 ### Component Library
@@ -155,8 +155,8 @@ Deferred to v2. Tracked but not in current roadmap.
 | SCHEM-03 | Phase 1 — Core Simulator | Pending |
 | SCHEM-04 | Phase 1 — Core Simulator | Pending |
 | SCHEM-05 | Phase 1 — Core Simulator | Pending |
-| SCHEM-06 | Phase 1 — Core Simulator | Pending |
-| SCHEM-07 | Phase 1 — Core Simulator | Pending |
+| SCHEM-06 | Phase 1 — Core Simulator | Complete |
+| SCHEM-07 | Phase 1 — Core Simulator | Complete |
 | SCHEM-08 | Phase 1 — Core Simulator | Pending |
 | COMP-01 | Phase 1 — Core Simulator | Pending |
 | COMP-02 | Phase 1 — Core Simulator | Pending |
