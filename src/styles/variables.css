@@ -1,0 +1,89 @@
+:root {
+  /* Dominant (60%) */
+  --bg-primary: #1a1a2e;
+  --bg-secondary: #16213e;
+  --bg-elevated: #1e2a4a;
+
+  /* Secondary (30%) */
+  --surface-primary: #243b6a;
+  --surface-hover: #2d4a7a;
+  --surface-active: #365a8a;
+  --border-default: #2a3f6e;
+  --border-subtle: #1e2d52;
+
+  /* Accent (10%) */
+  --accent-primary: #4fc3f7;
+  --accent-hover: #81d4fa;
+
+  /* Text */
+  --text-primary: #e8eaf6;
+  --text-secondary: #9fa8c4;
+  --text-muted: #6b7494;
+
+  /* Semantic */
+  --color-error: #ef5350;
+  --color-warning: #ffa726;
+  --color-success: #66bb6a;
+  --color-info: #42a5f5;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+
+  /* Typography */
+  --font-body: "Inter Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono Variable", Consolas, Monaco, monospace;
+  --font-size-body: 13px;
+  --font-size-label: 11px;
+  --font-size-heading: 16px;
+  --font-size-mono: 12px;
+  --font-weight-regular: 400;
+  --font-weight-semibold: 600;
+  --line-height-body: 1.5;
+  --line-height-label: 1.4;
+  --line-height-heading: 1.3;
+
+  /* Canvas-specific */
+  --canvas-bg: #1a1a2e;
+  --canvas-grid-dot: rgba(42, 63, 110, 0.4);
+  --canvas-grid-major: rgba(42, 63, 110, 0.6);
+  --component-stroke: #e8eaf6;
+  --wire-stroke: #4fc3f7;
+  --wire-selected: #81d4fa;
+  --pin-dot: #e8eaf6;
+  --pin-hover: #4fc3f7;
+  --tjunction-dot: #e8eaf6;
+  --error-highlight: #ef5350;
+  --warning-icon: #ffa726;
+
+  /* Waveform signal colors */
+  --signal-0: #4fc3f7;
+  --signal-1: #ffa726;
+  --signal-2: #66bb6a;
+  --signal-3: #f06292;
+  --signal-4: #ba68c8;
+  --signal-5: #ffee58;
+  --signal-6: #26c6da;
+  --signal-7: #ef5350;
+
+  /* Waveform viewer */
+  --waveform-bg: #12192e;
+  --waveform-axis: #2a3f6e;
+  --waveform-axis-label: #9fa8c4;
+  --waveform-grid: #1e2d52;
+  --waveform-cursor: rgba(255, 255, 255, 0.8);
+  --waveform-readout-bg: #243b6a;
+
+  /* Sizing */
+  --toolbar-height: 48px;
+  --sidebar-width: 240px;
+  --sidebar-min-width: 200px;
+  --sidebar-max-width: 320px;
+  --sidebar-collapsed-width: 40px;
+  --bottom-panel-height: 280px;
+  --bottom-panel-min-height: 120px;
+  --library-item-height: 36px;
+  --category-header-height: 32px;
+}
