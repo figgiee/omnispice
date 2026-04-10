@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useCourse, useDeleteCourse } from '@/cloud/classroomHooks';
-import { JoinCodeBanner } from '@/components/classroom/JoinCodeBanner';
-import { DeleteConfirmModal } from '@/components/classroom/DeleteConfirmModal';
+import { CreateAssignmentModal } from '@/components/assignments/CreateAssignmentModal';
 import styles from '@/components/classroom/Dashboard.module.css';
+import { DeleteConfirmModal } from '@/components/classroom/DeleteConfirmModal';
+import { JoinCodeBanner } from '@/components/classroom/JoinCodeBanner';
 
 interface Props {
   courseId: string;
@@ -13,6 +14,7 @@ export function CoursePage({ courseId }: Props) {
   const deleteCourse = useDeleteCourse();
   const [tab, setTab] = useState<'assignments' | 'students'>('assignments');
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
 
   if (courseQ.isLoading) return <div className={styles.container}>Loading course...</div>;
   if (courseQ.isError || !courseQ.data) {
@@ -34,7 +36,10 @@ export function CoursePage({ courseId }: Props) {
   return (
     <div className={styles.container}>
       <div style={{ marginBottom: 16 }}>
-        <a href="/dashboard" style={{ color: 'var(--text-secondary)', fontSize: 13, textDecoration: 'none' }}>
+        <a
+          href="/dashboard"
+          style={{ color: 'var(--text-secondary)', fontSize: 13, textDecoration: 'none' }}
+        >
           ← My Courses
         </a>
       </div>
@@ -80,14 +85,14 @@ export function CoursePage({ courseId }: Props) {
         <>
           {isInstructor && (
             <div style={{ marginBottom: 16 }}>
-              <a
-                href={`/courses/${courseId}#new-assignment`}
+              <button
+                type="button"
                 className={styles.ctaButton}
-                style={{ textDecoration: 'none', display: 'inline-block' }}
-                data-testid="new-assignment-link"
+                onClick={() => setAssignModalOpen(true)}
+                data-testid="new-assignment-button"
               >
-                + New Assignment (Plan 06)
-              </a>
+                + New Assignment
+              </button>
             </div>
           )}
           {assignments.length === 0 ? (
@@ -118,10 +123,24 @@ export function CoursePage({ courseId }: Props) {
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
-              <th style={{ textAlign: 'left', padding: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
+              <th
+                style={{
+                  textAlign: 'left',
+                  padding: 8,
+                  fontSize: 13,
+                  color: 'var(--text-secondary)',
+                }}
+              >
                 Student
               </th>
-              <th style={{ textAlign: 'left', padding: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
+              <th
+                style={{
+                  textAlign: 'left',
+                  padding: 8,
+                  fontSize: 13,
+                  color: 'var(--text-secondary)',
+                }}
+              >
                 Joined
               </th>
             </tr>
@@ -129,7 +148,9 @@ export function CoursePage({ courseId }: Props) {
           <tbody>
             {students.map((s) => (
               <tr key={s.student_id} style={{ borderBottom: '1px solid var(--border-default)' }}>
-                <td style={{ padding: 8, fontFamily: 'var(--font-mono)', fontSize: 12 }}>{s.student_id}</td>
+                <td style={{ padding: 8, fontFamily: 'var(--font-mono)', fontSize: 12 }}>
+                  {s.student_id}
+                </td>
                 <td style={{ padding: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
                   {new Date(s.joined_at).toLocaleString()}
                 </td>
@@ -147,6 +168,16 @@ export function CoursePage({ courseId }: Props) {
         onCancel={() => setDeleteOpen(false)}
         onConfirm={handleDelete}
         isDeleting={deleteCourse.isPending}
+      />
+
+      <CreateAssignmentModal
+        courseId={courseId}
+        isOpen={assignModalOpen}
+        onClose={() => setAssignModalOpen(false)}
+        onCreated={(id) => {
+          setAssignModalOpen(false);
+          /* stay on CoursePage — useCourse invalidates */
+        }}
       />
     </div>
   );
