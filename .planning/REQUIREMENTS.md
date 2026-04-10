@@ -57,9 +57,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Live Simulation Overlay
 
-- [ ] **LIVE-01**: After simulation completes, node voltages display inline on the schematic at each net
-- [ ] **LIVE-02**: After simulation completes, component current and power display on each component
-- [ ] **LIVE-03**: Live overlay values update automatically when the user re-runs simulation
+- [x] **LIVE-01**: After simulation completes, node voltages display inline on the schematic at each net
+- [x] **LIVE-02**: After simulation completes, component current and power display on each component
+- [x] **LIVE-03**: Live overlay values update automatically when the user re-runs simulation
 
 ### Cloud and Accounts
 
@@ -76,9 +76,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Export
 
-- [ ] **EXP-01**: User can export the schematic as a PNG or SVG image
-- [ ] **EXP-02**: User can export simulation waveforms as PNG or CSV data
-- [ ] **EXP-03**: User can export the underlying SPICE netlist as a .cir / .net file
+- [x] **EXP-01**: User can export the schematic as a PNG or SVG image
+- [x] **EXP-02**: User can export simulation waveforms as PNG or CSV data
+- [x] **EXP-03**: User can export the underlying SPICE netlist as a .cir / .net file
 
 ## v2 Requirements
 
@@ -183,9 +183,9 @@ Deferred to v2. Tracked but not in current roadmap.
 | WAVE-04 | Phase 1 — Core Simulator | Complete |
 | WAVE-05 | Phase 1 — Core Simulator | Complete |
 | WAVE-06 | Phase 1 — Core Simulator | Complete |
-| LIVE-01 | Phase 2 — Cloud and Compatibility | Pending |
-| LIVE-02 | Phase 2 — Cloud and Compatibility | Pending |
-| LIVE-03 | Phase 2 — Cloud and Compatibility | Pending |
+| LIVE-01 | Phase 2 — Cloud and Compatibility | Complete |
+| LIVE-02 | Phase 2 — Cloud and Compatibility | Complete |
+| LIVE-03 | Phase 2 — Cloud and Compatibility | Complete |
 | CLOUD-01 | Phase 2 — Cloud and Compatibility | Complete |
 | CLOUD-02 | Phase 2 — Cloud and Compatibility | Pending |
 | CLOUD-03 | Phase 2 — Cloud and Compatibility | Pending |
@@ -193,9 +193,9 @@ Deferred to v2. Tracked but not in current roadmap.
 | CLOUD-05 | Phase 2 — Cloud and Compatibility | Pending |
 | LTSP-01 | Phase 2 — Cloud and Compatibility | Pending |
 | LTSP-02 | Phase 2 — Cloud and Compatibility | Pending |
-| EXP-01 | Phase 2 — Cloud and Compatibility | Pending |
-| EXP-02 | Phase 2 — Cloud and Compatibility | Pending |
-| EXP-03 | Phase 2 — Cloud and Compatibility | Pending |
+| EXP-01 | Phase 2 — Cloud and Compatibility | Complete |
+| EXP-02 | Phase 2 — Cloud and Compatibility | Complete |
+| EXP-03 | Phase 2 — Cloud and Compatibility | Complete |
 
 **Coverage:**
 - v1 requirements: 47 total

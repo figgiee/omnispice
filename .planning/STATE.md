@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-cloud-and-compatibility/02-01-PLAN.md
-last_updated: "2026-04-10T05:46:06.057Z"
+stopped_at: Completed 02-cloud-and-compatibility/02-02-PLAN.md
+last_updated: "2026-04-10T06:01:04.437Z"
 last_activity: 2026-04-10
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 13
-  completed_plans: 9
+  completed_plans: 10
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 ## Current Position
 
 Phase: 01 (core-simulator) — EXECUTING
-Plan: 5 of 8
+Plan: 6 of 8
 Status: Ready to execute
 Last activity: 2026-04-10
 
@@ -56,6 +56,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P07 | 8min | 2 tasks | 8 files |
 | Phase 01-core-simulator P08 | 90 | 3 tasks | 27 files |
 | Phase 02-cloud-and-compatibility P01 | 12 | 2 tasks | 9 files |
+| Phase 02-cloud-and-compatibility P02-02 | session | 3 tasks | 22 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,7 @@ Recent decisions affecting current work:
 - [Phase 01-core-simulator]: Test files excluded from tsconfig for build; vitest handles test type checking independently
 - [Phase 02-cloud-and-compatibility]: Use Clerk v6 Show component instead of removed SignedIn/SignedOut for auth-gated rendering
 - [Phase 02-cloud-and-compatibility]: Pin html-to-image to 1.11.13 via pnpm overrides; SignInButton mode=modal keeps user on canvas
+- [Phase 02-cloud-and-compatibility]: overlayStore uses Record<string,number> not Map; branchCurrents key lookup uses toLowerCase() to match ngspice output; html-to-image pinned to 1.11.13 for React Flow export compatibility
 
 ### Pending Todos
 
@@ -89,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-10T05:46:06.055Z
-Stopped at: Completed 02-cloud-and-compatibility/02-01-PLAN.md
+Last session: 2026-04-10T06:01:04.435Z
+Stopped at: Completed 02-cloud-and-compatibility/02-02-PLAN.md
 Resume file: None
