@@ -7,6 +7,7 @@ import { classroomRouter } from './routes/classroom';
 import { meRouter } from './routes/me';
 import { assignmentsRouter } from './routes/assignments';
 import { submissionsRouter } from './routes/submissions';
+import { labsRouter } from './routes/labs';
 import { ltiRouter } from './routes/lti';
 import { ltiAdminRouter } from './routes/ltiAdmin';
 import { scheduled } from './scheduled';
@@ -44,6 +45,7 @@ app.use('/api/courses/*', clerkMiddleware());
 app.use('/api/me/*', clerkMiddleware());
 app.use('/api/assignments/*', clerkMiddleware());
 app.use('/api/submissions/*', clerkMiddleware());
+app.use('/api/labs/*', clerkMiddleware());
 app.use('/api/lti/*', clerkMiddleware());
 
 // Route registration
@@ -53,6 +55,7 @@ app.route('/api/courses', classroomRouter);
 app.route('/api/me', meRouter);
 app.route('/api/assignments', assignmentsRouter);
 app.route('/api/submissions', submissionsRouter);
+app.route('/api/labs', labsRouter);
 app.route('/api/lti', ltiAdminRouter);
 
 // Health check (no auth)
