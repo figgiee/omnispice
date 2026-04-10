@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-06-PLAN.md
-last_updated: "2026-04-10T00:09:59.103Z"
+stopped_at: Completed 01-07-PLAN.md
+last_updated: "2026-04-10T00:11:30.470Z"
 last_activity: 2026-04-10
 progress:
   total_phases: 5
@@ -53,7 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 01 P05 | 3min | 1 tasks | 6 files |
-| Phase 01 P06 | 5min | 2 tasks | 11 files |
+| Phase 01 P07 | 8min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -67,8 +67,8 @@ Recent decisions affecting current work:
 - [Research]: ngspice pipe-mode vs shared-library API unresolved — must spike in Phase 1 week 1
 - [Phase 01]: Three separate Zustand stores (circuit, simulation, UI) to avoid monolithic state anti-pattern
 - [Phase 01]: zundo temporal middleware for undo/redo with 100-step limit and partialize
-- [Phase 01]: getSmoothStepPath with borderRadius:0 for immediate wire rendering; ELK as optional post-processing
-- [Phase 01]: Simulation run/cancel via CustomEvent dispatch for loose coupling until simulation store exists
+- [Phase 01]: uPlot lifecycle managed via React useEffect with ResizeObserver for responsive chart sizing
+- [Phase 01]: Measurement functions are pure math on Float64Array for testability; cursor state via React hooks not uPlot plugin
 
 ### Pending Todos
 
@@ -82,6 +82,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-10T00:09:59.100Z
-Stopped at: Completed 01-06-PLAN.md
+Last session: 2026-04-10T00:11:30.467Z
+Stopped at: Completed 01-07-PLAN.md
 Resume file: None
