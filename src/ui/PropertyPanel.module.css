@@ -1,0 +1,119 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.emptyState {
+  padding: var(--space-lg);
+  font-size: var(--font-size-body);
+  color: var(--text-muted);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  border-bottom: 1px solid var(--border-default);
+  background: var(--surface-primary);
+  flex-shrink: 0;
+}
+
+.refDesignator {
+  font-size: var(--font-size-heading);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.componentType {
+  font-size: var(--font-size-body);
+  color: var(--text-secondary);
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-lg);
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: 32px;
+}
+
+.label {
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.input {
+  height: 28px;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  font-size: var(--font-size-body);
+  font-family: var(--font-mono);
+  border-radius: 4px;
+  padding: 0 var(--space-sm);
+  outline: none;
+  flex: 1;
+}
+
+.input:focus {
+  border-color: var(--accent-primary);
+  border-width: 2px;
+}
+
+.readonlyValue {
+  font-size: var(--font-size-body);
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+}
+
+.parametersSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-xs);
+}
+
+.importSection {
+  padding: var(--space-sm) var(--space-lg);
+  border-top: 1px solid var(--border-subtle);
+  margin-top: auto;
+}
+
+.importBtn {
+  height: 28px;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  font-size: var(--font-size-label);
+  font-family: var(--font-body);
+  border-radius: 4px;
+  padding: 0 var(--space-sm);
+  cursor: pointer;
+  transition: background 100ms ease;
+}
+
+.importBtn:hover {
+  background: var(--surface-hover);
+}
