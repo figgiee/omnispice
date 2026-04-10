@@ -10,8 +10,8 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Schematic Editor
 
 - [ ] **SCHEM-01**: User can drag components from a library panel onto an infinite canvas
-- [ ] **SCHEM-02**: User can connect components with wires that snap to component pins and route with bends/junctions
-- [ ] **SCHEM-03**: User can select, move, rotate, copy, and delete components and wire segments
+- [x] **SCHEM-02**: User can connect components with wires that snap to component pins and route with bends/junctions
+- [x] **SCHEM-03**: User can select, move, rotate, copy, and delete components and wire segments
 - [ ] **SCHEM-04**: User can edit component values inline (resistance, capacitance, voltage, etc.) with a single click
 - [x] **SCHEM-05**: User can undo/redo all schematic edits
 - [x] **SCHEM-06**: User can pan and zoom the canvas with scroll wheel and trackpad gestures
@@ -151,8 +151,8 @@ Deferred to v2. Tracked but not in current roadmap.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | SCHEM-01 | Phase 1 — Core Simulator | Pending |
-| SCHEM-02 | Phase 1 — Core Simulator | Pending |
-| SCHEM-03 | Phase 1 — Core Simulator | Pending |
+| SCHEM-02 | Phase 1 — Core Simulator | Complete |
+| SCHEM-03 | Phase 1 — Core Simulator | Complete |
 | SCHEM-04 | Phase 1 — Core Simulator | Pending |
 | SCHEM-05 | Phase 1 — Core Simulator | Complete |
 | SCHEM-06 | Phase 1 — Core Simulator | Complete |

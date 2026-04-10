@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-05-PLAN.md
-last_updated: "2026-04-09T23:51:43.172Z"
-last_activity: 2026-04-09
+stopped_at: Completed 01-06-PLAN.md
+last_updated: "2026-04-10T00:09:59.103Z"
+last_activity: 2026-04-10
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 8
-  completed_plans: 3
+  completed_plans: 6
   percent: 0
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 ## Current Position
 
 Phase: 01 (core-simulator) — EXECUTING
-Plan: 2 of 8
+Plan: 3 of 8
 Status: Ready to execute
-Last activity: 2026-04-09
+Last activity: 2026-04-10
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 01 P05 | 3min | 1 tasks | 6 files |
+| Phase 01 P06 | 5min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -66,6 +67,8 @@ Recent decisions affecting current work:
 - [Research]: ngspice pipe-mode vs shared-library API unresolved — must spike in Phase 1 week 1
 - [Phase 01]: Three separate Zustand stores (circuit, simulation, UI) to avoid monolithic state anti-pattern
 - [Phase 01]: zundo temporal middleware for undo/redo with 100-step limit and partialize
+- [Phase 01]: getSmoothStepPath with borderRadius:0 for immediate wire rendering; ELK as optional post-processing
+- [Phase 01]: Simulation run/cancel via CustomEvent dispatch for loose coupling until simulation store exists
 
 ### Pending Todos
 
@@ -79,6 +82,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-09T23:51:43.170Z
-Stopped at: Completed 01-05-PLAN.md
+Last session: 2026-04-10T00:09:59.100Z
+Stopped at: Completed 01-06-PLAN.md
 Resume file: None
