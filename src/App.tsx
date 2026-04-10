@@ -5,6 +5,8 @@ import { AssignmentPage } from './pages/AssignmentPage';
 import { CoursePage } from './pages/CoursePage';
 import { Dashboard } from './pages/Dashboard';
 import { JoinCoursePage } from './pages/JoinCoursePage';
+import { LtiAdminPage } from './pages/LtiAdminPage';
+import { LtiBootstrapPage } from './pages/LtiBootstrapPage';
 import { SubmissionViewer } from './pages/SubmissionViewer';
 
 function App() {
@@ -21,6 +23,17 @@ function App() {
   const joinMatch = path.match(/^\/join\/([A-Za-z0-9]+)\/?$/);
   if (joinMatch?.[1]) {
     return <JoinCoursePage code={joinMatch[1].toUpperCase()} />;
+  }
+
+  // /lti/bootstrap — Phase 4 LMS-03 (LTI launch ticket redemption)
+  // Must match BEFORE /dashboard so LMS launches can't be shadowed.
+  if (path === '/lti/bootstrap' || path === '/lti/bootstrap/') {
+    return <LtiBootstrapPage />;
+  }
+
+  // /admin/lti — Phase 4 instructor-only LTI platform registry
+  if (path === '/admin/lti' || path === '/admin/lti/') {
+    return <LtiAdminPage />;
   }
 
   // /dashboard
