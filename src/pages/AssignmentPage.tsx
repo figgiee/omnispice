@@ -99,17 +99,7 @@ export function AssignmentPage({ assignmentId }: Props) {
             </div>
           </details>
         )}
-        <div
-          data-testid="instructor-submission-table-slot"
-          style={{
-            padding: 24,
-            background: 'var(--bg-elevated)',
-            borderRadius: 6,
-            color: 'var(--text-secondary)',
-          }}
-        >
-          Submission table is implemented in Plan 07.
-        </div>
+        <SubmissionTable assignmentId={assignmentId} />
       </div>
     );
   }
