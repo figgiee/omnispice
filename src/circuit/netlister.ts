@@ -5,17 +5,34 @@
  * Pure function -- no side effects, no UI dependencies.
  */
 
-import type { Circuit, Component, AnalysisConfig } from './types';
-import { computeNets, buildPortToNetMap } from './graph';
 import { COMPONENT_LIBRARY } from './componentLibrary';
+import { buildPortToNetMap, computeNets } from './graph';
+import type { AnalysisConfig, Circuit, Component } from './types';
+
+/**
+ * Generate netlist AND return the netId → spiceName map.
+ * Used by the simulation overlay to correlate port netIds with ngspice vector names.
+ * The netMap key is Net.id (e.g., "net_1", "gnd"); value is the SPICE name (e.g., "net_1", "0").
+ */
+export function generateNetlistWithMap(
+  circuit: Circuit,
+  config: AnalysisConfig,
+): { netlist: string; netMap: Map<string, string> } {
+  const nets = computeNets(circuit.components, circuit.wires);
+  // Build netId → spiceName map from the computed nets
+  const netMap = new Map<string, string>();
+  for (const net of nets.values()) {
+    netMap.set(net.id, net.name);
+  }
+  // Reuse existing generate logic (re-runs computeNets internally — acceptable for now)
+  const netlist = generateNetlist(circuit, config);
+  return { netlist, netMap };
+}
 
 /**
  * Generate a complete SPICE netlist from a circuit and analysis config.
  */
-export function generateNetlist(
-  circuit: Circuit,
-  config: AnalysisConfig
-): string {
+export function generateNetlist(circuit: Circuit, config: AnalysisConfig): string {
   const lines: string[] = ['* OmniSpice Generated Netlist'];
 
   // 1. Compute nets via union-find on connected ports
@@ -53,10 +70,7 @@ export function generateNetlist(
  * - Voltage sources: V1 net_1 0 dc 5
  * - Current sources: I1 net_1 0 dc 1m
  */
-export function componentToSpiceLine(
-  component: Component,
-  portToNet: Map<string, string>
-): string {
+export function componentToSpiceLine(component: Component, portToNet: Map<string, string>): string {
   const lib = COMPONENT_LIBRARY[component.type];
   if (!lib) return '';
 
@@ -64,9 +78,7 @@ export function componentToSpiceLine(
   const ref = component.refDesignator;
 
   // Get net names for each port
-  const netNames = component.ports.map(
-    (p) => portToNet.get(p.id) ?? '?'
-  );
+  const netNames = component.ports.map((p) => portToNet.get(p.id) ?? '?');
 
   switch (component.type) {
     // Passives: prefix ref node1 node2 value
