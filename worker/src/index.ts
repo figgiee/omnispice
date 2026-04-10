@@ -5,6 +5,8 @@ import { circuitsRouter } from './routes/circuits';
 import { shareRouter } from './routes/share';
 import { classroomRouter } from './routes/classroom';
 import { meRouter } from './routes/me';
+import { assignmentsRouter } from './routes/assignments';
+import { submissionsRouter } from './routes/submissions';
 
 export type Bindings = {
   DB: D1Database;
@@ -20,7 +22,7 @@ app.use(
   '*',
   cors({
     origin: ['http://localhost:5173', 'https://omnispice.app'],
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
   })
 );
@@ -29,12 +31,16 @@ app.use(
 app.use('/api/circuits/*', clerkMiddleware());
 app.use('/api/courses/*', clerkMiddleware());
 app.use('/api/me/*', clerkMiddleware());
+app.use('/api/assignments/*', clerkMiddleware());
+app.use('/api/submissions/*', clerkMiddleware());
 
 // Route registration
 app.route('/api/circuits', circuitsRouter);
 app.route('/api/share', shareRouter);
 app.route('/api/courses', classroomRouter);
 app.route('/api/me', meRouter);
+app.route('/api/assignments', assignmentsRouter);
+app.route('/api/submissions', submissionsRouter);
 
 // Health check (no auth)
 app.get('/health', (c) => c.json({ ok: true }));
