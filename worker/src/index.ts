@@ -8,6 +8,7 @@ import { meRouter } from './routes/me';
 import { assignmentsRouter } from './routes/assignments';
 import { submissionsRouter } from './routes/submissions';
 import { ltiRouter } from './routes/lti';
+import { ltiAdminRouter } from './routes/ltiAdmin';
 
 export type Bindings = {
   DB: D1Database;
@@ -42,6 +43,7 @@ app.use('/api/courses/*', clerkMiddleware());
 app.use('/api/me/*', clerkMiddleware());
 app.use('/api/assignments/*', clerkMiddleware());
 app.use('/api/submissions/*', clerkMiddleware());
+app.use('/api/lti/*', clerkMiddleware());
 
 // Route registration
 app.route('/api/circuits', circuitsRouter);
@@ -50,6 +52,7 @@ app.route('/api/courses', classroomRouter);
 app.route('/api/me', meRouter);
 app.route('/api/assignments', assignmentsRouter);
 app.route('/api/submissions', submissionsRouter);
+app.route('/api/lti', ltiAdminRouter);
 
 // Health check (no auth)
 app.get('/health', (c) => c.json({ ok: true }));

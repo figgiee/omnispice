@@ -1,15 +1,18 @@
 import { Hono } from 'hono';
+import { getToolPublicJwks } from '../lti/keys';
 import type { Bindings } from '../index';
 
 /**
  * LTI 1.3 router — Phase 4.
  *
- * Wave 0 (04-01) ships only the JWKS stub so Canvas/Moodle admins can
- * configure Public JWK URL during sandbox provisioning. The login/launch/
- * deeplink/ags endpoints land in 04-02.
+ * Mounts at /lti BEFORE any Clerk middleware so LMSes (which have no Clerk
+ * session at OIDC login / launch time) can reach these endpoints.
  *
- * IMPORTANT: this router is mounted at `/lti` BEFORE any Clerk middleware in
- * worker/src/index.ts. LMSes call these endpoints without a Clerk session.
+ * Endpoints (Wave 1, 04-02):
+ * - GET  /.well-known/jwks.json — tool public JWKS derived from env.LTI_PRIVATE_KEY
+ * - GET  /oidc/login            — third-party-initiated login → 302 to platform
+ * - POST /oidc/login            — same, some LMSes POST instead of GET
+ * - POST /launch                — verify id_token → mint Clerk ticket → HTML bootstrap
  */
 const lti = new Hono<{ Bindings: Bindings }>();
 
@@ -17,12 +20,18 @@ const lti = new Hono<{ Bindings: Bindings }>();
  * Tool JWKS. Serves the tool's public key so LMSes can verify
  * DeepLinkingResponse JWTs and AGS client_assertion JWTs.
  * Publicly callable — NO Clerk middleware.
- *
- * Wave 0 stub: returns an empty keys array. Plan 04-02 replaces this with
- * a JWK derived from `LTI_PRIVATE_KEY` at cold start, cached per-isolate.
  */
 lti.get('/.well-known/jwks.json', async (c) => {
-  return c.json({ keys: [] });
+  try {
+    const jwks = await getToolPublicJwks(c.env);
+    return c.json(jwks);
+  } catch (err) {
+    // If LTI_PRIVATE_KEY is not configured (e.g. before first wrangler secret put),
+    // return an empty JWKS rather than 500 so LMS admins can still fetch /jwks.json
+    // during tool registration.
+    console.error('[lti/jwks] Failed to derive public JWKS:', err);
+    return c.json({ keys: [] });
+  }
 });
 
 export { lti as ltiRouter };
