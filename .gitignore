@@ -16,8 +16,10 @@ coverage
 # Wrangler dev vars (worker-local secrets) — see worker/.dev.vars.example
 worker/.dev.vars
 
-# Playwright HTML report output
+# Playwright artifacts
 tests/e2e/report/
+test-results/
+playwright-report/
 
 # Editor
 .vscode
@@ -28,4 +30,3 @@ tests/e2e/report/
 # OS
 .DS_Store
 Thumbs.db
-.claude/worktrees/
