@@ -86,9 +86,9 @@ Plans:
 **Plans:** 7 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Wave 0: test infrastructure scaffold + marked/dompurify install + Clerk JWT template setup note
-- [ ] 03-02-PLAN.md — D1 migration 0002_classroom.sql + requireInstructor middleware + classroom.ts route (courses CRUD + join) + become-instructor endpoint
-- [ ] 03-03-PLAN.md — assignments.ts route (CRUD + starter R2 + submit + list) + submissions.ts route (get + blob proxy + grade PATCH)
+- [x] 03-01-PLAN.md — Wave 0: test infrastructure scaffold + marked/dompurify install + Clerk JWT template setup note
+- [x] 03-02-PLAN.md — D1 migration 0002_classroom.sql + requireInstructor middleware + classroom.ts route (courses CRUD + join) + become-instructor endpoint
+- [x] 03-03-PLAN.md — assignments.ts route (CRUD + starter R2 + submit + list) + submissions.ts route (get + blob proxy + grade PATCH)
 - [ ] 03-04-PLAN.md — classroomStore slice + useRole/useBecomeInstructor + classroomApi + 14 TanStack Query hooks + App.tsx router extension
 - [ ] 03-05-PLAN.md — Dashboard (role-aware) + CoursePage + JoinCoursePage + CreateCourseModal + UserMenu Become-Instructor toggle + DeleteConfirmModal
 - [ ] 03-06-PLAN.md — CreateAssignmentModal + classroom-mode editor integration (AssignmentPage student branch, ClassroomModeBar, SubmitAssignmentButton, RenderedInstructions via marked+DOMPurify)
