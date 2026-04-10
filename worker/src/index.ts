@@ -7,12 +7,16 @@ import { classroomRouter } from './routes/classroom';
 import { meRouter } from './routes/me';
 import { assignmentsRouter } from './routes/assignments';
 import { submissionsRouter } from './routes/submissions';
+import { ltiRouter } from './routes/lti';
 
 export type Bindings = {
   DB: D1Database;
   CIRCUIT_BUCKET: R2Bucket;
   CLERK_PUBLISHABLE_KEY: string;
   CLERK_SECRET_KEY: string;
+  // Phase 4 — LTI 1.3 tool keys
+  LTI_PRIVATE_KEY: string;   // PKCS8 PEM, via `wrangler secret put`
+  LTI_PUBLIC_KID: string;    // stable kid advertised in /lti/.well-known/jwks.json
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
@@ -26,6 +30,11 @@ app.use(
     allowHeaders: ['Content-Type', 'Authorization'],
   })
 );
+
+// LTI 1.3 endpoints — MUST be mounted BEFORE any Clerk middleware.
+// LMSes call /lti/* without a Clerk session; Clerk sessions are minted
+// *after* id_token verification during the launch flow (04-02).
+app.route('/lti', ltiRouter);
 
 // Clerk middleware on protected routes only
 app.use('/api/circuits/*', clerkMiddleware());

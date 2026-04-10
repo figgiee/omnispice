@@ -1,0 +1,29 @@
+{
+  "iss": "https://moodle.test.example.edu",
+  "aud": "moodle-client-id-0001",
+  "sub": "lti-sub-moodle-instructor-01",
+  "nonce": "moodle-nonce-fixture-01",
+  "iat": 1900000000,
+  "exp": 1900003600,
+  "name": "Test Instructor",
+  "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
+  "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiDeepLinkingRequest",
+  "https://purl.imsglobal.org/spec/lti/claim/deployment_id": "moodle-deployment-01",
+  "https://purl.imsglobal.org/spec/lti/claim/target_link_uri": "https://preview.omnispice.workers.dev/lti/launch",
+  "https://purl.imsglobal.org/spec/lti/claim/context": {
+    "id": "moodle-course-01",
+    "label": "ECE-210",
+    "title": "Signals & Systems"
+  },
+  "https://purl.imsglobal.org/spec/lti/claim/roles": [
+    "http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor"
+  ],
+  "https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings": {
+    "deep_link_return_url": "https://moodle.test.example.edu/mod/lti/return.php?sesskey=abc",
+    "accept_types": ["ltiResourceLink"],
+    "accept_presentation_document_targets": ["iframe", "window"],
+    "accept_media_types": "application/vnd.ims.lti.v1.ltilink",
+    "auto_create": false,
+    "accept_multiple": false
+  }
+}

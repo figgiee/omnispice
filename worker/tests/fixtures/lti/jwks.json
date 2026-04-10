@@ -1,0 +1,12 @@
+{
+  "keys": [
+    {
+      "kty": "RSA",
+      "n": "yRIvuBu-sswwdB_tk3B1cjEy4-oReCsrdoWLEqYcl16JrG9P6AtQr0XJzx8x2o4IytMeKX9UMSyhSeAm31l2o5lvQIezzyeJdz6TkmeiKFj2yzizp84VXliHOdUtU5sID-grnNk3ZyvNYrdGl7m_PRKDHIZRR32FoUndRhVG9WJzRRXUREsxiHpUC2QonnKCYyRL5fh2XHVDfC4ZupxDuSKY8lLfkgNyAwwHBfe75gekvFYRz7aN2evkYAVyYT-4EZ7mnGPzcoBbvKG5t9VR7DKa5FktxNn-EjdQHhd2gnHYxnHUKUhqjkU9c-GtD_Uc2Bt1ewPcn5nVCWUd5ig_Aw",
+      "e": "AQAB",
+      "kid": "mock-platform-2026",
+      "use": "sig",
+      "alg": "RS256"
+    }
+  ]
+}
