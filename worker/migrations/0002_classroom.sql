@@ -1,21 +1,7 @@
--- OmniSpice D1 schema
--- Run via: wrangler d1 migrations apply omnispice-db --local
+-- OmniSpice classroom schema (Phase 3)
+-- Run via: pnpm exec wrangler d1 migrations apply omnispice-db --local
+-- Per D-04..D-07, D-36 in .planning/phases/03-classroom-features/03-CONTEXT.md
 
-CREATE TABLE IF NOT EXISTS circuits (
-  id TEXT PRIMARY KEY,
-  user_id TEXT NOT NULL,
-  name TEXT NOT NULL DEFAULT 'Untitled Circuit',
-  description TEXT,
-  share_token TEXT UNIQUE,
-  r2_key TEXT NOT NULL,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
-);
-
-CREATE INDEX IF NOT EXISTS idx_circuits_user_id ON circuits(user_id);
-CREATE INDEX IF NOT EXISTS idx_circuits_share_token ON circuits(share_token);
-
--- Classroom schema (Phase 3)
 CREATE TABLE IF NOT EXISTS courses (
   id TEXT PRIMARY KEY,
   instructor_id TEXT NOT NULL,
