@@ -217,8 +217,8 @@ Deferred to v2. Tracked but not in current roadmap.
 | LAB-01 | Phase 4 — Institutional Features | v2 |
 | LAB-02 | Phase 4 — Institutional Features | Completed (04-04) |
 | LAB-03 | Phase 4 — Institutional Features | Completed (04-04) |
-| RPT-01 | Phase 4 — Institutional Features | v2 |
-| RPT-02 | Phase 4 — Institutional Features | v2 |
+| RPT-01 | Phase 4 — Institutional Features | Completed (04-06) |
+| RPT-02 | Phase 4 — Institutional Features | Completed (04-06) |
 | COLLAB-01 | Phase 5 — Collaboration and Polish | v2 |
 | COLLAB-02 | Phase 5 — Collaboration and Polish | v2 |
 | COLLAB-03 | Phase 5 — Collaboration and Polish | v2 |
