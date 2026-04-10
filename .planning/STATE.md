@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-04-PLAN.md
-last_updated: "2026-04-10T10:17:21.965Z"
+stopped_at: Completed 04-03-PLAN.md
+last_updated: "2026-04-10T10:19:40.663Z"
 last_activity: 2026-04-10
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 26
-  completed_plans: 23
+  completed_plans: 24
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 ## Current Position
 
 Phase: 04 (institutional-features) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 Status: Ready to execute
 Last activity: 2026-04-10
 
@@ -65,6 +65,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04 P01 | 1h | 6 tasks | 40 files |
 | Phase 04-institutional-features P02 | 60min | 4 tasks | 22 files |
 | Phase 04-institutional-features P04 | 25min | 3 tasks | 15 files |
+| Phase 04-institutional-features P03 | 35min | 5 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -117,6 +118,9 @@ Recent decisions affecting current work:
 - [Phase 04-institutional-features]: [Phase 04]: waveformMatch maxAbs walks BOTH student AND reference grids to catch divergence spikes between reference samples; single-pass is insufficient
 - [Phase 04-institutional-features]: [Phase 04]: LabRunner is a standalone component (no Clerk/QueryClient deps) split from LabRunnerPage so tests can render it directly without provider wrappers
 - [Phase 04-institutional-features]: [Phase 04]: AC complex vectors stored as alternating (real,imag) Float64Array pairs; ac_gain_at evaluator computes magnitude via Math.hypot per frequency bin
+- [Phase 04-institutional-features]: [Phase 04]: Deep Linking response JWT uses setAudience([platformIss]) array form; launchId acts as capability token for pre-Clerk /lti/deeplink/response; per-course ownership check permissive when instructor_id undefined
+- [Phase 04-institutional-features]: [Phase 04]: AGS postScore Content-Type hardcoded in exactly one SCORE_CONTENT_TYPE constant; getPlatformToken cache is injectable Map; drainScoreRetryQueue backoff table in seconds; scheduled fans out via ctx.waitUntil
+- [Phase 04-institutional-features]: [Phase 04]: worker/src/index.ts default export refactored to {fetch: app.fetch, scheduled} for Workers module shape; existing tests still call app.fetch(req, env) against the object shape; mockPlatform 204 response bug (Response('') invalid) fixed to Response(null)
 
 ### Pending Todos
 
@@ -135,6 +139,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-10T10:17:07.290Z
-Stopped at: Completed 04-04-PLAN.md
+Last session: 2026-04-10T10:19:40.660Z
+Stopped at: Completed 04-03-PLAN.md
 Resume file: None
