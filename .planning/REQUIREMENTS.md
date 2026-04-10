@@ -64,10 +64,10 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Cloud and Accounts
 
 - [x] **CLOUD-01**: User can create an account with email and password
-- [ ] **CLOUD-02**: User session persists across browser refresh
-- [ ] **CLOUD-03**: User can save circuits to cloud storage and see a list of saved circuits
-- [ ] **CLOUD-04**: User can share a circuit via a read-only link that opens in any browser without login
-- [ ] **CLOUD-05**: User can duplicate any circuit (own or shared) to their own workspace
+- [x] **CLOUD-02**: User session persists across browser refresh
+- [x] **CLOUD-03**: User can save circuits to cloud storage and see a list of saved circuits
+- [x] **CLOUD-04**: User can share a circuit via a read-only link that opens in any browser without login
+- [x] **CLOUD-05**: User can duplicate any circuit (own or shared) to their own workspace
 
 ### LTspice Compatibility
 
@@ -187,10 +187,10 @@ Deferred to v2. Tracked but not in current roadmap.
 | LIVE-02 | Phase 2 — Cloud and Compatibility | Complete |
 | LIVE-03 | Phase 2 — Cloud and Compatibility | Complete |
 | CLOUD-01 | Phase 2 — Cloud and Compatibility | Complete |
-| CLOUD-02 | Phase 2 — Cloud and Compatibility | Pending |
-| CLOUD-03 | Phase 2 — Cloud and Compatibility | Pending |
-| CLOUD-04 | Phase 2 — Cloud and Compatibility | Pending |
-| CLOUD-05 | Phase 2 — Cloud and Compatibility | Pending |
+| CLOUD-02 | Phase 2 — Cloud and Compatibility | Complete |
+| CLOUD-03 | Phase 2 — Cloud and Compatibility | Complete |
+| CLOUD-04 | Phase 2 — Cloud and Compatibility | Complete |
+| CLOUD-05 | Phase 2 — Cloud and Compatibility | Complete |
 | LTSP-01 | Phase 2 — Cloud and Compatibility | Pending |
 | LTSP-02 | Phase 2 — Cloud and Compatibility | Pending |
 | EXP-01 | Phase 2 — Cloud and Compatibility | Complete |

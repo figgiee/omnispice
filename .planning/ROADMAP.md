@@ -64,7 +64,7 @@ Plans:
 Plans:
 - [x] 02-01-PLAN.md — Auth UI: Clerk integration, ClerkProvider, SignIn modal, UserMenu in toolbar
 - [x] 02-02-PLAN.md — Export (PNG, CSV, netlist) + live simulation overlay (overlayStore, useOverlaySync)
-- [ ] 02-03-PLAN.md — Backend API: Cloudflare Worker + Hono, D1 schema, R2 storage, circuit CRUD, share tokens
+- [x] 02-03-PLAN.md — Backend API: Cloudflare Worker + Hono, D1 schema, R2 storage, circuit CRUD, share tokens
 - [ ] 02-04-PLAN.md — Cloud UI: save button, circuit dashboard, share modal, shared circuit viewer
 - [ ] 02-05-PLAN.md — LTspice .asc importer: parser, mapper, ImportMenu toolbar component
 
