@@ -12,6 +12,7 @@ coverage
 
 # Local env files
 *.local
+.env
 
 # Editor
 .vscode
