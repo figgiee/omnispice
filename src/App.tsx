@@ -9,6 +9,7 @@ import { JoinCoursePage } from './pages/JoinCoursePage';
 import { LabRunnerPage } from './pages/LabRunnerPage';
 import { LtiAdminPage } from './pages/LtiAdminPage';
 import { LtiBootstrapPage } from './pages/LtiBootstrapPage';
+import { ReportPreviewPage } from './pages/ReportPreviewPage';
 import { SubmissionViewer } from './pages/SubmissionViewer';
 
 function App() {
@@ -79,6 +80,12 @@ function App() {
   const labRunMatch = path.match(/^\/labs\/([a-zA-Z0-9-]+)\/run\/?$/);
   if (labRunMatch?.[1]) {
     return <LabRunnerPage labId={labRunMatch[1]} />;
+  }
+
+  // /reports/:submissionId — Phase 4 RPT-01/RPT-02 (lab report export)
+  const reportMatch = path.match(/^\/reports\/([a-zA-Z0-9_-]+)\/?$/);
+  if (reportMatch?.[1]) {
+    return <ReportPreviewPage submissionId={reportMatch[1]} />;
   }
 
   return <Layout />;
