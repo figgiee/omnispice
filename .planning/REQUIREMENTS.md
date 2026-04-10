@@ -48,12 +48,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Waveform Viewer
 
-- [ ] **WAVE-01**: Simulation results display in a waveform panel with time-domain plots for transient analysis
-- [ ] **WAVE-02**: AC analysis results display as Bode plots (magnitude and phase vs frequency)
-- [ ] **WAVE-03**: User can toggle signal visibility and assign colors to individual signals
-- [ ] **WAVE-04**: User can zoom and pan within the waveform view
-- [ ] **WAVE-05**: User can place cursors and read exact values at any point on the waveform
-- [ ] **WAVE-06**: Auto-measurements overlay on waveform (Vpp, frequency, RMS, rise time) with one click
+- [x] **WAVE-01**: Simulation results display in a waveform panel with time-domain plots for transient analysis
+- [x] **WAVE-02**: AC analysis results display as Bode plots (magnitude and phase vs frequency)
+- [x] **WAVE-03**: User can toggle signal visibility and assign colors to individual signals
+- [x] **WAVE-04**: User can zoom and pan within the waveform view
+- [x] **WAVE-05**: User can place cursors and read exact values at any point on the waveform
+- [x] **WAVE-06**: Auto-measurements overlay on waveform (Vpp, frequency, RMS, rise time) with one click
 
 ### Live Simulation Overlay
 
@@ -177,12 +177,12 @@ Deferred to v2. Tracked but not in current roadmap.
 | ERR-02 | Phase 1 — Core Simulator | Complete |
 | ERR-03 | Phase 1 — Core Simulator | Complete |
 | ERR-04 | Phase 1 — Core Simulator | Complete |
-| WAVE-01 | Phase 1 — Core Simulator | Pending |
-| WAVE-02 | Phase 1 — Core Simulator | Pending |
-| WAVE-03 | Phase 1 — Core Simulator | Pending |
-| WAVE-04 | Phase 1 — Core Simulator | Pending |
-| WAVE-05 | Phase 1 — Core Simulator | Pending |
-| WAVE-06 | Phase 1 — Core Simulator | Pending |
+| WAVE-01 | Phase 1 — Core Simulator | Complete |
+| WAVE-02 | Phase 1 — Core Simulator | Complete |
+| WAVE-03 | Phase 1 — Core Simulator | Complete |
+| WAVE-04 | Phase 1 — Core Simulator | Complete |
+| WAVE-05 | Phase 1 — Core Simulator | Complete |
+| WAVE-06 | Phase 1 — Core Simulator | Complete |
 | LIVE-01 | Phase 2 — Cloud and Compatibility | Pending |
 | LIVE-02 | Phase 2 — Cloud and Compatibility | Pending |
 | LIVE-03 | Phase 2 — Cloud and Compatibility | Pending |
