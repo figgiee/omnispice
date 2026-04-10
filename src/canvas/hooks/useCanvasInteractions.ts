@@ -1,0 +1,166 @@
+/**
+ * Canvas interaction handlers and keyboard shortcuts.
+ *
+ * Registers all keyboard shortcuts per UI-SPEC Keyboard Shortcuts table
+ * using react-hotkeys-hook. Dispatches actions to circuitStore and uiStore.
+ */
+
+import { useCallback, useRef } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
+import { useReactFlow } from '@xyflow/react';
+import { useCircuitStore } from '@/store/circuitStore';
+import { useUiStore } from '@/store/uiStore';
+import type { Component } from '@/circuit/types';
+
+/**
+ * Hook that registers all canvas keyboard shortcuts and returns
+ * interaction state for the canvas component.
+ */
+export function useCanvasInteractions() {
+  const { zoomIn, zoomOut, fitView } = useReactFlow();
+
+  // Circuit store actions
+  const removeComponent = useCircuitStore((s) => s.removeComponent);
+  const removeWire = useCircuitStore((s) => s.removeWire);
+  const rotateComponent = useCircuitStore((s) => s.rotateComponent);
+  const addComponents = useCircuitStore((s) => s.addComponents);
+
+  // UI store state and actions
+  const selectedComponentIds = useUiStore((s) => s.selectedComponentIds);
+  const selectedWireIds = useUiStore((s) => s.selectedWireIds);
+  const setSelectedComponentIds = useUiStore((s) => s.setSelectedComponentIds);
+  const setActiveTool = useUiStore((s) => s.setActiveTool);
+
+  // Internal clipboard for copy/paste
+  const clipboardRef = useRef<Component[]>([]);
+
+  // Delete selected components and wires (Delete / Backspace)
+  useHotkeys('delete, backspace', () => {
+    for (const id of selectedComponentIds) {
+      removeComponent(id);
+    }
+    for (const id of selectedWireIds) {
+      removeWire(id);
+    }
+    setSelectedComponentIds([]);
+  }, { preventDefault: true });
+
+  // Rotate selected components (R key) per D-09
+  useHotkeys('r', () => {
+    for (const id of selectedComponentIds) {
+      rotateComponent(id);
+    }
+  });
+
+  // Copy selected components (Ctrl+C) per D-05
+  useHotkeys('ctrl+c, meta+c', () => {
+    const circuit = useCircuitStore.getState().circuit;
+    const components: Component[] = [];
+    for (const id of selectedComponentIds) {
+      const comp = circuit.components.get(id);
+      if (comp) {
+        components.push(comp);
+      }
+    }
+    clipboardRef.current = components;
+  }, { preventDefault: true });
+
+  // Paste components offset by (20, 20) (Ctrl+V) per D-05
+  useHotkeys('ctrl+v, meta+v', () => {
+    if (clipboardRef.current.length === 0) return;
+
+    const newComponents: Component[] = clipboardRef.current.map((comp) => ({
+      ...comp,
+      id: crypto.randomUUID(),
+      position: {
+        x: comp.position.x + 20,
+        y: comp.position.y + 20,
+      },
+      ports: comp.ports.map((port) => ({
+        ...port,
+        id: crypto.randomUUID(),
+        netId: null,
+      })),
+    }));
+
+    addComponents(newComponents);
+    setSelectedComponentIds(newComponents.map((c) => c.id));
+
+    // Update clipboard to point at pasted components for subsequent pastes
+    clipboardRef.current = newComponents;
+  }, { preventDefault: true });
+
+  // Undo (Ctrl+Z)
+  useHotkeys('ctrl+z, meta+z', () => {
+    useCircuitStore.temporal.getState().undo();
+  }, { preventDefault: true });
+
+  // Redo (Ctrl+Shift+Z or Ctrl+Y)
+  useHotkeys('ctrl+shift+z, meta+shift+z, ctrl+y, meta+y', () => {
+    useCircuitStore.temporal.getState().redo();
+  }, { preventDefault: true });
+
+  // Select all (Ctrl+A)
+  useHotkeys('ctrl+a, meta+a', () => {
+    const circuit = useCircuitStore.getState().circuit;
+    const allIds = Array.from(circuit.components.keys());
+    setSelectedComponentIds(allIds);
+  }, { preventDefault: true });
+
+  // Wire tool (W key)
+  useHotkeys('w', () => {
+    setActiveTool('wire');
+  });
+
+  // Select tool (V key or Escape)
+  useHotkeys('v, escape', () => {
+    setActiveTool('select');
+  });
+
+  // Zoom in (Ctrl+=)
+  useHotkeys('ctrl+=, meta+=', () => {
+    zoomIn();
+  }, { preventDefault: true });
+
+  // Zoom out (Ctrl+-)
+  useHotkeys('ctrl+-, meta+-', () => {
+    zoomOut();
+  }, { preventDefault: true });
+
+  // Fit view (Ctrl+0)
+  useHotkeys('ctrl+0, meta+0', () => {
+    fitView();
+  }, { preventDefault: true });
+
+  // Run simulation (F5)
+  useHotkeys('f5', () => {
+    // Emit simulation run event (handled by simulation orchestration in future plans)
+    window.dispatchEvent(new CustomEvent('omnispice:run-simulation'));
+  }, { preventDefault: true });
+
+  // Cancel simulation (Ctrl+.)
+  useHotkeys('ctrl+., meta+.', () => {
+    window.dispatchEvent(new CustomEvent('omnispice:cancel-simulation'));
+  }, { preventDefault: true });
+
+  // Command palette (Ctrl+K)
+  useHotkeys('ctrl+k, meta+k', () => {
+    window.dispatchEvent(new CustomEvent('omnispice:open-command-palette'));
+  }, { preventDefault: true });
+
+  // Keyboard shortcut help overlay (? key)
+  useHotkeys('shift+/', () => {
+    window.dispatchEvent(new CustomEvent('omnispice:toggle-shortcut-help'));
+  });
+
+  /** Handle drag-over for component placement from sidebar. */
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  return {
+    clipboardCount: clipboardRef.current.length,
+    onDragOver,
+  };
+}
