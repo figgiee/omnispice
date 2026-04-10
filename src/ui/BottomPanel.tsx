@@ -8,14 +8,14 @@
  */
 
 import { useEffect } from 'react';
+import type { SimulationController } from '@/simulation/controller';
 import { useSimulationStore } from '@/store/simulationStore';
 import { useUiStore } from '@/store/uiStore';
-import { ErrorPanel } from './ErrorPanel';
-import { WaveformViewer } from '@/waveform/WaveformViewer';
 import { BodePlot } from '@/waveform/BodePlot';
-import { PropertyPanel } from './PropertyPanel';
-import type { SimulationController } from '@/simulation/controller';
+import { WaveformViewer } from '@/waveform/WaveformViewer';
 import styles from './BottomPanel.module.css';
+import { ErrorPanel } from './ErrorPanel';
+import { PropertyPanel } from './PropertyPanel';
 
 interface BottomPanelProps {
   controller: SimulationController | null;
@@ -64,7 +64,7 @@ export function BottomPanel({ controller }: BottomPanelProps) {
   const errorCount = errors.length + validationErrors.length;
 
   return (
-    <div className={styles.panel}>
+    <div className={styles.panel} data-testid="bottom-panel">
       {/* Tab bar */}
       <div className={styles.tabBar} role="tablist">
         {TABS.map((tab) => (
@@ -87,12 +87,8 @@ export function BottomPanel({ controller }: BottomPanelProps) {
       {/* Tab content */}
       <div className={styles.content}>
         {bottomTab === 'errors' && <ErrorPanel />}
-        {bottomTab === 'waveform' && (
-          isAcAnalysis ? <BodePlot /> : <WaveformViewer />
-        )}
-        {bottomTab === 'properties' && (
-          <PropertyPanel controller={controller} />
-        )}
+        {bottomTab === 'waveform' && (isAcAnalysis ? <BodePlot /> : <WaveformViewer />)}
+        {bottomTab === 'properties' && <PropertyPanel controller={controller} />}
       </div>
     </div>
   );

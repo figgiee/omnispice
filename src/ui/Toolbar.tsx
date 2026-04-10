@@ -28,7 +28,7 @@ export function Toolbar({ controller }: ToolbarProps) {
   };
 
   return (
-    <div className={styles.toolbar}>
+    <div className={styles.toolbar} data-testid="toolbar">
       {/* Left group: Logo + Undo/Redo */}
       <div className={styles.group}>
         <div className={styles.logo} aria-label="OmniSpice">

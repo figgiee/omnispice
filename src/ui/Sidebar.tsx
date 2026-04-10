@@ -9,14 +9,14 @@
  * - Ctrl+K global shortcut to focus search
  */
 
-import { useRef, useState, useEffect, useCallback } from 'react';
 import { Command } from 'cmdk';
-import { ChevronLeft, ChevronRight, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { COMPONENT_LIBRARY } from '@/circuit/componentLibrary';
-import { useUiStore } from '@/store/uiStore';
-import type { ComponentType } from '@/circuit/types';
 import type { ComponentDefinition } from '@/circuit/componentLibrary';
+import { COMPONENT_LIBRARY } from '@/circuit/componentLibrary';
+import type { ComponentType } from '@/circuit/types';
+import { useUiStore } from '@/store/uiStore';
 import styles from './Sidebar.module.css';
 
 /** MIME type for drag-and-drop component transfers to canvas. */
@@ -36,7 +36,10 @@ function groupByCategory(): Record<string, { type: ComponentType; def: Component
   for (const category of CATEGORIES) {
     groups[category.key] = [];
   }
-  for (const [type, def] of Object.entries(COMPONENT_LIBRARY) as [ComponentType, ComponentDefinition][]) {
+  for (const [type, def] of Object.entries(COMPONENT_LIBRARY) as [
+    ComponentType,
+    ComponentDefinition,
+  ][]) {
     if (groups[def.category]) {
       groups[def.category]!.push({ type, def });
     }
@@ -162,8 +165,12 @@ function ComponentIcon({ type }: { type: ComponentType }) {
           <line x1="0" y1="7" x2="3" y2="7" />
           <line x1="0" y1="13" x2="3" y2="13" />
           <line x1="17" y1="10" x2="20" y2="10" />
-          <text x="5" y="9" fontSize="3" fill="currentColor" stroke="none">+</text>
-          <text x="5" y="15" fontSize="3" fill="currentColor" stroke="none">−</text>
+          <text x="5" y="9" fontSize="3" fill="currentColor" stroke="none">
+            +
+          </text>
+          <text x="5" y="15" fontSize="3" fill="currentColor" stroke="none">
+            −
+          </text>
         </svg>
       );
     case 'dc_voltage':
@@ -176,8 +183,12 @@ function ComponentIcon({ type }: { type: ComponentType }) {
           <circle cx="10" cy="10" r="7" />
           <line x1="10" y1="0" x2="10" y2="3" />
           <line x1="10" y1="17" x2="10" y2="20" />
-          <text x="10" y="9" textAnchor="middle" fontSize="4" fill="currentColor" stroke="none">+</text>
-          <text x="10" y="14" textAnchor="middle" fontSize="4" fill="currentColor" stroke="none">−</text>
+          <text x="10" y="9" textAnchor="middle" fontSize="4" fill="currentColor" stroke="none">
+            +
+          </text>
+          <text x="10" y="14" textAnchor="middle" fontSize="4" fill="currentColor" stroke="none">
+            −
+          </text>
         </svg>
       );
     case 'dc_current':
@@ -221,16 +232,20 @@ export function Sidebar() {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Ctrl+K: focus search input (per UI-SPEC Keyboard Shortcuts)
-  useHotkeys('ctrl+k, meta+k', (e) => {
-    e.preventDefault();
-    if (sidebarCollapsed) {
-      toggleSidebar();
-    }
-    // Small delay to let sidebar expand before focusing
-    setTimeout(() => {
-      searchInputRef.current?.focus();
-    }, 50);
-  }, { preventDefault: true });
+  useHotkeys(
+    'ctrl+k, meta+k',
+    (e) => {
+      e.preventDefault();
+      if (sidebarCollapsed) {
+        toggleSidebar();
+      }
+      // Small delay to let sidebar expand before focusing
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 50);
+    },
+    { preventDefault: true },
+  );
 
   // Also listen for the custom event emitted by canvas interactions
   useEffect(() => {
@@ -246,14 +261,11 @@ export function Sidebar() {
     return () => window.removeEventListener('omnispice:open-command-palette', handler);
   }, [sidebarCollapsed, toggleSidebar]);
 
-  const handleDragStart = useCallback(
-    (event: React.DragEvent, type: ComponentType) => {
-      event.dataTransfer.setData(DND_MIME_TYPE, type);
-      event.dataTransfer.effectAllowed = 'move';
-      setDraggingType(type);
-    },
-    []
-  );
+  const handleDragStart = useCallback((event: React.DragEvent, type: ComponentType) => {
+    event.dataTransfer.setData(DND_MIME_TYPE, type);
+    event.dataTransfer.effectAllowed = 'move';
+    setDraggingType(type);
+  }, []);
 
   const handleDragEnd = useCallback(() => {
     setDraggingType(null);
@@ -278,12 +290,15 @@ export function Sidebar() {
         (def) =>
           def.name.toLowerCase().includes(searchLower) ||
           def.type.toLowerCase().includes(searchLower) ||
-          def.category.toLowerCase().includes(searchLower)
+          def.category.toLowerCase().includes(searchLower),
       )
     : null;
 
   return (
-    <div className={`${styles.sidebar} ${sidebarCollapsed ? styles.collapsed : ''}`}>
+    <div
+      className={`${styles.sidebar} ${sidebarCollapsed ? styles.collapsed : ''}`}
+      data-testid="sidebar"
+    >
       {/* Collapse toggle */}
       <button
         type="button"
@@ -329,9 +344,7 @@ export function Sidebar() {
           // Search results view
           <>
             {filteredComponents.length === 0 ? (
-              <div className={styles.noResults}>
-                No components match &ldquo;{search}&rdquo;
-              </div>
+              <div className={styles.noResults}>No components match &ldquo;{search}&rdquo;</div>
             ) : (
               filteredComponents.map(({ type, name }) => (
                 <ComponentItem
@@ -365,11 +378,7 @@ export function Sidebar() {
                   {!sidebarCollapsed && (
                     <>
                       <span className={styles.categoryLabel}>{label}</span>
-                      {isCategoryCollapsed ? (
-                        <ChevronDown size={12} />
-                      ) : (
-                        <ChevronUp size={12} />
-                      )}
+                      {isCategoryCollapsed ? <ChevronDown size={12} /> : <ChevronUp size={12} />}
                     </>
                   )}
                 </button>
@@ -427,9 +436,7 @@ function ComponentItem({
       <span className={styles.componentIcon}>
         <ComponentIcon type={type} />
       </span>
-      {!collapsed && (
-        <span className={styles.componentName}>{name}</span>
-      )}
+      {!collapsed && <span className={styles.componentName}>{name}</span>}
     </div>
   );
 }

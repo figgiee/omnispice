@@ -210,6 +210,7 @@ export function SimulationControls({ controller }: SimulationControlsProps) {
         disabled={isBusy}
         title={isBusy ? undefined : 'Run Simulation (F5)'}
         aria-label="Run simulation"
+        data-testid="run-simulation-btn"
       >
         {!isBusy && <Play size={14} />}
         {isBusy && <span className={styles.spinner} />}
