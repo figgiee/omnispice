@@ -9,9 +9,11 @@
  */
 
 import { RotateCcw, RotateCw } from 'lucide-react';
+import { ExportMenu } from '@/components/toolbar/ExportMenu';
 import { UserMenu } from '@/components/toolbar/UserMenu';
 import type { SimulationController } from '@/simulation/controller';
 import { useCircuitStore } from '@/store/circuitStore';
+import { OverlayToggle } from './OverlayToggle';
 import { SimulationControls } from './SimulationControls';
 import styles from './Toolbar.module.css';
 
@@ -68,9 +70,11 @@ export function Toolbar({ controller }: ToolbarProps) {
         </button>
       </div>
 
-      {/* Right group — future plans will add: OverlayToggle (02-02), SaveButton (02-04) */}
+      {/* Right group */}
       <div className={`${styles.group} ${styles.right}`}>
+        <OverlayToggle />
         <SimulationControls controller={controller} />
+        <ExportMenu />
         <UserMenu />
       </div>
     </div>

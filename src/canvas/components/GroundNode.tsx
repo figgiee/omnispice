@@ -1,4 +1,5 @@
-import { Handle, Position, type NodeProps } from '@xyflow/react';
+import { Handle, type NodeProps, Position } from '@xyflow/react';
+import { useOverlayStore } from '@/overlay/overlayStore';
 import styles from './ComponentNode.module.css';
 
 /**
@@ -7,11 +8,19 @@ import styles from './ComponentNode.module.css';
  * Maps to node 0 in SPICE.
  */
 export function GroundNode({ data, selected }: NodeProps) {
+  const { isVisible, nodeVoltages } = useOverlayStore();
+  // Ground is always node 0 in SPICE; show "0 V" when any simulation data exists
+  const hasData = Object.keys(nodeVoltages).length > 0;
+
   return (
     <div
       className={styles.node}
       data-selected={selected}
-      style={{ '--node-rotation': `${(data as Record<string, unknown>).rotation as number ?? 0}deg` } as React.CSSProperties}
+      style={
+        {
+          '--node-rotation': `${((data as Record<string, unknown>).rotation as number) ?? 0}deg`,
+        } as React.CSSProperties
+      }
     >
       <svg viewBox="0 0 24 24" width={24} height={24}>
         {/* Vertical lead from top */}
@@ -21,6 +30,8 @@ export function GroundNode({ data, selected }: NodeProps) {
         <line x1={7} y1={14} x2={17} y2={14} stroke="var(--component-stroke)" strokeWidth={2} />
         <line x1={10} y1={20} x2={14} y2={20} stroke="var(--component-stroke)" strokeWidth={2} />
       </svg>
+
+      {isVisible && hasData && <span className={styles.overlayLabel}>0 V</span>}
 
       <Handle type="target" position={Position.Top} id="gnd" className={styles.pin} />
     </div>

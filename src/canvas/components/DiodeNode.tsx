@@ -1,7 +1,8 @@
-import { Handle, Position, type NodeProps } from '@xyflow/react';
+import { Handle, type NodeProps, Position } from '@xyflow/react';
+import { useOverlayStore } from '@/overlay/overlayStore';
+import styles from './ComponentNode.module.css';
 import type { CircuitNodeData } from './types';
 import { useValueEdit } from './useValueEdit';
-import styles from './ComponentNode.module.css';
 
 /**
  * Diode symbol: triangle pointing right + vertical bar.
@@ -12,6 +13,8 @@ export function DiodeNode({ data, selected }: NodeProps) {
   const nodeData = data as CircuitNodeData;
   const { isEditing, editValue, setEditValue, inputRef, startEditing, handleKeyDown } =
     useValueEdit(nodeData.value);
+  const { isVisible, branchCurrents } = useOverlayStore();
+  const current = branchCurrents[nodeData.refDesignator?.toLowerCase() ?? ''];
 
   const renderBar = () => {
     const diodeType = nodeData.type;
@@ -38,9 +41,7 @@ export function DiodeNode({ data, selected }: NodeProps) {
       );
     }
     // Standard diode: straight bar
-    return (
-      <line x1={32} y1={4} x2={32} y2={28} stroke="var(--component-stroke)" strokeWidth={2} />
-    );
+    return <line x1={32} y1={4} x2={32} y2={28} stroke="var(--component-stroke)" strokeWidth={2} />;
   };
 
   return (
@@ -56,7 +57,12 @@ export function DiodeNode({ data, selected }: NodeProps) {
         <line x1={0} y1={16} x2={8} y2={16} stroke="var(--component-stroke)" strokeWidth={2} />
         <line x1={32} y1={16} x2={40} y2={16} stroke="var(--component-stroke)" strokeWidth={2} />
         {/* Triangle */}
-        <path d="M8,4 L8,28 L32,16 Z" stroke="var(--component-stroke)" strokeWidth={2} fill="none" />
+        <path
+          d="M8,4 L8,28 L32,16 Z"
+          stroke="var(--component-stroke)"
+          strokeWidth={2}
+          fill="none"
+        />
         {/* Cathode bar (variant-specific) */}
         {renderBar()}
       </svg>
@@ -73,6 +79,12 @@ export function DiodeNode({ data, selected }: NodeProps) {
       ) : (
         <span className={styles.valueLabel} onClick={startEditing}>
           {nodeData.value}
+        </span>
+      )}
+
+      {isVisible && current !== undefined && (
+        <span className={styles.overlayLabel}>
+          {Math.abs(current) < 1 ? `${(current * 1000).toFixed(2)} mA` : `${current.toFixed(2)} A`}
         </span>
       )}
 

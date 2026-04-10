@@ -1,7 +1,8 @@
-import { Handle, Position, type NodeProps } from '@xyflow/react';
+import { Handle, type NodeProps, Position } from '@xyflow/react';
+import { useOverlayStore } from '@/overlay/overlayStore';
+import styles from './ComponentNode.module.css';
 import type { CircuitNodeData } from './types';
 import { useValueEdit } from './useValueEdit';
-import styles from './ComponentNode.module.css';
 
 /**
  * Inductor symbol: 4 arc loops (coil).
@@ -11,6 +12,8 @@ export function InductorNode({ data, selected }: NodeProps) {
   const nodeData = data as CircuitNodeData;
   const { isEditing, editValue, setEditValue, inputRef, startEditing, handleKeyDown } =
     useValueEdit(nodeData.value);
+  const { isVisible, branchCurrents } = useOverlayStore();
+  const current = branchCurrents[nodeData.refDesignator?.toLowerCase() ?? ''];
 
   return (
     <div
@@ -45,6 +48,12 @@ export function InductorNode({ data, selected }: NodeProps) {
       ) : (
         <span className={styles.valueLabel} onClick={startEditing}>
           {nodeData.value}
+        </span>
+      )}
+
+      {isVisible && current !== undefined && (
+        <span className={styles.overlayLabel}>
+          {Math.abs(current) < 1 ? `${(current * 1000).toFixed(2)} mA` : `${current.toFixed(2)} A`}
         </span>
       )}
 
