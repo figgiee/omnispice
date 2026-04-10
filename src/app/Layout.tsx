@@ -36,9 +36,11 @@ import {
 import { Canvas } from '@/canvas/Canvas';
 import { circuitToEdges, circuitToNodes } from '@/canvas/circuitToFlow';
 import type { CircuitNodeData } from '@/canvas/components/types';
+import { ClassroomModeBar } from '@/components/classroom/ClassroomModeBar';
 import { SimulationController } from '@/simulation/controller';
 import type { TranslatedError } from '@/simulation/errorTranslator';
 import { useCircuitStore } from '@/store/circuitStore';
+import { useClassroomStore } from '@/store/classroomStore';
 import { useSimulationStore } from '@/store/simulationStore';
 import { useUiStore } from '@/store/uiStore';
 import { BottomPanel } from '@/ui/BottomPanel';
@@ -72,6 +74,9 @@ function LayoutContent() {
   const sidebarCollapsed = useUiStore((s) => s.sidebarCollapsed);
   const toggleSidebar = useUiStore((s) => s.toggleSidebar);
   const setBottomTab = useUiStore((s) => s.setBottomTab);
+
+  const classroomMode = useClassroomStore((s) => s.classroomMode);
+  const activeAssignmentId = useClassroomStore((s) => s.activeAssignmentId);
 
   const circuit = useCircuitStore((s) => s.circuit);
 
@@ -181,6 +186,9 @@ function LayoutContent() {
 
   return (
     <div className={styles.layout}>
+      {classroomMode === 'student' && activeAssignmentId && (
+        <ClassroomModeBar assignmentId={activeAssignmentId} />
+      )}
       <Group orientation="horizontal" className={styles.outerGroup}>
         {/* Sidebar panel */}
         <Panel
