@@ -1,0 +1,12 @@
+# Copy to .dev.vars for local dev. Production values live in `wrangler secret put`.
+# worker/.dev.vars is gitignored — never commit real keys.
+
+# Clerk (Phase 2)
+CLERK_SECRET_KEY="sk_test_..."
+
+# LTI 1.3 tool keys (Phase 4)
+# Generate locally with:
+#   node -e "const c=require('crypto');const{privateKey}=c.generateKeyPairSync('rsa',{modulusLength:2048});console.log(privateKey.export({format:'pem',type:'pkcs8'}))"
+# The PEM MUST be on a single line with \n escapes for wrangler .dev.vars.
+LTI_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+LTI_PUBLIC_KID="omnispice-dev-2026"

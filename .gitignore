@@ -13,6 +13,8 @@ coverage
 # Local env files
 *.local
 .env
+# Wrangler dev vars (worker-local secrets) — see worker/.dev.vars.example
+worker/.dev.vars
 
 # Editor
 .vscode

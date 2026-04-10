@@ -16,3 +16,13 @@ bucket_name = "omnispice-circuits"
 CLERK_PUBLISHABLE_KEY = "pk_test_placeholder"
 # CLERK_SECRET_KEY must be set via: wrangler secret put CLERK_SECRET_KEY
 # Never put the secret key in wrangler.toml or version control.
+# Phase 4 — LTI 1.3 public key id (kid) advertised in /lti/.well-known/jwks.json.
+# Production value rotated via `wrangler secret put LTI_PUBLIC_KID` or by editing this block.
+LTI_PUBLIC_KID = "omnispice-prod-2026"
+# LTI_PRIVATE_KEY (PKCS8 PEM) MUST be set via: wrangler secret put LTI_PRIVATE_KEY
+# For local dev, copy worker/.dev.vars.example -> worker/.dev.vars.
+
+# Phase 4 — AGS score retry cron drain.
+# See worker/src/index.ts scheduled() handler + lti_score_log table.
+[triggers]
+crons = ["*/10 * * * *"]

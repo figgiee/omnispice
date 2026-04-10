@@ -1,73 +1,7 @@
--- OmniSpice D1 schema
--- Run via: wrangler d1 migrations apply omnispice-db --local
+-- OmniSpice Phase 4 schema: LTI 1.3 + guided labs
+-- Run via: pnpm --filter worker exec wrangler d1 migrations apply omnispice-db --local
 
-CREATE TABLE IF NOT EXISTS circuits (
-  id TEXT PRIMARY KEY,
-  user_id TEXT NOT NULL,
-  name TEXT NOT NULL DEFAULT 'Untitled Circuit',
-  description TEXT,
-  share_token TEXT UNIQUE,
-  r2_key TEXT NOT NULL,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
-);
-
-CREATE INDEX IF NOT EXISTS idx_circuits_user_id ON circuits(user_id);
-CREATE INDEX IF NOT EXISTS idx_circuits_share_token ON circuits(share_token);
-
--- Classroom schema (Phase 3)
-CREATE TABLE IF NOT EXISTS courses (
-  id TEXT PRIMARY KEY,
-  instructor_id TEXT NOT NULL,
-  name TEXT NOT NULL,
-  term TEXT,
-  join_code TEXT NOT NULL UNIQUE,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
-);
-CREATE INDEX IF NOT EXISTS idx_courses_instructor_id ON courses(instructor_id);
-CREATE INDEX IF NOT EXISTS idx_courses_join_code ON courses(join_code);
-
-CREATE TABLE IF NOT EXISTS enrollments (
-  course_id TEXT NOT NULL,
-  student_id TEXT NOT NULL,
-  joined_at INTEGER NOT NULL,
-  PRIMARY KEY (course_id, student_id),
-  FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
-);
-CREATE INDEX IF NOT EXISTS idx_enrollments_student_id ON enrollments(student_id);
-
-CREATE TABLE IF NOT EXISTS assignments (
-  id TEXT PRIMARY KEY,
-  course_id TEXT NOT NULL,
-  title TEXT NOT NULL,
-  instructions TEXT,
-  starter_r2_key TEXT NOT NULL,
-  due_at INTEGER,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL,
-  FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
-);
-CREATE INDEX IF NOT EXISTS idx_assignments_course_id ON assignments(course_id);
-
-CREATE TABLE IF NOT EXISTS submissions (
-  id TEXT PRIMARY KEY,
-  assignment_id TEXT NOT NULL,
-  student_id TEXT NOT NULL,
-  r2_key TEXT NOT NULL,
-  submitted_at INTEGER NOT NULL,
-  grade INTEGER,
-  feedback TEXT,
-  graded_at INTEGER,
-  graded_by TEXT,
-  UNIQUE (assignment_id, student_id),
-  FOREIGN KEY (assignment_id) REFERENCES assignments(id) ON DELETE CASCADE
-);
-CREATE INDEX IF NOT EXISTS idx_submissions_assignment_id ON submissions(assignment_id);
-CREATE INDEX IF NOT EXISTS idx_submissions_student_id ON submissions(student_id);
-
--- LTI 1.3 + guided labs (Phase 4 — see migrations/0003_lti_and_labs.sql)
-
+-- LTI platform registry (one row per (iss, client_id) tuple)
 CREATE TABLE IF NOT EXISTS lti_platforms (
   iss TEXT NOT NULL,
   client_id TEXT NOT NULL,
@@ -82,6 +16,7 @@ CREATE TABLE IF NOT EXISTS lti_platforms (
 );
 CREATE INDEX IF NOT EXISTS idx_lti_platforms_iss ON lti_platforms(iss);
 
+-- Deployment IDs per platform (a platform may have many)
 CREATE TABLE IF NOT EXISTS lti_deployments (
   iss TEXT NOT NULL,
   client_id TEXT NOT NULL,
@@ -91,6 +26,9 @@ CREATE TABLE IF NOT EXISTS lti_deployments (
   FOREIGN KEY (iss, client_id) REFERENCES lti_platforms(iss, client_id) ON DELETE CASCADE
 );
 
+-- Single-use nonce store with TTL (prevents replay).
+-- Also used to stash OIDC state between /lti/oidc/login and /lti/launch via a 'state:' key prefix
+-- (documented interim shortcut — flagged for a dedicated lti_oidc_states table in Phase 5).
 CREATE TABLE IF NOT EXISTS lti_nonces (
   nonce TEXT PRIMARY KEY,
   iss TEXT NOT NULL,
@@ -98,6 +36,7 @@ CREATE TABLE IF NOT EXISTS lti_nonces (
 );
 CREATE INDEX IF NOT EXISTS idx_lti_nonces_expires ON lti_nonces(expires_at);
 
+-- Launch audit log + foreign key target for downstream tables
 CREATE TABLE IF NOT EXISTS lti_launches (
   id TEXT PRIMARY KEY,
   iss TEXT NOT NULL,
@@ -115,6 +54,7 @@ CREATE TABLE IF NOT EXISTS lti_launches (
 CREATE INDEX IF NOT EXISTS idx_lti_launches_clerk_user ON lti_launches(clerk_user_id);
 CREATE INDEX IF NOT EXISTS idx_lti_launches_sub_iss ON lti_launches(sub, iss);
 
+-- Line items per OmniSpice assignment (created at deep-link time)
 CREATE TABLE IF NOT EXISTS lti_line_items (
   id TEXT PRIMARY KEY,
   assignment_id TEXT NOT NULL,
@@ -128,6 +68,7 @@ CREATE TABLE IF NOT EXISTS lti_line_items (
 );
 CREATE INDEX IF NOT EXISTS idx_lti_line_items_assignment ON lti_line_items(assignment_id);
 
+-- Cached AGS bearer tokens (client_credentials grant results)
 CREATE TABLE IF NOT EXISTS lti_platform_tokens (
   iss TEXT NOT NULL,
   client_id TEXT NOT NULL,
@@ -137,6 +78,7 @@ CREATE TABLE IF NOT EXISTS lti_platform_tokens (
   PRIMARY KEY (iss, client_id, scope)
 );
 
+-- Score passback retry log (drained by the Cron trigger declared in wrangler.toml)
 CREATE TABLE IF NOT EXISTS lti_score_log (
   id TEXT PRIMARY KEY,
   submission_id TEXT NOT NULL,
@@ -146,7 +88,7 @@ CREATE TABLE IF NOT EXISTS lti_score_log (
   user_sub TEXT NOT NULL,
   score_given REAL NOT NULL,
   score_maximum REAL NOT NULL,
-  status TEXT NOT NULL,
+  status TEXT NOT NULL,                 -- 'pending' | 'ok' | 'failed'
   attempts INTEGER NOT NULL DEFAULT 0,
   next_attempt_at INTEGER NOT NULL,
   last_error TEXT,
@@ -155,6 +97,7 @@ CREATE TABLE IF NOT EXISTS lti_score_log (
 );
 CREATE INDEX IF NOT EXISTS idx_lti_score_log_pending ON lti_score_log(status, next_attempt_at);
 
+-- Guided labs
 CREATE TABLE IF NOT EXISTS labs (
   id TEXT PRIMARY KEY,
   instructor_id TEXT NOT NULL,
@@ -163,7 +106,7 @@ CREATE TABLE IF NOT EXISTS labs (
   schema_version INTEGER NOT NULL DEFAULT 1,
   lab_json_r2_key TEXT NOT NULL,
   reference_circuit_r2_key TEXT,
-  reference_waveform_keys TEXT NOT NULL DEFAULT '{}',
+  reference_waveform_keys TEXT NOT NULL DEFAULT '{}',   -- JSON map probe->r2 key
   total_weight REAL NOT NULL DEFAULT 1,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL,
@@ -189,16 +132,13 @@ CREATE TABLE IF NOT EXISTS lab_checkpoint_results (
   attempt_id TEXT NOT NULL,
   step_id TEXT NOT NULL,
   checkpoint_id TEXT NOT NULL,
-  status TEXT NOT NULL,
+  status TEXT NOT NULL,                 -- 'pass' | 'partial' | 'fail'
   weight REAL NOT NULL,
   evaluated_at INTEGER NOT NULL,
   PRIMARY KEY (attempt_id, step_id, checkpoint_id),
   FOREIGN KEY (attempt_id) REFERENCES lab_attempts(id) ON DELETE CASCADE
 );
 
--- submissions gains a nullable FK to lti_launches for grade passback
--- (migration 0003 emits an ALTER; schema.sql keeps the snapshot correct).
--- NOTE: the column is added via `ALTER TABLE submissions ADD COLUMN lti_launch_id` in
--- 0003_lti_and_labs.sql. The snapshot above intentionally retains the original CREATE
--- TABLE from 0002_classroom.sql to preserve migration provenance.
+-- Phase 3 submissions table gains an optional LTI launch pointer for grade passback
+ALTER TABLE submissions ADD COLUMN lti_launch_id TEXT REFERENCES lti_launches(id);
 CREATE INDEX IF NOT EXISTS idx_submissions_lti_launch ON submissions(lti_launch_id);
