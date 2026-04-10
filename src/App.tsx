@@ -6,6 +6,8 @@ import { CoursePage } from './pages/CoursePage';
 import { Dashboard } from './pages/Dashboard';
 import { DeepLinkPickerPage } from './pages/DeepLinkPickerPage';
 import { JoinCoursePage } from './pages/JoinCoursePage';
+import { LabEditorPage } from './pages/LabEditorPage';
+import { LabLibraryPage } from './pages/LabLibraryPage';
 import { LabRunnerPage } from './pages/LabRunnerPage';
 import { LtiAdminPage } from './pages/LtiAdminPage';
 import { LtiBootstrapPage } from './pages/LtiBootstrapPage';
@@ -74,6 +76,17 @@ function App() {
   const submissionMatch = path.match(/^\/submissions\/([a-zA-Z0-9-]+)\/?$/);
   if (submissionMatch?.[1]) {
     return <SubmissionViewer submissionId={submissionMatch[1]} />;
+  }
+
+  // /labs — Phase 4 LAB-01 (lab library)
+  if (path === '/labs' || path === '/labs/') {
+    return <LabLibraryPage />;
+  }
+
+  // /labs/:id/edit — Phase 4 LAB-01 (instructor lab editor; `:id` may be `new`)
+  const labEditMatch = path.match(/^\/labs\/([a-zA-Z0-9-]+)\/edit\/?$/);
+  if (labEditMatch?.[1]) {
+    return <LabEditorPage labId={labEditMatch[1]} />;
   }
 
   // /labs/:id/run — Phase 4 LAB-02 (student lab runner)

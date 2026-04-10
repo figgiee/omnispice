@@ -10,16 +10,20 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCurrentUser } from '@/auth/useCurrentUser';
-import { LabSchema, type Lab } from '@/labs/schema';
+import { type Lab, LabSchema } from '@/labs/schema';
 import {
   createAttempt,
+  createLab,
+  deleteLab,
   getLab,
   getLabJson,
   getReferenceCsv,
-  listLabs,
-  submitAttempt,
   type LabAttempt,
   type LabSummary,
+  listLabs,
+  submitAttempt,
+  updateLab,
+  uploadReference,
 } from './labsApi';
 
 /** GET /api/labs — list all labs visible to the current user. */
@@ -100,6 +104,52 @@ export function useSubmitAttempt() {
   const queryClient = useQueryClient();
   return useMutation<void, Error, { attemptId: string; score: number }>({
     mutationFn: ({ attemptId, score }) => submitAttempt(attemptId, score, getToken),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['labs'] });
+    },
+  });
+}
+
+/** POST /api/labs — create a new lab. */
+export function useCreateLab() {
+  const { getToken } = useCurrentUser();
+  const queryClient = useQueryClient();
+  return useMutation<{ id: string }, Error, { lab: Lab; courseId?: string | null }>({
+    mutationFn: ({ lab, courseId = null }) => createLab(lab, courseId, getToken),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['labs'] });
+    },
+  });
+}
+
+/** PATCH /api/labs/:id — update lab JSON body + title. */
+export function useUpdateLab() {
+  const { getToken } = useCurrentUser();
+  const queryClient = useQueryClient();
+  return useMutation<{ id: string; updated_at: number }, Error, { id: string; lab: Lab }>({
+    mutationFn: ({ id, lab }) => updateLab(id, lab, getToken),
+    onSuccess: (_, vars) => {
+      void queryClient.invalidateQueries({ queryKey: ['labs'] });
+      void queryClient.invalidateQueries({ queryKey: ['lab', vars.id] });
+      void queryClient.invalidateQueries({ queryKey: ['lab-json', vars.id] });
+    },
+  });
+}
+
+/** POST /api/labs/:id/reference/:probe — upload a reference CSV. */
+export function useUploadReference() {
+  const { getToken } = useCurrentUser();
+  return useMutation<void, Error, { labId: string; probe: string; csvText: string }>({
+    mutationFn: ({ labId, probe, csvText }) => uploadReference(labId, probe, csvText, getToken),
+  });
+}
+
+/** DELETE /api/labs/:id — owner deletes a lab. */
+export function useDeleteLab() {
+  const { getToken } = useCurrentUser();
+  const queryClient = useQueryClient();
+  return useMutation<void, Error, { id: string }>({
+    mutationFn: ({ id }) => deleteLab(id, getToken),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['labs'] });
     },

@@ -100,7 +100,7 @@ Deferred to v2. Tracked but not in current roadmap.
 
 ### Guided Labs
 
-- [ ] **LAB-01**: Instructor can author a guided lab with step-by-step instructions and circuit checkpoints
+- [x] **LAB-01**: Instructor can author a guided lab with step-by-step instructions and circuit checkpoints
 - [x] **LAB-02**: Student progresses through a guided lab with automatic checkpoint verification
 - [x] **LAB-03**: Guided lab compares student waveforms against reference waveforms with tolerance
 
@@ -123,8 +123,8 @@ Deferred to v2. Tracked but not in current roadmap.
 
 ### Export and Reporting
 
-- **RPT-01**: User can export a lab report PDF with schematic, waveforms, annotations, and measurements
-- **RPT-02**: Lab report export supports LaTeX format for academic submission
+- [x] **RPT-01**: User can export a lab report PDF with schematic, waveforms, annotations, and measurements — _completed in Phase 04 Plan 06_
+- [x] **RPT-02**: Lab report export supports LaTeX format for academic submission — _completed in Phase 04 Plan 06_
 
 ### Offline Support
 

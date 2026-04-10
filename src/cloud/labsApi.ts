@@ -124,3 +124,74 @@ export async function submitAttempt(
     getToken,
   );
 }
+
+/**
+ * POST /api/labs — create a new lab.
+ * Body is the full Lab JSON with an optional `courseId` side field.
+ * Returns the created lab id.
+ */
+export async function createLab(
+  lab: Lab,
+  courseId: string | null,
+  getToken: TokenFn,
+): Promise<{ id: string }> {
+  const body = { ...lab, ...(courseId ? { courseId } : {}) };
+  const res = await authedFetch(
+    '/api/labs',
+    { method: 'POST', body: JSON.stringify(body) },
+    getToken,
+  );
+  return res.json() as Promise<{ id: string }>;
+}
+
+/**
+ * PATCH /api/labs/:id — update a lab's JSON body + title (owner only).
+ * Body is the full Lab JSON document; the server replaces the R2 blob
+ * and bumps updated_at.
+ */
+export async function updateLab(
+  id: string,
+  lab: Lab,
+  getToken: TokenFn,
+): Promise<{ id: string; updated_at: number }> {
+  const res = await authedFetch(
+    `/api/labs/${id}`,
+    { method: 'PATCH', body: JSON.stringify(lab) },
+    getToken,
+  );
+  return res.json() as Promise<{ id: string; updated_at: number }>;
+}
+
+/**
+ * POST /api/labs/:id/reference/:probe — upload a reference CSV for a single
+ * waveform_match probe. Body is raw `text/csv`.
+ *
+ * Note the SINGULAR `reference` path segment — this matches the Worker route
+ * contract from 04-05. The GET counterpart (`getReferenceCsv`) still uses
+ * the plural `references` path because it was wired in 04-04 against a
+ * different route shape; the Worker side supports both.
+ */
+export async function uploadReference(
+  labId: string,
+  probe: string,
+  csvText: string,
+  getToken: TokenFn,
+): Promise<void> {
+  const token = await getToken();
+  const headers = new Headers({ 'Content-Type': 'text/csv' });
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+  const res = await fetch(`${API_BASE}/api/labs/${labId}/reference/${encodeURIComponent(probe)}`, {
+    method: 'POST',
+    headers,
+    body: csvText,
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`uploadReference ${labId}/${probe} → ${res.status}: ${body}`);
+  }
+}
+
+/** DELETE /api/labs/:id — owner deletes a lab. */
+export async function deleteLab(id: string, getToken: TokenFn): Promise<void> {
+  await authedFetch(`/api/labs/${id}`, { method: 'DELETE' }, getToken);
+}
