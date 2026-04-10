@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Completed 03-06-PLAN.md
-last_updated: "2026-04-10T08:08:06.164Z"
+status: planning
+stopped_at: Phase 4 planned (04-01..04-06)
+last_updated: "2026-04-10T12:00:00.000Z"
 last_activity: 2026-04-10
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 20
+  total_plans: 26
   completed_plans: 20
   percent: 0
 ---
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-09)
 
 **Core value:** Students can simulate circuits accurately in a modern, intuitive interface that helps them understand circuits — not just compute them.
-**Current focus:** Phase 03 — classroom-features
+**Current focus:** Phase 04 — institutional-features
 
 ## Current Position
 
 Phase: 4
-Plan: Not started
-Status: Phase complete
+Plan: 04-01 (ready to execute)
+Status: Planned (6 plans, 26 tasks, plan-checker PASS)
 Last activity: 2026-04-10
 
 Progress: [░░░░░░░░░░] 0%
@@ -89,6 +89,17 @@ Recent decisions affecting current work:
 - [Phase 02-cloud-and-compatibility]: circuitToNodes/circuitToEdges extracted to src/canvas/circuitToFlow.ts shared utility
 - [Phase 02]: ImportMenu co-located in src/ltspice/ (not src/components/toolbar/) to keep the ltspice module self-contained
 - [Phase 02]: setCircuit resets refCounters to {} to prevent ref designator collisions on import
+- [Phase 04]: LTI 1.3 self-hosted on jose + Web Crypto inside existing Hono Worker; ltijs rejected (pulls Express/Mongoose/jsonwebtoken, none run on Workers)
+- [Phase 04]: /lti/* routes mount BEFORE Clerk middleware (LMS callers have no Clerk session); /api/lti/* admin routes stay Clerk-gated
+- [Phase 04]: Canvas + Moodle are first-class LTI targets; Blackboard/D2L compatible-but-not-certified (deferred to post-revenue)
+- [Phase 04]: LTI launch mints Clerk session via clerkClient.signInTokens.createSignInToken with externalId = lti|{iss}|{sub}, ticket redeemed client-side via signIn.create({strategy:'ticket'})
+- [Phase 04]: AGS score POST MUST use Content-Type application/vnd.ims.lis.v1.score+json (application/json returns 415)
+- [Phase 04]: Guided labs use declarative Zod predicates (node_voltage, branch_current, waveform_match, circuit_contains, ac_gain_at); pure-TS evaluator over existing VectorData shape, NO eval/Function
+- [Phase 04]: Reference waveforms generated browser-side at lab-save time via existing ngspice Web Worker, uploaded as CSV to R2
+- [Phase 04]: PDF report via jsPDF.html autoPaging + KaTeX pre-rasterized to PNG (spiked in 04-01); LaTeX export via JSZip client-side only, no server-side compile
+- [Phase 04]: lab Zod schema duplicated between src/labs/schema.ts and worker/src/lab/schema.ts until a shared workspace package lands in Phase 5
+- [Phase 04]: lti_oidc_states stored in lti_nonces with 'state:' key prefix rather than a separate table (short-term, flag for Phase 5 cleanup)
+- [Phase 04]: react-hook-form introduced in 04-05 as the first form library in the stack (used only by Lab Editor)
 
 ### Pending Todos
 
@@ -99,6 +110,11 @@ None yet.
 - [Phase 1]: ngspice WASM build reproducibility with ngspice 45.x + current Emscripten — unvalidated, budget 1-2 week spike
 - [Phase 1]: React Flow orthogonal wire routing with T-junctions — needs proof-of-concept before full schematic editor build
 - [Phase 2]: Clerk SSO/SAML pricing for university IdPs — verify before Phase 2 implementation begins
+- [Phase 4]: Canvas test tenant provisioning is a hard prerequisite for 04-01 — must register at canvas.instructure.com before execution
+- [Phase 4]: KaTeX→PDF rendering quality is unvalidated; 04-01-06 spike chooses between pre-rasterize-to-PNG and SVG-embed before 04-06 starts
+- [Phase 4]: Clerk users.getUserList({externalId}) filter support must be confirmed live before 04-02-02 (fallback is publicMetadata.ltiSub query)
+- [Phase 4]: wrangler dev --test-scheduled flag availability determines Cron retry E2E path in 04-03-05
+- [Phase 4]: Third-party-cookie behavior for Clerk inside LMS iframe must hold in Chrome/Safari/Firefox — ticket-based bootstrap sidesteps cookies, but manual cross-browser check required pre-ship
 
 ## Session Continuity
 
