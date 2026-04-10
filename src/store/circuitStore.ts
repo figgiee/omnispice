@@ -6,10 +6,10 @@
  * state updates compatible with Zustand's shallow equality checks.
  */
 
-import { create } from 'zustand';
 import { temporal } from 'zundo';
-import type { Circuit, Component, ComponentType, Port, Wire } from '@/circuit/types';
+import { create } from 'zustand';
 import { COMPONENT_LIBRARY } from '@/circuit/componentLibrary';
+import type { Circuit, Component, ComponentType, Port, Wire } from '@/circuit/types';
 
 /**
  * State shape for the circuit store.
@@ -31,6 +31,8 @@ export interface CircuitState {
   removeWire: (id: string) => void;
   clearCircuit: () => void;
   addComponents: (components: Component[]) => void;
+  /** Replace the entire circuit (e.g., after LTspice import). Resets refCounters. */
+  setCircuit: (circuit: Circuit) => void;
 }
 
 function createEmptyCircuit(): Circuit {
@@ -52,7 +54,7 @@ function generateId(): string {
  * Create Port objects from a component definition's port config.
  */
 function createPorts(
-  portDefs: { name: string; position: 'left' | 'right' | 'top' | 'bottom' }[]
+  portDefs: { name: string; position: 'left' | 'right' | 'top' | 'bottom' }[],
 ): Port[] {
   return portDefs.map((def) => ({
     id: generateId(),
@@ -215,6 +217,13 @@ export const useCircuitStore = create<CircuitState>()(
           };
         });
       },
+
+      setCircuit: (circuit) => {
+        set({
+          circuit,
+          refCounters: {},
+        });
+      },
     }),
     {
       limit: 100,
@@ -222,6 +231,6 @@ export const useCircuitStore = create<CircuitState>()(
         circuit: state.circuit,
         refCounters: state.refCounters,
       }),
-    }
-  )
+    },
+  ),
 );

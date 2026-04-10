@@ -15,6 +15,7 @@ import { CircuitDashboard } from '@/components/dashboard/CircuitDashboard';
 import { ExportMenu } from '@/components/toolbar/ExportMenu';
 import { SaveButton } from '@/components/toolbar/SaveButton';
 import { UserMenu } from '@/components/toolbar/UserMenu';
+import { ImportMenu } from '@/ltspice/ImportMenu';
 import type { SimulationController } from '@/simulation/controller';
 import { useCircuitStore } from '@/store/circuitStore';
 import { OverlayToggle } from './OverlayToggle';
@@ -75,6 +76,7 @@ export function Toolbar({ controller }: ToolbarProps) {
           >
             <RotateCw size={16} />
           </button>
+          <ImportMenu />
         </div>
 
         {/* Right group */}
