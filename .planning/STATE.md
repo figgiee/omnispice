@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-04-PLAN.md
-last_updated: "2026-04-09T23:53:25.502Z"
+stopped_at: Completed 01-05-PLAN.md
+last_updated: "2026-04-09T23:51:43.172Z"
 last_activity: 2026-04-09
 progress:
   total_phases: 5
@@ -52,7 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: —
 
 *Updated after each plan completion*
-| Phase 01 P04 | 5min | 2 tasks | 18 files |
+| Phase 01 P05 | 3min | 1 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -64,8 +64,8 @@ Recent decisions affecting current work:
 - [Research]: React Flow chosen over tldraw — tldraw requires $6,000/yr commercial license; React Flow is MIT
 - [Research]: No SharedArrayBuffer anywhere — single-threaded ngspice in Web Worker to avoid COOP/COEP headers breaking LMS embeds
 - [Research]: ngspice pipe-mode vs shared-library API unresolved — must spike in Phase 1 week 1
-- [Phase 01]: Shared useValueEdit hook for DRY inline editing across all component nodes
-- [Phase 01]: CircuitNodeData interface with ComponentType discriminator for type-safe React Flow node data
+- [Phase 01]: Three separate Zustand stores (circuit, simulation, UI) to avoid monolithic state anti-pattern
+- [Phase 01]: zundo temporal middleware for undo/redo with 100-step limit and partialize
 
 ### Pending Todos
 
@@ -79,6 +79,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-09T23:53:25.500Z
-Stopped at: Completed 01-04-PLAN.md
+Last session: 2026-04-09T23:51:43.170Z
+Stopped at: Completed 01-05-PLAN.md
 Resume file: None
