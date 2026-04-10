@@ -17,6 +17,16 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      // Exclude phase-04 specs from the default project so they only run
+      // under @phase4-lti (mirrors the Phase 3 pattern).
+      testIgnore: /phase-04\/.*\.spec\.ts$/,
+    },
+    {
+      // Phase 4 LTI + labs + report E2E suite.
+      // Run with: pnpm exec playwright test --project=@phase4-lti
+      name: '@phase4-lti',
+      testMatch: /phase-04\/.*\.spec\.ts$/,
+      use: { ...devices['Desktop Chrome'] },
     },
   ],
   webServer: {
