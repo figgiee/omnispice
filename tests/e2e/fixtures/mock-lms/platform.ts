@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process';
 import type { Page, Route } from '@playwright/test';
 
 /**
@@ -8,10 +9,9 @@ import type { Page, Route } from '@playwright/test';
  * responses (JWKS, token, scores, lineitems). The captured requests are
  * exposed so specs can assert Content-Type, Authorization, body shape.
  *
- * Usage:
- *   const platform = mockPlatformRoutes(page);
- *   await launchOidcFlow(page, { iss, loginHint, targetLinkUri });
- *   expect(platform.scoresReceived).toHaveLength(1);
+ * Plan 04-02 adds `registerMockPlatformInWorker` which seeds the
+ * `lti_platforms` D1 table via `wrangler d1 execute` so the real Worker's
+ * verifyLaunch handler can look up the mock platform row during /lti/launch.
  */
 
 export interface CapturedScore {
@@ -114,6 +114,56 @@ export async function mockPlatformRoutes(
   return platform;
 }
 
+export interface PlatformRegistration {
+  iss: string;
+  client_id: string;
+  name?: string;
+  auth_login_url?: string;
+  auth_token_url?: string;
+  jwks_uri?: string;
+}
+
+/**
+ * Seed the mock platform into the Worker's `lti_platforms` D1 table via
+ * `wrangler d1 execute`. Called by the E2E spec before driving a launch,
+ * so the real verifyLaunch handler can look up the (iss, client_id) row.
+ *
+ * This shells out to wrangler rather than going through the admin HTTP
+ * endpoint because the admin endpoint is Clerk-gated and E2E specs don't
+ * have an instructor Clerk session at setup time.
+ */
+export function registerMockPlatformInWorker(opts: PlatformRegistration): void {
+  const row = {
+    iss: opts.iss,
+    client_id: opts.client_id,
+    name: opts.name ?? 'Mock LMS',
+    auth_login_url: opts.auth_login_url ?? `${opts.iss}/api/lti/authorize_redirect`,
+    auth_token_url: opts.auth_token_url ?? `${opts.iss}/login/oauth2/token`,
+    jwks_uri: opts.jwks_uri ?? `${opts.iss}/.well-known/jwks.json`,
+  };
+  const now = Date.now();
+  // Build an UPSERT so repeat runs are idempotent.
+  const sql = `
+    INSERT INTO lti_platforms (iss, client_id, deployment_id, name, auth_login_url, auth_token_url, jwks_uri, created_at, updated_at)
+    VALUES ('${escapeSql(row.iss)}', '${escapeSql(row.client_id)}', NULL, '${escapeSql(row.name)}', '${escapeSql(row.auth_login_url)}', '${escapeSql(row.auth_token_url)}', '${escapeSql(row.jwks_uri)}', ${now}, ${now})
+    ON CONFLICT(iss, client_id) DO UPDATE SET
+      name=excluded.name,
+      auth_login_url=excluded.auth_login_url,
+      auth_token_url=excluded.auth_token_url,
+      jwks_uri=excluded.jwks_uri,
+      updated_at=excluded.updated_at;
+  `.trim();
+
+  execSync(
+    `pnpm --silent --prefix worker exec wrangler d1 execute omnispice-db --local --command "${sql.replace(/"/g, '\\"').replace(/\n/g, ' ')}"`,
+    { stdio: 'pipe' },
+  );
+}
+
+function escapeSql(value: string): string {
+  return value.replace(/'/g, "''");
+}
+
 /**
  * Drive the OIDC third-party-initiated login dance from the mock platform.
  * Specs use this instead of hand-rolling the auth redirect chain.
@@ -122,7 +172,7 @@ export async function launchOidcFlow(
   page: Page,
   args: { iss: string; loginHint: string; targetLinkUri: string; clientId: string },
 ): Promise<void> {
-  const url = new URL('/lti/oidc/login', page.context().browser()!.version().length > 0 ? 'http://localhost:5173' : 'http://localhost:5173');
+  const url = new URL('/lti/oidc/login', 'http://localhost:8787');
   url.searchParams.set('iss', args.iss);
   url.searchParams.set('login_hint', args.loginHint);
   url.searchParams.set('target_link_uri', args.targetLinkUri);
