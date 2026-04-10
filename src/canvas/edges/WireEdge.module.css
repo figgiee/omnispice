@@ -1,0 +1,13 @@
+.wireEdge path {
+  stroke: var(--wire-stroke);
+  stroke-width: 2;
+}
+
+.selected path {
+  stroke: var(--wire-selected);
+}
+
+.tjunctionDot {
+  fill: var(--tjunction-dot);
+  pointer-events: none;
+}
