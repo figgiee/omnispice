@@ -5,6 +5,7 @@ import { AssignmentPage } from './pages/AssignmentPage';
 import { CoursePage } from './pages/CoursePage';
 import { Dashboard } from './pages/Dashboard';
 import { JoinCoursePage } from './pages/JoinCoursePage';
+import { LabRunnerPage } from './pages/LabRunnerPage';
 import { LtiAdminPage } from './pages/LtiAdminPage';
 import { LtiBootstrapPage } from './pages/LtiBootstrapPage';
 import { SubmissionViewer } from './pages/SubmissionViewer';
@@ -57,6 +58,12 @@ function App() {
   const submissionMatch = path.match(/^\/submissions\/([a-zA-Z0-9-]+)\/?$/);
   if (submissionMatch?.[1]) {
     return <SubmissionViewer submissionId={submissionMatch[1]} />;
+  }
+
+  // /labs/:id/run — Phase 4 LAB-02 (student lab runner)
+  const labRunMatch = path.match(/^\/labs\/([a-zA-Z0-9-]+)\/run\/?$/);
+  if (labRunMatch?.[1]) {
+    return <LabRunnerPage labId={labRunMatch[1]} />;
   }
 
   return <Layout />;

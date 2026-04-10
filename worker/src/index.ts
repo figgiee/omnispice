@@ -9,6 +9,7 @@ import { assignmentsRouter } from './routes/assignments';
 import { submissionsRouter } from './routes/submissions';
 import { ltiRouter } from './routes/lti';
 import { ltiAdminRouter } from './routes/ltiAdmin';
+import { scheduled } from './scheduled';
 
 export type Bindings = {
   DB: D1Database;
@@ -57,4 +58,17 @@ app.route('/api/lti', ltiAdminRouter);
 // Health check (no auth)
 app.get('/health', (c) => c.json({ ok: true }));
 
-export default app;
+// Workers module export: fetch handler + Cron scheduled handler.
+// The scheduled export is invoked every 10 minutes per wrangler.toml
+// [triggers] crons = ["*\/10 * * * *"] to drain lti_score_log and purge
+// expired nonces. Tests that bypass scheduled still use the fetch path.
+export default {
+  fetch: app.fetch,
+  scheduled,
+};
+
+// Re-export the raw Hono app so existing vitest fetch-style tests that do
+// `import app from '../src/index'; await app.fetch(req, env)` keep working
+// against a `{fetch, scheduled}` module. vitest tests use `app.fetch` so
+// we ensure `app.fetch` still resolves through the default export above.
+export { app };
