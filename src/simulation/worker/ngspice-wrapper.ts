@@ -43,7 +43,7 @@ export async function loadNgspice(): Promise<NgspiceModule> {
     // This file is produced by docker/ngspice-wasm/build.sh and placed
     // in src/assets/wasm/ngspice.js. It won't exist until the Docker
     // build is run.
-    const wasmModule = await import('../../assets/wasm/ngspice.js');
+    const wasmModule = await import(/* @vite-ignore */ '../../assets/wasm/ngspice.js');
     const instance = await wasmModule.default();
 
     let stdoutBuffer = '';
@@ -127,8 +127,7 @@ export function createMockNgspice(): NgspiceModule {
   return {
     FS: {
       writeFile: (path: string, data: string | Uint8Array) => {
-        const content =
-          typeof data === 'string' ? data : new TextDecoder().decode(data);
+        const content = typeof data === 'string' ? data : new TextDecoder().decode(data);
         files.set(path, content);
       },
       readFile: (path: string) => {
@@ -230,7 +229,7 @@ function generateMockACOutput(): string {
   const fc = 1591.55; // 1/(2*pi*1k*100n)
 
   for (let i = 0; i <= points; i++) {
-    const f = fStart * Math.pow(fStop / fStart, i / points);
+    const f = fStart * (fStop / fStart) ** (i / points);
     const w = 2 * Math.PI * f;
     const wc = 2 * Math.PI * fc;
     const mag = 1 / Math.sqrt(1 + (w / wc) ** 2);
@@ -238,9 +237,7 @@ function generateMockACOutput(): string {
     // AC output has real and imaginary parts
     const real = mag * Math.cos(phase);
     const imag = mag * Math.sin(phase);
-    lines.push(
-      `${i}\t${f.toExponential(6)}\t${real.toExponential(6)},${imag.toExponential(6)}`,
-    );
+    lines.push(`${i}\t${f.toExponential(6)}\t${real.toExponential(6)},${imag.toExponential(6)}`);
   }
 
   return lines.join('\n');
@@ -250,11 +247,7 @@ function generateMockACOutput(): string {
  * Generate mock DC operating point output.
  */
 function generateMockDCOpOutput(): string {
-  return [
-    'v(net_1) = 5.00000e+00',
-    'v(out) = 2.50000e+00',
-    'i(V1) = -2.50000e-03',
-  ].join('\n');
+  return ['v(net_1) = 5.00000e+00', 'v(out) = 2.50000e+00', 'i(V1) = -2.50000e-03'].join('\n');
 }
 
 /**
@@ -269,9 +262,7 @@ function generateMockDCSweepOutput(): string {
     const vIn = (i / points) * 10.0;
     const vOut = vIn * 0.5; // Simple voltage divider
     const iV1 = vIn / 2000;
-    lines.push(
-      `${i}\t${vIn.toExponential(6)}\t${vOut.toExponential(6)}\t${iV1.toExponential(6)}`,
-    );
+    lines.push(`${i}\t${vIn.toExponential(6)}\t${vOut.toExponential(6)}\t${iV1.toExponential(6)}`);
   }
 
   return lines.join('\n');

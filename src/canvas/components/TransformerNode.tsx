@@ -17,7 +17,7 @@ export function TransformerNode({ data, selected }: NodeProps) {
     <div
       className={styles.node}
       data-selected={selected}
-      style={{ transform: `rotate(${nodeData.rotation ?? 0}deg)` }}
+      style={{ '--node-rotation': `${nodeData.rotation ?? 0}deg` } as React.CSSProperties}
     >
       <span className={styles.refLabel}>{nodeData.refDesignator}</span>
 

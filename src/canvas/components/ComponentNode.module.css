@@ -3,6 +3,12 @@
   cursor: grab;
 }
 
+/* Rotation applied only to the SVG body — labels stay upright at all rotations */
+.node svg {
+  transform: rotate(var(--node-rotation, 0deg));
+  display: block;
+}
+
 .node[data-selected="true"] {
   outline: 2px solid var(--accent-primary);
   outline-offset: 4px;

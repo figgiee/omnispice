@@ -11,7 +11,7 @@ export function GroundNode({ data, selected }: NodeProps) {
     <div
       className={styles.node}
       data-selected={selected}
-      style={{ transform: `rotate(${(data as Record<string, unknown>).rotation as number ?? 0}deg)` }}
+      style={{ '--node-rotation': `${(data as Record<string, unknown>).rotation as number ?? 0}deg` } as React.CSSProperties}
     >
       <svg viewBox="0 0 24 24" width={24} height={24}>
         {/* Vertical lead from top */}

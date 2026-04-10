@@ -316,6 +316,26 @@ All symbols follow IEEE/IEC standard conventions (D-06). Rendered as SVG within 
 
 ## Interaction Contracts
 
+### Right-Click Context Menu (Vision Ceiling — 2026-04-09)
+
+> **Vision:** Right-clicking anywhere on the canvas feels like having a knowledgeable lab partner. Type two letters, the right component is already highlighted. No hunting the sidebar. Components ordered by: (1) recently used in this session, (2) electrically sensible at this circuit point, (3) alphabetical. Placing is instant — component appears at cursor, snapped to grid, pre-selected for immediate wiring. The quality bar is UE5 Blueprint node search + electrical intelligence that Blueprint can't have.
+>
+> **References:** UE5 Blueprint node search (interaction model), Figma quick-insert (cursor-placement feel), KiCad "A" key picker (EE-specific filtering precedent).
+
+| Element | Value |
+|---------|-------|
+| Trigger | Right-click on empty canvas area |
+| Position | Floating popup at cursor position, auto-repositions if near screen edge |
+| Search input | Auto-focused on open, fuzzy match across all component names and aliases |
+| Result ordering | (1) Recently used (last 5 placed), (2) context-aware suggestions, (3) alphabetical |
+| Context awareness | If right-clicking near an unconnected pin, deprioritize components with incompatible port counts |
+| Keyboard nav | Arrow keys move selection, Enter places at cursor-snapped position, Escape dismisses |
+| Placement | Component placed at cursor position snapped to 10px grid, immediately selected |
+| Pin right-click variant | Right-clicking a component pin shows "Start Wire" + filtered component search (same popup, pre-filtered to show components with compatible ports) |
+| Dismiss | Escape, click outside, or any non-arrow key during idle |
+| Max results shown | 8 (scrollable) |
+| Empty state | "No components match — try 'res', '741', or 'ground'" |
+
 ### Canvas Interactions (from CONTEXT.md D-01 through D-14)
 
 | Interaction | Input | Behavior | Visual Feedback |

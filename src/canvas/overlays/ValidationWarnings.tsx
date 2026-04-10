@@ -5,9 +5,14 @@
  * of each component node that has validation errors/warnings.
  * Reads from simulationStore.validationErrors.
  * Rendered as a child of the ReactFlow component.
+ *
+ * Node positions from useNodes() are in flow coordinates.
+ * Children of <ReactFlow> render in the container's absolute space,
+ * outside the viewport transform. We use useViewport() to convert
+ * flow coords -> screen coords: screenX = flowX * zoom + vpX
  */
 
-import { useNodes } from '@xyflow/react';
+import { useNodes, useViewport } from '@xyflow/react';
 import { AlertTriangle } from 'lucide-react';
 import { useSimulationStore } from '@/store/simulationStore';
 import styles from './ValidationWarnings.module.css';
@@ -15,6 +20,7 @@ import styles from './ValidationWarnings.module.css';
 export function ValidationWarnings() {
   const validationErrors = useSimulationStore((s) => s.validationErrors);
   const nodes = useNodes();
+  const { x: vpX, y: vpY, zoom } = useViewport();
 
   if (validationErrors.length === 0) return null;
 
@@ -39,17 +45,20 @@ export function ValidationWarnings() {
         const messages = warningsByComponent.get(node.id) ?? [];
         const tooltipText = messages.join('\n');
 
-        // Node position is in flow coordinates -- React Flow renders
-        // children of ReactFlow in an absolute container over the viewport.
-        // We use the node's measured dimensions if available, fallback to 60x40.
-        const width = (node.measured?.width ?? node.width) ?? 60;
+        // Node dimensions in flow space
+        const nodeWidth = (node.measured?.width ?? node.width) ?? 60;
+
+        // Convert flow coordinates to screen coordinates
+        // screenX = flowX * zoom + vpX
+        const screenX = (node.position.x + nodeWidth) * zoom + vpX - 8;
+        const screenY = node.position.y * zoom + vpY - 8;
 
         return (
           <div
             key={node.id}
             className={styles.warningIcon}
             style={{
-              transform: `translate(${node.position.x + width - 8}px, ${node.position.y - 8}px)`,
+              transform: `translate(${screenX}px, ${screenY}px)`,
             }}
             title={tooltipText}
             role="img"
