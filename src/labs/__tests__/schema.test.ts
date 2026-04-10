@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 // RED — src/labs/schema lands in 04-04.
 // @ts-expect-error — module does not exist yet (Wave 0 scaffold).
 import { LabSchema } from '../schema';
@@ -68,7 +68,7 @@ describe('labs/schema — LAB-01', () => {
       metric: 'rmse',
       tolerance: 0.1,
       weight: 1,
-    } as unknown as typeof bad.steps[0].checkpoints[0];
+    } as unknown as (typeof validLab)['steps'][0]['checkpoints'][0];
     expect(() => LabSchema.parse(bad)).toThrow();
   });
 });
