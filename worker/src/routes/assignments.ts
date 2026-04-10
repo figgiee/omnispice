@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { requireAuth } from '../middleware/auth';
 import { requireInstructor } from '../middleware/requireInstructor';
+import { ensureLineItem, getPlatformTokenFromD1 } from '../lti/ags';
 import type { Bindings } from '../index';
 
 interface AssignmentRow {
@@ -224,6 +225,118 @@ assignments.get('/:id/my-submission', async (c) => {
     'SELECT * FROM submissions WHERE assignment_id = ? AND student_id = ?'
   ).bind(id, studentId).first();
   return c.json(row ?? null);
+});
+
+// POST /api/assignments/:id/lineitem — instructor-only. Phase 4 LMS-02.
+// Ensures a line item exists for this assignment on the given LTI platform
+// and upserts the `lti_line_items` mapping row so later grade passback can
+// find the URL without a round trip.
+assignments.post('/:id/lineitem', requireInstructor, async (c) => {
+  const instructorId = c.get('userId');
+  const { id } = c.req.param();
+  const body = await c.req.json<{
+    iss: string;
+    client_id: string;
+  }>();
+  if (!body?.iss || !body?.client_id) {
+    return c.json({ error: 'iss and client_id required' }, 400);
+  }
+
+  const row = await c.env.DB.prepare(`
+    SELECT a.id, a.title, c.instructor_id
+    FROM assignments a JOIN courses c ON c.id = a.course_id
+    WHERE a.id = ?
+  `).bind(id).first<{ id: string; title: string; instructor_id: string }>();
+  if (!row) return c.json({ error: 'Not found' }, 404);
+  if (row.instructor_id !== instructorId) return c.json({ error: 'Forbidden' }, 403);
+
+  // Look up platform + AGS endpoint
+  const platform = await c.env.DB.prepare(
+    `SELECT iss, client_id, auth_token_url, jwks_uri FROM lti_platforms
+     WHERE iss = ? AND client_id = ?`,
+  )
+    .bind(body.iss, body.client_id)
+    .first<{ iss: string; client_id: string; auth_token_url: string; jwks_uri: string }>();
+  if (!platform) return c.json({ error: 'Platform not registered' }, 404);
+
+  // Find the most recent launch for this (iss, client_id) tuple so we can
+  // borrow its AGS lineitems URL. In a pure admin flow the instructor
+  // wouldn't have a launch context yet — that path lives inside the
+  // deep-link response handler. This route is the "retrofit a line item
+  // for an existing assignment" escape hatch.
+  const launch = await c.env.DB.prepare(
+    `SELECT raw_claims FROM lti_launches WHERE iss = ? AND client_id = ? ORDER BY created_at DESC LIMIT 1`,
+  )
+    .bind(body.iss, body.client_id)
+    .first<{ raw_claims: string }>();
+  if (!launch) {
+    return c.json(
+      { error: 'No prior launch found; can only retrofit a line item after at least one launch from this platform' },
+      409,
+    );
+  }
+
+  let claims: Record<string, unknown>;
+  try {
+    claims = JSON.parse(launch.raw_claims) as Record<string, unknown>;
+  } catch {
+    return c.json({ error: 'Stored launch claims corrupted' }, 500);
+  }
+  const ags = claims['https://purl.imsglobal.org/spec/lti-ags/claim/endpoint'] as
+    | { lineitems?: string }
+    | undefined;
+  if (!ags?.lineitems) {
+    return c.json({ error: 'Platform did not provide an AGS lineitems URL' }, 400);
+  }
+
+  const scope = 'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem';
+  let lineItemUrl: string;
+  try {
+    lineItemUrl = await ensureLineItem({
+      lineItemsUrl: ags.lineitems,
+      resourceLinkId: row.id,
+      label: row.title,
+      scoreMaximum: 100,
+      iss: platform.iss,
+      clientId: platform.client_id,
+      fetch: globalThis.fetch,
+      getPlatformToken: () =>
+        getPlatformTokenFromD1({
+          db: c.env.DB,
+          iss: platform.iss,
+          clientId: platform.client_id,
+          scope,
+          tokenUrl: platform.auth_token_url,
+          toolPrivateKey: c.env.LTI_PRIVATE_KEY,
+          toolKid: c.env.LTI_PUBLIC_KID,
+          fetch: globalThis.fetch,
+        }),
+    });
+  } catch (err) {
+    return c.json(
+      { error: `ensureLineItem failed: ${(err as Error).message}` },
+      502,
+    );
+  }
+
+  await c.env.DB.prepare(
+    `INSERT INTO lti_line_items
+       (id, assignment_id, iss, client_id, lineitem_url, score_maximum, label, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+  )
+    .bind(
+      crypto.randomUUID(),
+      row.id,
+      platform.iss,
+      platform.client_id,
+      lineItemUrl,
+      100,
+      row.title,
+      Date.now(),
+    )
+    .run();
+
+  return c.json({ lineItemUrl });
 });
 
 export { assignments as assignmentsRouter };
