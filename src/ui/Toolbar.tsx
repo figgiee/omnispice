@@ -9,6 +9,7 @@
  */
 
 import { RotateCcw, RotateCw } from 'lucide-react';
+import { UserMenu } from '@/components/toolbar/UserMenu';
 import type { SimulationController } from '@/simulation/controller';
 import { useCircuitStore } from '@/store/circuitStore';
 import { SimulationControls } from './SimulationControls';
@@ -67,9 +68,10 @@ export function Toolbar({ controller }: ToolbarProps) {
         </button>
       </div>
 
-      {/* Right group: Simulation controls */}
+      {/* Right group — future plans will add: OverlayToggle (02-02), SaveButton (02-04) */}
       <div className={`${styles.group} ${styles.right}`}>
         <SimulationControls controller={controller} />
+        <UserMenu />
       </div>
     </div>
   );
