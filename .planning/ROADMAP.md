@@ -83,7 +83,17 @@ Plans:
   2. Student can open an assignment, modify the starter circuit, and submit it to the instructor
   3. Instructor can view all student submissions for an assignment in a single dashboard view
   4. Instructor can annotate a student's circuit submission and assign a grade
-**Plans**: TBD
+**Plans:** 7 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Wave 0: test infrastructure scaffold + marked/dompurify install + Clerk JWT template setup note
+- [ ] 03-02-PLAN.md — D1 migration 0002_classroom.sql + requireInstructor middleware + classroom.ts route (courses CRUD + join) + become-instructor endpoint
+- [ ] 03-03-PLAN.md — assignments.ts route (CRUD + starter R2 + submit + list) + submissions.ts route (get + blob proxy + grade PATCH)
+- [ ] 03-04-PLAN.md — classroomStore slice + useRole/useBecomeInstructor + classroomApi + 14 TanStack Query hooks + App.tsx router extension
+- [ ] 03-05-PLAN.md — Dashboard (role-aware) + CoursePage + JoinCoursePage + CreateCourseModal + UserMenu Become-Instructor toggle + DeleteConfirmModal
+- [ ] 03-06-PLAN.md — CreateAssignmentModal + classroom-mode editor integration (AssignmentPage student branch, ClassroomModeBar, SubmitAssignmentButton, RenderedInstructions via marked+DOMPurify)
+- [ ] 03-07-PLAN.md — SubmissionTable + GradingPanel + ReadOnlyCircuitCanvas + SubmissionViewer + instructor AssignmentPage wiring + E2E spec un-skip
+
 **Key risks**:
   - University sales cycle is long — begin outreach during Phase 2, not after Phase 3 ships
   - Feature scope must be validated with 3-5 pilot professors before full build
@@ -127,6 +137,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Core Simulator | 8/8 | Complete   | 2026-04-10 |
 | 2. Cloud and Compatibility | 5/5 | Complete   | 2026-04-10 |
-| 3. Classroom Features | 0/TBD | Not started | - |
+| 3. Classroom Features | 0/7 | Not started | - |
 | 4. Institutional Features | 0/TBD | Not started | - |
 | 5. Collaboration and Polish | 0/TBD | Not started | - |
