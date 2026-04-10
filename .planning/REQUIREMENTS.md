@@ -100,9 +100,9 @@ Deferred to v2. Tracked but not in current roadmap.
 
 ### Guided Labs
 
-- **LAB-01**: Instructor can author a guided lab with step-by-step instructions and circuit checkpoints
-- **LAB-02**: Student progresses through a guided lab with automatic checkpoint verification
-- **LAB-03**: Guided lab compares student waveforms against reference waveforms with tolerance
+- [ ] **LAB-01**: Instructor can author a guided lab with step-by-step instructions and circuit checkpoints
+- [x] **LAB-02**: Student progresses through a guided lab with automatic checkpoint verification
+- [x] **LAB-03**: Guided lab compares student waveforms against reference waveforms with tolerance
 
 ### Collaboration
 
@@ -215,8 +215,8 @@ Deferred to v2. Tracked but not in current roadmap.
 | LMS-02 | Phase 4 — Institutional Features | v2 |
 | LMS-03 | Phase 4 — Institutional Features | Completed (04-02) |
 | LAB-01 | Phase 4 — Institutional Features | v2 |
-| LAB-02 | Phase 4 — Institutional Features | v2 |
-| LAB-03 | Phase 4 — Institutional Features | v2 |
+| LAB-02 | Phase 4 — Institutional Features | Completed (04-04) |
+| LAB-03 | Phase 4 — Institutional Features | Completed (04-04) |
 | RPT-01 | Phase 4 — Institutional Features | v2 |
 | RPT-02 | Phase 4 — Institutional Features | v2 |
 | COLLAB-01 | Phase 5 — Collaboration and Polish | v2 |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-04-10T09:58:22.104Z"
+stopped_at: Completed 04-04-PLAN.md
+last_updated: "2026-04-10T10:17:21.965Z"
 last_activity: 2026-04-10
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 26
-  completed_plans: 22
+  completed_plans: 23
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 ## Current Position
 
 Phase: 04 (institutional-features) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-04-10
 
@@ -64,6 +64,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03 P06 | 360 | 2 tasks | 13 files |
 | Phase 04 P01 | 1h | 6 tasks | 40 files |
 | Phase 04-institutional-features P02 | 60min | 4 tasks | 22 files |
+| Phase 04-institutional-features P04 | 25min | 3 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -112,6 +113,10 @@ Recent decisions affecting current work:
 - [Phase 04-institutional-features]: [Phase 04]: LtiLaunchBootstrap uses history.replaceState + popstate (not location.assign) because location.assign is a no-op in jsdom and breaks the pathname assertion
 - [Phase 04-institutional-features]: [Phase 04]: useSignIn() cast to LegacySignInHook structural interface because Clerk v6 ships two parallel API shapes and the ticket strategy flow targets the legacy surface
 - [Phase 04-institutional-features]: [Phase 04]: E2E lti-launch-no-login spec gates on RUN_LTI_E2E=1 and auto-skips in CI; per-developer Clerk test secrets + wrangler dev documented in SUMMARY auth gates
+- [Phase 04-institutional-features]: [Phase 04]: Lab schema follows RED test fixtures verbatim (flat checkpoints with kind/at/expected/branch/component) not the plan draft nested-predicate wrapper
+- [Phase 04-institutional-features]: [Phase 04]: waveformMatch maxAbs walks BOTH student AND reference grids to catch divergence spikes between reference samples; single-pass is insufficient
+- [Phase 04-institutional-features]: [Phase 04]: LabRunner is a standalone component (no Clerk/QueryClient deps) split from LabRunnerPage so tests can render it directly without provider wrappers
+- [Phase 04-institutional-features]: [Phase 04]: AC complex vectors stored as alternating (real,imag) Float64Array pairs; ac_gain_at evaluator computes magnitude via Math.hypot per frequency bin
 
 ### Pending Todos
 
@@ -130,6 +135,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-10T09:58:22.101Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-04-10T10:17:07.290Z
+Stopped at: Completed 04-04-PLAN.md
 Resume file: None
