@@ -71,8 +71,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### LTspice Compatibility
 
-- [ ] **LTSP-01**: User can import an LTspice .asc schematic file and have it rendered on the canvas
-- [ ] **LTSP-02**: Imported LTspice circuits simulate correctly using the embedded netlist data
+- [x] **LTSP-01**: User can import an LTspice .asc schematic file and have it rendered on the canvas
+- [x] **LTSP-02**: Imported LTspice circuits simulate correctly using the embedded netlist data
 
 ### Export
 
@@ -191,8 +191,8 @@ Deferred to v2. Tracked but not in current roadmap.
 | CLOUD-03 | Phase 2 — Cloud and Compatibility | Complete |
 | CLOUD-04 | Phase 2 — Cloud and Compatibility | Complete |
 | CLOUD-05 | Phase 2 — Cloud and Compatibility | Complete |
-| LTSP-01 | Phase 2 — Cloud and Compatibility | Pending |
-| LTSP-02 | Phase 2 — Cloud and Compatibility | Pending |
+| LTSP-01 | Phase 2 — Cloud and Compatibility | Complete |
+| LTSP-02 | Phase 2 — Cloud and Compatibility | Complete |
 | EXP-01 | Phase 2 — Cloud and Compatibility | Complete |
 | EXP-02 | Phase 2 — Cloud and Compatibility | Complete |
 | EXP-03 | Phase 2 — Cloud and Compatibility | Complete |
