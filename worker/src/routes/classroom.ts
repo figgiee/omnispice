@@ -136,4 +136,54 @@ classroom.post('/join', async (c) => {
   return c.json({ courseId: course.id });
 });
 
+// POST /api/courses/:id/assignments — owning instructor creates an assignment.
+// Starter circuit is copy-on-create to R2 at assignments/{id}/starter.json per D-09/D-15.
+classroom.post('/:id/assignments', requireInstructor, async (c) => {
+  const instructorId = c.get('userId');
+  const courseId = c.req.param('id');
+  const body = await c.req.json<{
+    title: string;
+    instructions?: string;
+    starterCircuit: string;
+    due_at?: number | null;
+  }>();
+
+  if (!body.title || !body.starterCircuit) {
+    return c.json({ error: 'title and starterCircuit are required' }, 400);
+  }
+
+  // Ownership check
+  const course = await c.env.DB.prepare(
+    'SELECT instructor_id FROM courses WHERE id = ?'
+  ).bind(courseId).first<{ instructor_id: string }>();
+  if (!course) return c.json({ error: 'Course not found' }, 404);
+  if (course.instructor_id !== instructorId) {
+    return c.json({ error: 'Forbidden' }, 403);
+  }
+
+  const assignmentId = crypto.randomUUID();
+  const starterKey = `assignments/${assignmentId}/starter.json`;
+  const now = Date.now();
+
+  await c.env.CIRCUIT_BUCKET.put(starterKey, body.starterCircuit, {
+    httpMetadata: { contentType: 'application/json' },
+  });
+
+  await c.env.DB.prepare(`
+    INSERT INTO assignments (id, course_id, title, instructions, starter_r2_key, due_at, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `).bind(
+    assignmentId,
+    courseId,
+    body.title,
+    body.instructions ?? null,
+    starterKey,
+    body.due_at ?? null,
+    now,
+    now
+  ).run();
+
+  return c.json({ id: assignmentId, title: body.title });
+});
+
 export { classroom as classroomRouter };
