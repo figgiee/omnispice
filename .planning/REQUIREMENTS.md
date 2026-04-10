@@ -96,7 +96,7 @@ Deferred to v2. Tracked but not in current roadmap.
 
 - **LMS-01**: OmniSpice supports LTI 1.3 Deep Linking for embedding assignments in Canvas, Blackboard, and Moodle
 - **LMS-02**: Completed assignments pass grades back to LMS gradebook via LTI AGS
-- **LMS-03**: Students launch OmniSpice assignments directly from their LMS without separate login
+- [x] **LMS-03**: Students launch OmniSpice assignments directly from their LMS without separate login — _completed in Phase 04 Plan 02_
 
 ### Guided Labs
 
@@ -213,7 +213,7 @@ Deferred to v2. Tracked but not in current roadmap.
 | CLASS-05 | Phase 3 — Classroom Features | v2 |
 | LMS-01 | Phase 4 — Institutional Features | v2 |
 | LMS-02 | Phase 4 — Institutional Features | v2 |
-| LMS-03 | Phase 4 — Institutional Features | v2 |
+| LMS-03 | Phase 4 — Institutional Features | Completed (04-02) |
 | LAB-01 | Phase 4 — Institutional Features | v2 |
 | LAB-02 | Phase 4 — Institutional Features | v2 |
 | LAB-03 | Phase 4 — Institutional Features | v2 |

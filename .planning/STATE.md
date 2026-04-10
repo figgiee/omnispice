@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-04-10T09:35:50.131Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-04-10T09:58:22.104Z"
 last_activity: 2026-04-10
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 26
-  completed_plans: 21
+  completed_plans: 22
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 ## Current Position
 
 Phase: 04 (institutional-features) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 Last activity: 2026-04-10
 
@@ -63,6 +63,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03 P03-03 | 18 minutes | 2 tasks | 6 files |
 | Phase 03 P06 | 360 | 2 tasks | 13 files |
 | Phase 04 P01 | 1h | 6 tasks | 40 files |
+| Phase 04-institutional-features P02 | 60min | 4 tasks | 22 files |
 
 ## Accumulated Context
 
@@ -106,6 +107,11 @@ Recent decisions affecting current work:
 - [Phase 04]: All Phase 4 D1 tables ship in a single migration 0003_lti_and_labs.sql (10 tables + submissions.lti_launch_id ALTER); downstream plans assume whole schema exists
 - [Phase 04]: Playwright @phase4-lti project uses testMatch AND default chromium project uses testIgnore on phase-04/ so committed describe.skip blocks cannot run under default suite
 - [Phase 04]: AGS score retry uses wrangler.toml Cron trigger */10 * * * * not Cloudflare Queues (Queues add binding+billing without improving retry guarantee)
+- [Phase 04-institutional-features]: [Phase 04]: verifyLaunch takes injected platformLookup/fetchJwks/nonceStore for hermetic unit tests; d1NonceStore + fetchRemoteJwks wire live D1/fetch in the route handler
+- [Phase 04-institutional-features]: [Phase 04]: mintClerkTicket module lives at worker/src/lti/mintClerkTicket.ts with mintClerkTicketForLtiLaunch({iss,sub,email,name,secretKey}) — matches 04-01 RED stub path exactly
+- [Phase 04-institutional-features]: [Phase 04]: LtiLaunchBootstrap uses history.replaceState + popstate (not location.assign) because location.assign is a no-op in jsdom and breaks the pathname assertion
+- [Phase 04-institutional-features]: [Phase 04]: useSignIn() cast to LegacySignInHook structural interface because Clerk v6 ships two parallel API shapes and the ticket strategy flow targets the legacy surface
+- [Phase 04-institutional-features]: [Phase 04]: E2E lti-launch-no-login spec gates on RUN_LTI_E2E=1 and auto-skips in CI; per-developer Clerk test secrets + wrangler dev documented in SUMMARY auth gates
 
 ### Pending Todos
 
@@ -124,6 +130,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-10T09:35:50.129Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-04-10T09:58:22.101Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
