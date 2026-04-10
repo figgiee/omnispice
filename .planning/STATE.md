@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 4 planned (04-01..04-06)
-last_updated: "2026-04-10T12:00:00.000Z"
+status: executing
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-04-10T09:35:50.131Z"
 last_activity: 2026-04-10
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 26
-  completed_plans: 20
+  completed_plans: 21
   percent: 0
 ---
 
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 
 ## Current Position
 
-Phase: 4
-Plan: 04-01 (ready to execute)
-Status: Planned (6 plans, 26 tasks, plan-checker PASS)
+Phase: 04 (institutional-features) — EXECUTING
+Plan: 2 of 6
+Status: Ready to execute
 Last activity: 2026-04-10
 
 Progress: [░░░░░░░░░░] 0%
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03 P02 | 2 | 2 tasks | 10 files |
 | Phase 03 P03-03 | 18 minutes | 2 tasks | 6 files |
 | Phase 03 P06 | 360 | 2 tasks | 13 files |
+| Phase 04 P01 | 1h | 6 tasks | 40 files |
 
 ## Accumulated Context
 
@@ -100,6 +101,11 @@ Recent decisions affecting current work:
 - [Phase 04]: lab Zod schema duplicated between src/labs/schema.ts and worker/src/lab/schema.ts until a shared workspace package lands in Phase 5
 - [Phase 04]: lti_oidc_states stored in lti_nonces with 'state:' key prefix rather than a separate table (short-term, flag for Phase 5 cleanup)
 - [Phase 04]: react-hook-form introduced in 04-05 as the first form library in the stack (used only by Lab Editor)
+- [Phase 04]: KaTeX to PDF uses pre-rasterize-to-PNG via html-to-image toPng (Approach B); Approach A rejected per Pitfall 2, Approach C rejected because jsPDF cannot render html-to-image foreignObject SVG
+- [Phase 04]: LTI router mounts at /lti BEFORE any Clerk middleware — LMSes have no Clerk session; sessions minted via signInTokens ticket inside the launch handler
+- [Phase 04]: All Phase 4 D1 tables ship in a single migration 0003_lti_and_labs.sql (10 tables + submissions.lti_launch_id ALTER); downstream plans assume whole schema exists
+- [Phase 04]: Playwright @phase4-lti project uses testMatch AND default chromium project uses testIgnore on phase-04/ so committed describe.skip blocks cannot run under default suite
+- [Phase 04]: AGS score retry uses wrangler.toml Cron trigger */10 * * * * not Cloudflare Queues (Queues add binding+billing without improving retry guarantee)
 
 ### Pending Todos
 
@@ -118,6 +124,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-10T08:02:45.046Z
-Stopped at: Completed 03-06-PLAN.md
+Last session: 2026-04-10T09:35:50.129Z
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None
