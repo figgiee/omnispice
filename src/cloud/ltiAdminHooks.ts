@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCurrentUser } from '../auth/useCurrentUser';
 import {
-  listPlatforms,
+  type CreateLtiPlatformInput,
   createPlatform,
   deletePlatform,
-  type CreateLtiPlatformInput,
+  embedInLms,
   type LtiPlatform,
+  listPlatforms,
 } from './ltiAdminApi';
 
 /** List all registered LTI platforms (instructor-only endpoint). */
@@ -41,5 +42,16 @@ export function useDeletePlatform() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['ltiPlatforms'] });
     },
+  });
+}
+
+/**
+ * Submit selected assignments to the current LMS via Deep Linking response.
+ * The returned HTML must be written into the window to fire the auto-submit form.
+ */
+export function useEmbedInLms() {
+  return useMutation({
+    mutationFn: ({ launchId, assignmentIds }: { launchId: string; assignmentIds: string[] }) =>
+      embedInLms({ launchId, assignmentIds }),
   });
 }

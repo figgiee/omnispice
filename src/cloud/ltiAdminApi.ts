@@ -76,3 +76,30 @@ export async function deletePlatform(
     getToken,
   );
 }
+
+/**
+ * Embed selected assignments in the calling LMS via LTI Deep Linking.
+ *
+ * Called by DeepLinkPickerPage after the instructor clicks "Embed".
+ * The Worker responds with an HTML document containing an auto-submitting
+ * form; the caller should write that HTML directly into the current window
+ * so the form POST fires against the platform's deep_link_return_url.
+ *
+ * NOTE: This endpoint is on the /lti/* router which is mounted pre-Clerk,
+ * so no Authorization header is needed — the launch id is the capability.
+ */
+export async function embedInLms(input: {
+  launchId: string;
+  assignmentIds: string[];
+}): Promise<string> {
+  const res = await fetch(`${API_BASE}/lti/deeplink/response`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`LTI embed failed (${res.status}): ${body}`);
+  }
+  return res.text();
+}

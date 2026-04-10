@@ -93,7 +93,9 @@ export function createMockPlatform(): MockPlatform {
           headers: { 'Content-Type': 'application/json' },
         });
       }
-      return new Response('', { status: 204 });
+      // A 204 response must not carry a body — pass `null` per Fetch spec,
+      // otherwise undici (Node 20+) throws "Invalid response status code 204".
+      return new Response(null, { status: 204 });
     }
 
     // Line items: GET list / POST create / GET single
