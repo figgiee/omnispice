@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-07-PLAN.md
-last_updated: "2026-04-10T00:11:30.470Z"
+stopped_at: "Completed 01-core-simulator-08-PLAN.md (checkpoint: human-verify)"
+last_updated: "2026-04-10T00:32:16.529Z"
 last_activity: 2026-04-10
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 8
-  completed_plans: 6
+  completed_plans: 8
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 ## Current Position
 
 Phase: 01 (core-simulator) — EXECUTING
-Plan: 3 of 8
+Plan: 4 of 8
 Status: Ready to execute
 Last activity: 2026-04-10
 
@@ -54,6 +54,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 01 P05 | 3min | 1 tasks | 6 files |
 | Phase 01 P07 | 8min | 2 tasks | 8 files |
+| Phase 01-core-simulator P08 | 90 | 3 tasks | 27 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,9 @@ Recent decisions affecting current work:
 - [Phase 01]: zundo temporal middleware for undo/redo with 100-step limit and partialize
 - [Phase 01]: uPlot lifecycle managed via React useEffect with ResizeObserver for responsive chart sizing
 - [Phase 01]: Measurement functions are pure math on Float64Array for testability; cursor state via React hooks not uPlot plugin
+- [Phase 01-core-simulator]: react-resizable-panels v4 uses Group/Panel/Separator API (not PanelGroup/PanelResizeHandle from v1)
+- [Phase 01-core-simulator]: D-21 highlight uses global CSS class omnispice-node-highlighted (not CSS Modules) to avoid string|undefined TS error
+- [Phase 01-core-simulator]: Test files excluded from tsconfig for build; vitest handles test type checking independently
 
 ### Pending Todos
 
@@ -82,6 +86,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-10T00:11:30.467Z
-Stopped at: Completed 01-07-PLAN.md
+Last session: 2026-04-10T00:32:16.525Z
+Stopped at: Completed 01-core-simulator-08-PLAN.md (checkpoint: human-verify)
 Resume file: None

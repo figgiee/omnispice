@@ -9,7 +9,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Schematic Editor
 
-- [ ] **SCHEM-01**: User can drag components from a library panel onto an infinite canvas
+- [x] **SCHEM-01**: User can drag components from a library panel onto an infinite canvas
 - [x] **SCHEM-02**: User can connect components with wires that snap to component pins and route with bends/junctions
 - [x] **SCHEM-03**: User can select, move, rotate, copy, and delete components and wire segments
 - [ ] **SCHEM-04**: User can edit component values inline (resistance, capacitance, voltage, etc.) with a single click
@@ -26,8 +26,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **COMP-04**: Library includes MOSFETs (NMOS, PMOS) with default SPICE models
 - [x] **COMP-05**: Library includes op-amps (ideal and real models including uA741, LM741)
 - [x] **COMP-06**: Library includes independent voltage/current sources (DC, AC, pulse, sinusoidal, PWL)
-- [ ] **COMP-07**: User can search the component library by name, type, or value with fuzzy search
-- [ ] **COMP-08**: User can import third-party SPICE models (.mod / .lib files) for advanced components
+- [x] **COMP-07**: User can search the component library by name, type, or value with fuzzy search
+- [x] **COMP-08**: User can import third-party SPICE models (.mod / .lib files) for advanced components
 
 ### Simulation
 
@@ -150,7 +150,7 @@ Deferred to v2. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCHEM-01 | Phase 1 — Core Simulator | Pending |
+| SCHEM-01 | Phase 1 — Core Simulator | Complete |
 | SCHEM-02 | Phase 1 — Core Simulator | Complete |
 | SCHEM-03 | Phase 1 — Core Simulator | Complete |
 | SCHEM-04 | Phase 1 — Core Simulator | Pending |
@@ -164,8 +164,8 @@ Deferred to v2. Tracked but not in current roadmap.
 | COMP-04 | Phase 1 — Core Simulator | Complete |
 | COMP-05 | Phase 1 — Core Simulator | Complete |
 | COMP-06 | Phase 1 — Core Simulator | Complete |
-| COMP-07 | Phase 1 — Core Simulator | Pending |
-| COMP-08 | Phase 1 — Core Simulator | Pending |
+| COMP-07 | Phase 1 — Core Simulator | Complete |
+| COMP-08 | Phase 1 — Core Simulator | Complete |
 | SIM-01 | Phase 1 — Core Simulator | Pending |
 | SIM-02 | Phase 1 — Core Simulator | Pending |
 | SIM-03 | Phase 1 — Core Simulator | Pending |
