@@ -6,12 +6,8 @@
  * Uses getSmoothStepPath with borderRadius: 0 for sharp corners.
  */
 
-import {
-  BaseEdge,
-  getSmoothStepPath,
-  type EdgeProps,
-  type Edge,
-} from '@xyflow/react';
+import { BaseEdge, type Edge, type EdgeProps, getSmoothStepPath } from '@xyflow/react';
+import { useOverlayStore } from '@/overlay/overlayStore';
 import styles from './WireEdge.module.css';
 
 /**
@@ -49,9 +45,13 @@ export function WireEdge({
   });
 
   const junctionPoints = data?.junctionPoints ?? [];
-  const edgeClassName = selected
-    ? `${styles.wireEdge} ${styles.selected}`
-    : styles.wireEdge;
+  const edgeClassName = selected ? `${styles.wireEdge} ${styles.selected}` : styles.wireEdge;
+
+  const edgeVoltages = useOverlayStore((s) => s.edgeVoltages);
+  const isVisible = useOverlayStore((s) => s.isVisible);
+  const voltage = edgeVoltages[id];
+  const midX = (sourceX + targetX) / 2;
+  const midY = (sourceY + targetY) / 2;
 
   return (
     <g className={edgeClassName}>
@@ -75,6 +75,11 @@ export function WireEdge({
           className={styles.tjunctionDot}
         />
       ))}
+      {isVisible && voltage !== undefined && (
+        <text x={midX} y={midY - 6} textAnchor="middle" className={styles.voltageLabel}>
+          {voltage.toFixed(2)} V
+        </text>
+      )}
     </g>
   );
 }

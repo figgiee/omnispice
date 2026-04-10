@@ -11,3 +11,11 @@
   fill: var(--tjunction-dot);
   pointer-events: none;
 }
+
+.voltageLabel {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-mono);
+  fill: var(--accent-primary);
+  pointer-events: none;
+  user-select: none;
+}
