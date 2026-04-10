@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>OmniSpice Sample Lab Report</title>
+  </head>
+  <body class="omnispice-report">
+    <header class="report-header">
+      <h1>EECS-101 Lab 1 — RC Transient Response</h1>
+      <p class="report-meta">Student: Test Student &middot; Course: Intro Circuits &middot; Date: 2026-04-10</p>
+    </header>
+
+    <section class="report-schematic" data-section="schematic">
+      <h2>1. Schematic</h2>
+      <figure>
+        <img src="figures/schematic.png" alt="RC low-pass filter: 1k resistor and 1u capacitor" />
+        <figcaption>Figure 1: RC low-pass filter, R = 1 kΩ, C = 1 µF.</figcaption>
+      </figure>
+    </section>
+
+    <section class="report-waveforms" data-section="waveforms">
+      <h2>2. Waveforms</h2>
+      <figure>
+        <img src="figures/waveform-1.png" alt="v(out) transient response" />
+        <figcaption>Figure 2: Step response v(out) over 5 ms.</figcaption>
+      </figure>
+    </section>
+
+    <section class="report-measurements" data-section="measurements">
+      <h2>3. Measurements</h2>
+      <table>
+        <thead>
+          <tr><th>Metric</th><th>Expected</th><th>Measured</th><th>Δ</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Rise time (10→90%)</td><td>2.2 ms</td><td>2.18 ms</td><td>−0.9%</td></tr>
+          <tr><td>Steady-state v(out)</td><td>5.00 V</td><td>5.00 V</td><td>0.0%</td></tr>
+          <tr><td>Time constant τ</td><td>1.00 ms</td><td>0.99 ms</td><td>−1.0%</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="report-annotations" data-section="annotations">
+      <h2>4. Annotations</h2>
+      <p>The measured rise time agrees with the textbook prediction τ × 2.2. The circuit behaves
+      as a first-order low-pass filter with cutoff f<sub>c</sub> ≈ 159 Hz.</p>
+    </section>
+  </body>
+</html>
