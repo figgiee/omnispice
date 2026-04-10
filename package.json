@@ -14,7 +14,9 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report tests/e2e/report",
     "lint": "biome check src/",
-    "format": "biome format --write src/"
+    "format": "biome format --write src/",
+    "worker:dev": "cd worker && pnpm dev",
+    "worker:install": "cd worker && pnpm install"
   },
   "dependencies": {
     "@clerk/react": "^6.2.1",
