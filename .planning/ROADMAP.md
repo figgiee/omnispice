@@ -12,7 +12,7 @@ OmniSpice ships in two v1 phases: the core simulator (the highest-risk work — 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [x] **Phase 1: Core Simulator** - Functional offline circuit simulator: schematic editor, ngspice WASM engine, waveform viewer, component library, and human-readable errors (completed 2026-04-10)
+- [x] **Phase 1: Core Simulator** - Functional offline circuit simulator: schematic editor, ngspice WASM engine, waveform viewer, component library, and human-readable errors (completed 2026-04-10)
 - [ ] **Phase 2: Cloud and Compatibility** - User accounts, cloud save, shareable links, live schematic overlay, LTspice import, and export
 - [ ] **Phase 3: Classroom Features** - Instructor dashboard, assignment management, and comparison mode — the revenue unlock
 - [ ] **Phase 4: Institutional Features** - LMS integration, guided labs, lab report export — the site license unlock
@@ -59,7 +59,15 @@ Plans:
   3. After simulation completes, node voltages appear directly on the schematic wires and component currents appear on each component
   4. User can import an LTspice .asc file and see the circuit rendered on the canvas, then simulate it
   5. User can export the schematic as PNG and the waveform as CSV in one click
-**Plans**: TBD
+**Plans:** 5 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Auth UI: Clerk integration, ClerkProvider, SignIn modal, UserMenu in toolbar
+- [ ] 02-02-PLAN.md — Export (PNG, CSV, netlist) + live simulation overlay (overlayStore, useOverlaySync)
+- [ ] 02-03-PLAN.md — Backend API: Cloudflare Worker + Hono, D1 schema, R2 storage, circuit CRUD, share tokens
+- [ ] 02-04-PLAN.md — Cloud UI: save button, circuit dashboard, share modal, shared circuit viewer
+- [ ] 02-05-PLAN.md — LTspice .asc importer: parser, mapper, ImportMenu toolbar component
+
 **Key risks**:
   - Clerk SSO/SAML pricing at scale for university IdPs — verify before implementation
   - D1 storage limits for circuits at scale — model storage growth, R2 may need to be primary
@@ -118,7 +126,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Core Simulator | 8/8 | Complete   | 2026-04-10 |
-| 2. Cloud and Compatibility | 0/TBD | Not started | - |
+| 2. Cloud and Compatibility | 0/5 | Not started | - |
 | 3. Classroom Features | 0/TBD | Not started | - |
 | 4. Institutional Features | 0/TBD | Not started | - |
 | 5. Collaboration and Polish | 0/TBD | Not started | - |
