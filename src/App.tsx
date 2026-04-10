@@ -4,6 +4,7 @@ import { useOverlaySync } from './overlay/useOverlaySync';
 import { AssignmentPage } from './pages/AssignmentPage';
 import { CoursePage } from './pages/CoursePage';
 import { Dashboard } from './pages/Dashboard';
+import { DeepLinkPickerPage } from './pages/DeepLinkPickerPage';
 import { JoinCoursePage } from './pages/JoinCoursePage';
 import { LabRunnerPage } from './pages/LabRunnerPage';
 import { LtiAdminPage } from './pages/LtiAdminPage';
@@ -26,9 +27,23 @@ function App() {
     return <JoinCoursePage code={joinMatch[1].toUpperCase()} />;
   }
 
-  // /lti/bootstrap — Phase 4 LMS-03 (LTI launch ticket redemption)
+  // /lti/bootstrap — Phase 4 LMS-01/LMS-02/LMS-03
   // Must match BEFORE /dashboard so LMS launches can't be shadowed.
+  //
+  // Flow:
+  //   1. LMS POSTs to /lti/launch (worker) → worker redirects to
+  //      /lti/bootstrap?ticket=...&mode=deeplink|resource&launch=...
+  //   2. If `ticket` present → LtiBootstrapPage redeems the Clerk ticket.
+  //      For mode=deeplink it then replaces history with
+  //      /lti/bootstrap?mode=deeplink&launch=... (ticket stripped).
+  //   3. Second render lands here with mode=deeplink and no ticket →
+  //      DeepLinkPickerPage renders with a live Clerk session.
+  //   4. For resource-link mode step 2 navigates away to target_link_uri.
   if (path === '/lti/bootstrap' || path === '/lti/bootstrap/') {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('mode') === 'deeplink' && !params.get('ticket')) {
+      return <DeepLinkPickerPage />;
+    }
     return <LtiBootstrapPage />;
   }
 

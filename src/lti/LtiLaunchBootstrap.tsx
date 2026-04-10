@@ -76,16 +76,23 @@ export function LtiLaunchBootstrap() {
           setFromLti({ launchId, target, mode });
         }
         setStatus('redirecting');
-        // Update the URL in-place so the SPA router (App.tsx) re-evaluates
-        // against the fresh Clerk session (setActive has already persisted
-        // the session into Clerk's storage).
+        // Deep-link mode stays on /lti/bootstrap so the App router renders
+        // the DeepLinkPickerPage. We strip the ticket param but keep
+        // `mode=deeplink&launch=...` so the picker can read the launch id.
+        //
+        // Resource-link mode navigates to the LMS's target_link_uri.
         //
         // Using history.replaceState instead of location.assign(target)
         // because (a) Clerk's setActive has already put the session where
         // the rest of the SPA looks for it, and (b) replaceState updates
         // window.location.pathname in jsdom for tests while still behaving
         // correctly in a real browser.
-        window.history.replaceState({}, '', target);
+        if (mode === 'deeplink' && launchId) {
+          const pickerUrl = `/lti/bootstrap?mode=deeplink&launch=${encodeURIComponent(launchId)}`;
+          window.history.replaceState({}, '', pickerUrl);
+        } else {
+          window.history.replaceState({}, '', target);
+        }
         // Nudge the App.tsx pathname router to re-evaluate in production
         // by dispatching a popstate event. In jsdom, the assertions hit on
         // the updated location.pathname without the event.
