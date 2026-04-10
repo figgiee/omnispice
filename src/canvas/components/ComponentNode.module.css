@@ -1,0 +1,70 @@
+.node {
+  position: relative;
+  cursor: grab;
+}
+
+.node[data-selected="true"] {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.refLabel {
+  font-family: var(--font-body);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
+.valueLabel {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-mono);
+  color: var(--text-primary);
+  cursor: pointer;
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.valueLabel:hover {
+  color: var(--accent-primary);
+}
+
+.valueInput {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-mono);
+  background: var(--surface-primary);
+  border: 1px solid var(--accent-primary);
+  color: var(--text-primary);
+  outline: none;
+  width: auto;
+  min-width: 40px;
+  padding: 0 var(--space-xs);
+  border-radius: 2px;
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.pin {
+  background: var(--pin-dot);
+  border-radius: 50%;
+}
+
+.pin:hover {
+  background: var(--pin-hover);
+  width: 12px;
+  height: 12px;
+}
