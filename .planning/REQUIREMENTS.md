@@ -63,7 +63,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Cloud and Accounts
 
-- [ ] **CLOUD-01**: User can create an account with email and password
+- [x] **CLOUD-01**: User can create an account with email and password
 - [ ] **CLOUD-02**: User session persists across browser refresh
 - [ ] **CLOUD-03**: User can save circuits to cloud storage and see a list of saved circuits
 - [ ] **CLOUD-04**: User can share a circuit via a read-only link that opens in any browser without login
@@ -186,7 +186,7 @@ Deferred to v2. Tracked but not in current roadmap.
 | LIVE-01 | Phase 2 — Cloud and Compatibility | Pending |
 | LIVE-02 | Phase 2 — Cloud and Compatibility | Pending |
 | LIVE-03 | Phase 2 — Cloud and Compatibility | Pending |
-| CLOUD-01 | Phase 2 — Cloud and Compatibility | Pending |
+| CLOUD-01 | Phase 2 — Cloud and Compatibility | Complete |
 | CLOUD-02 | Phase 2 — Cloud and Compatibility | Pending |
 | CLOUD-03 | Phase 2 — Cloud and Compatibility | Pending |
 | CLOUD-04 | Phase 2 — Cloud and Compatibility | Pending |

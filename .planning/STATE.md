@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed 01-core-simulator-08-PLAN.md (checkpoint: human-verify)"
-last_updated: "2026-04-10T00:32:16.529Z"
+stopped_at: Completed 02-cloud-and-compatibility/02-01-PLAN.md
+last_updated: "2026-04-10T05:46:06.057Z"
 last_activity: 2026-04-10
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 13
+  completed_plans: 9
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 ## Current Position
 
 Phase: 01 (core-simulator) — EXECUTING
-Plan: 4 of 8
+Plan: 5 of 8
 Status: Ready to execute
 Last activity: 2026-04-10
 
@@ -55,6 +55,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P05 | 3min | 1 tasks | 6 files |
 | Phase 01 P07 | 8min | 2 tasks | 8 files |
 | Phase 01-core-simulator P08 | 90 | 3 tasks | 27 files |
+| Phase 02-cloud-and-compatibility P01 | 12 | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -73,6 +74,8 @@ Recent decisions affecting current work:
 - [Phase 01-core-simulator]: react-resizable-panels v4 uses Group/Panel/Separator API (not PanelGroup/PanelResizeHandle from v1)
 - [Phase 01-core-simulator]: D-21 highlight uses global CSS class omnispice-node-highlighted (not CSS Modules) to avoid string|undefined TS error
 - [Phase 01-core-simulator]: Test files excluded from tsconfig for build; vitest handles test type checking independently
+- [Phase 02-cloud-and-compatibility]: Use Clerk v6 Show component instead of removed SignedIn/SignedOut for auth-gated rendering
+- [Phase 02-cloud-and-compatibility]: Pin html-to-image to 1.11.13 via pnpm overrides; SignInButton mode=modal keeps user on canvas
 
 ### Pending Todos
 
@@ -86,6 +89,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-10T00:32:16.525Z
-Stopped at: Completed 01-core-simulator-08-PLAN.md (checkpoint: human-verify)
+Last session: 2026-04-10T05:46:06.055Z
+Stopped at: Completed 02-cloud-and-compatibility/02-01-PLAN.md
 Resume file: None
