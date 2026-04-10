@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   createMockNgspice,
   parseMockOutput,
+  type NgspiceModule,
 } from '../ngspice-wrapper';
 
 describe('ngspice-wrapper', () => {
@@ -174,20 +175,6 @@ describe('ngspice-wrapper', () => {
       module.clearBuffers();
       expect(module.stdoutBuffer).toBe('');
       expect(module.stderrBuffer).toBe('');
-    });
-  });
-
-  describe('worker message protocol', () => {
-    it('simulation.worker.ts responds to INIT with READY via mock', async () => {
-      // We test the worker logic by importing the handler indirectly.
-      // Since we can't instantiate a real Worker in vitest/jsdom,
-      // we test the mock ngspice initialization directly.
-      const module = createMockNgspice();
-      expect(module).toBeDefined();
-      expect(module.isMock).toBe(true);
-      // A READY response would be sent after loadNgspice() resolves
-      // The fact that createMockNgspice returns successfully means
-      // the INIT path would succeed in the worker.
     });
   });
 });

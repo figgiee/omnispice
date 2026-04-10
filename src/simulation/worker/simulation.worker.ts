@@ -7,11 +7,15 @@
  */
 
 import type { SimCommand, SimResponse } from '../protocol';
+<<<<<<< Updated upstream
 import {
   type NgspiceModule,
   loadNgspice,
   parseMockOutput,
 } from './ngspice-wrapper';
+=======
+import { type NgspiceModule, loadNgspice, parseMockOutput } from './ngspice-wrapper';
+>>>>>>> Stashed changes
 
 let ngspiceModule: NgspiceModule | null = null;
 
@@ -23,6 +27,7 @@ function respond(response: SimResponse): void {
 }
 
 /**
+<<<<<<< Updated upstream
  * Determine analysis type from netlist content or analysis command.
  */
 function detectAnalysisType(
@@ -32,6 +37,17 @@ function detectAnalysisType(
   if (lower.includes('.tran') || lower.includes('tran ')) return 'tran';
   if (lower.includes('.ac') || lower.includes('ac ')) return 'ac';
   if (lower.includes('.dc') || lower.includes('dc ')) return 'dc';
+=======
+ * Determine analysis type from the netlist content.
+ */
+function detectAnalysisType(
+  netlist: string,
+): 'tran' | 'ac' | 'dc' | 'op' {
+  const lower = netlist.toLowerCase();
+  if (lower.includes('.tran')) return 'tran';
+  if (lower.includes('.ac')) return 'ac';
+  if (lower.includes('.dc')) return 'dc';
+>>>>>>> Stashed changes
   return 'op';
 }
 
@@ -87,10 +103,14 @@ self.onmessage = async (event: MessageEvent<SimCommand>) => {
       try {
         // Write netlist to MEMFS as /tmp/circuit.cir
         ngspiceModule.FS.writeFile('/tmp/circuit.cir', cmd.netlist);
+<<<<<<< Updated upstream
         respond({
           type: 'STDOUT',
           text: 'Circuit loaded to /tmp/circuit.cir',
         });
+=======
+        respond({ type: 'STDOUT', text: 'Circuit loaded to /tmp/circuit.cir' });
+>>>>>>> Stashed changes
       } catch (err) {
         respond({
           type: 'ERROR',
@@ -125,7 +145,11 @@ self.onmessage = async (event: MessageEvent<SimCommand>) => {
         }
 
         // Feed source command to ngspice stdin (pipe mode)
+<<<<<<< Updated upstream
         ngspiceModule.feedStdin('source /tmp/circuit.cir');
+=======
+        ngspiceModule.feedStdin(`source /tmp/circuit.cir`);
+>>>>>>> Stashed changes
         ngspiceModule.feedStdin(cmd.analysis);
         ngspiceModule.feedStdin('quit');
 
@@ -143,9 +167,13 @@ self.onmessage = async (event: MessageEvent<SimCommand>) => {
         }
 
         // Parse output into VectorData
+<<<<<<< Updated upstream
         const analysisType = detectAnalysisType(
           netlistContent || cmd.analysis,
         );
+=======
+        const analysisType = detectAnalysisType(netlistContent || cmd.analysis);
+>>>>>>> Stashed changes
         const vectors = parseMockOutput(
           ngspiceModule.stdoutBuffer,
           analysisType,

@@ -43,11 +43,7 @@ export async function loadNgspice(): Promise<NgspiceModule> {
     // This file is produced by docker/ngspice-wasm/build.sh and placed
     // in src/assets/wasm/ngspice.js. It won't exist until the Docker
     // build is run.
-    //
-    // Use a variable-based import path to prevent Vite from statically
-    // analyzing and failing on the missing module during dev/test.
-    const wasmPath = '../../assets/wasm/ngspice.js';
-    const wasmModule = await import(/* @vite-ignore */ wasmPath);
+    const wasmModule = await import('../../assets/wasm/ngspice.js');
     const instance = await wasmModule.default();
 
     let stdoutBuffer = '';
@@ -92,8 +88,8 @@ export async function loadNgspice(): Promise<NgspiceModule> {
         for (let i = 0; i < input.length; i++) {
           stdinQueue.push(input.charCodeAt(i));
         }
-        // Newline signals end of input line
-        stdinQueue.push(10);
+        // Null terminator signals end of input line
+        stdinQueue.push(10); // newline
       },
       get stdoutBuffer() {
         return stdoutBuffer;
@@ -131,12 +127,13 @@ export function createMockNgspice(): NgspiceModule {
   return {
     FS: {
       writeFile: (path: string, data: string | Uint8Array) => {
-        const content = typeof data === 'string' ? data : new TextDecoder().decode(data);
+        const content =
+          typeof data === 'string' ? data : new TextDecoder().decode(data);
         files.set(path, content);
       },
       readFile: (path: string) => {
         const content = files.get(path);
-        if (content === undefined) {
+        if (!content) {
           throw new Error(`Mock FS: file not found: ${path}`);
         }
         return content;
@@ -152,10 +149,10 @@ export function createMockNgspice(): NgspiceModule {
     callMain: (_args: string[]) => {
       // In mock mode, callMain triggers simulation based on the
       // netlist previously written to /tmp/circuit.cir
-      const netlist = files.get('/tmp/circuit.cir') ?? '';
+      const netlist = files.get('/tmp/circuit.cir') || '';
 
       if (netlist.includes('.tran')) {
-        stdoutBuffer = generateMockTransientOutput();
+        stdoutBuffer = generateMockTransientOutput(netlist);
       } else if (netlist.includes('.ac')) {
         stdoutBuffer = generateMockACOutput();
       } else if (netlist.includes('.op')) {
@@ -170,9 +167,9 @@ export function createMockNgspice(): NgspiceModule {
     feedStdin: (input: string) => {
       // In mock mode, if stdin contains "source", trigger simulation
       if (input.includes('source')) {
-        const netlist = files.get('/tmp/circuit.cir') ?? '';
+        const netlist = files.get('/tmp/circuit.cir') || '';
         if (netlist.includes('.tran')) {
-          stdoutBuffer = generateMockTransientOutput();
+          stdoutBuffer = generateMockTransientOutput(netlist);
         } else if (netlist.includes('.ac')) {
           stdoutBuffer = generateMockACOutput();
         } else if (netlist.includes('.op')) {
@@ -203,7 +200,7 @@ export function createMockNgspice(): NgspiceModule {
  * Generate mock transient analysis output.
  * Simulates a simple RC circuit charging curve.
  */
-function generateMockTransientOutput(): string {
+function generateMockTransientOutput(_netlist: string): string {
   const lines: string[] = [];
   lines.push('Index\ttime\tv(out)\ti(V1)');
   const points = 100;
@@ -233,7 +230,7 @@ function generateMockACOutput(): string {
   const fc = 1591.55; // 1/(2*pi*1k*100n)
 
   for (let i = 0; i <= points; i++) {
-    const f = fStart * (fStop / fStart) ** (i / points);
+    const f = fStart * Math.pow(fStop / fStart, i / points);
     const w = 2 * Math.PI * f;
     const wc = 2 * Math.PI * fc;
     const mag = 1 / Math.sqrt(1 + (w / wc) ** 2);
@@ -241,7 +238,9 @@ function generateMockACOutput(): string {
     // AC output has real and imaginary parts
     const real = mag * Math.cos(phase);
     const imag = mag * Math.sin(phase);
-    lines.push(`${i}\t${f.toExponential(6)}\t${real.toExponential(6)},${imag.toExponential(6)}`);
+    lines.push(
+      `${i}\t${f.toExponential(6)}\t${real.toExponential(6)},${imag.toExponential(6)}`,
+    );
   }
 
   return lines.join('\n');
@@ -251,7 +250,11 @@ function generateMockACOutput(): string {
  * Generate mock DC operating point output.
  */
 function generateMockDCOpOutput(): string {
-  return ['v(net_1) = 5.00000e+00', 'v(out) = 2.50000e+00', 'i(V1) = -2.50000e-03'].join('\n');
+  return [
+    'v(net_1) = 5.00000e+00',
+    'v(out) = 2.50000e+00',
+    'i(V1) = -2.50000e-03',
+  ].join('\n');
 }
 
 /**
@@ -266,7 +269,9 @@ function generateMockDCSweepOutput(): string {
     const vIn = (i / points) * 10.0;
     const vOut = vIn * 0.5; // Simple voltage divider
     const iV1 = vIn / 2000;
-    lines.push(`${i}\t${vIn.toExponential(6)}\t${vOut.toExponential(6)}\t${iV1.toExponential(6)}`);
+    lines.push(
+      `${i}\t${vIn.toExponential(6)}\t${vOut.toExponential(6)}\t${iV1.toExponential(6)}`,
+    );
   }
 
   return lines.join('\n');
@@ -287,11 +292,11 @@ export function parseMockOutput(
   const lines = stdout.trim().split('\n');
   if (lines.length < 2) return [];
 
-  const headerLine = lines[0];
-  if (!headerLine) return [];
-  const header = headerLine.split('\t').slice(1); // Skip "Index"
+  const header = lines[0]!.split('\t').slice(1); // Skip "Index"
   const isAC = analysisType === 'ac';
 
+  // For AC, we have complex pairs, so actual vector count is header.length
+  // but we need to handle the complex format
   const vectors: VectorData[] = header.map((name) => ({
     name,
     data: new Float64Array(lines.length - 1),
@@ -300,22 +305,17 @@ export function parseMockOutput(
   }));
 
   for (let row = 1; row < lines.length; row++) {
-    const line = lines[row];
-    if (!line) continue;
-    const cols = line.split('\t').slice(1); // Skip index
+    const cols = lines[row]!.split('\t').slice(1); // Skip index
     for (let col = 0; col < cols.length && col < vectors.length; col++) {
-      const val = cols[col];
-      const vec = vectors[col];
-      if (!val || !vec) continue;
-
+      const val = cols[col]!;
       if (isAC && val.includes(',')) {
         // Store magnitude for complex values
         const [realStr, imagStr] = val.split(',');
-        const real = Number.parseFloat(realStr ?? '0');
-        const imag = Number.parseFloat(imagStr ?? '0');
-        vec.data[row - 1] = Math.sqrt(real * real + imag * imag);
+        const real = Number.parseFloat(realStr!);
+        const imag = Number.parseFloat(imagStr!);
+        vectors[col]!.data[row - 1] = Math.sqrt(real * real + imag * imag);
       } else {
-        vec.data[row - 1] = Number.parseFloat(val);
+        vectors[col]!.data[row - 1] = Number.parseFloat(val);
       }
     }
   }
@@ -328,13 +328,11 @@ function parseMockDCOp(stdout: string): VectorData[] {
   return lines
     .filter((line) => line.includes('='))
     .map((line) => {
-      const parts = line.split('=').map((s) => s.trim());
-      const name = parts[0] ?? '';
-      const valueStr = parts[1] ?? '0';
+      const [name, valueStr] = line.split('=').map((s) => s.trim());
       return {
-        name,
-        data: new Float64Array([Number.parseFloat(valueStr)]),
-        unit: inferUnit(name),
+        name: name!,
+        data: new Float64Array([Number.parseFloat(valueStr!)]),
+        unit: inferUnit(name!),
         isComplex: false,
       };
     });
