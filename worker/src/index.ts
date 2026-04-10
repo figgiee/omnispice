@@ -3,6 +3,8 @@ import { cors } from 'hono/cors';
 import { clerkMiddleware } from '@hono/clerk-auth';
 import { circuitsRouter } from './routes/circuits';
 import { shareRouter } from './routes/share';
+import { classroomRouter } from './routes/classroom';
+import { meRouter } from './routes/me';
 
 export type Bindings = {
   DB: D1Database;
@@ -25,10 +27,14 @@ app.use(
 
 // Clerk middleware on protected routes only
 app.use('/api/circuits/*', clerkMiddleware());
+app.use('/api/courses/*', clerkMiddleware());
+app.use('/api/me/*', clerkMiddleware());
 
 // Route registration
 app.route('/api/circuits', circuitsRouter);
 app.route('/api/share', shareRouter);
+app.route('/api/courses', classroomRouter);
+app.route('/api/me', meRouter);
 
 // Health check (no auth)
 app.get('/health', (c) => c.json({ ok: true }));
