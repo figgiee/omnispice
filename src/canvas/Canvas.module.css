@@ -49,3 +49,13 @@
 .canvas :global(.react-flow__controls-button:hover) {
   background: var(--surface-hover);
 }
+
+/* D-21: Error navigation highlight - red dashed outline for 3s */
+:global(.react-flow__node).highlighted {
+  outline: 2px dashed var(--error-highlight) !important;
+  outline-offset: 2px;
+}
+
+.snapOverlay {
+  pointer-events: none;
+}

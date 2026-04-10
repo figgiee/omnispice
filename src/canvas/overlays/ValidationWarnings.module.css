@@ -1,0 +1,25 @@
+.warningIcon {
+  position: absolute;
+  color: var(--warning-icon);
+  pointer-events: auto;
+  cursor: help;
+  z-index: 5;
+  /* Offset to top-right corner of the node */
+  transform-origin: top right;
+}
+
+.warningTooltip {
+  position: absolute;
+  top: 20px;
+  right: 0;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: 4px;
+  font-size: var(--font-size-label);
+  max-width: 200px;
+  z-index: 10;
+  white-space: pre-wrap;
+  border: 1px solid var(--border-default);
+  pointer-events: none;
+}

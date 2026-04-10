@@ -1,0 +1,128 @@
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.analysisSelect {
+  height: 32px;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  font-size: var(--font-size-body);
+  font-family: var(--font-body);
+  border-radius: 4px;
+  padding: 0 var(--space-sm);
+  cursor: pointer;
+  outline: none;
+}
+
+.analysisSelect:focus {
+  border-color: var(--accent-primary);
+  border-width: 2px;
+}
+
+.analysisSelect:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.paramsWrapper {
+  position: relative;
+}
+
+.paramsBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 100ms ease, color 100ms ease;
+}
+
+.paramsBtn:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.paramsBtn.active {
+  background: var(--surface-active);
+  color: var(--text-primary);
+}
+
+.paramsBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.cancelBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  height: 32px;
+  padding: 0 var(--space-sm);
+  background: none;
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-size: var(--font-size-body);
+  font-family: var(--font-body);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 100ms ease, color 100ms ease;
+}
+
+.cancelBtn:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.runBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  height: 32px;
+  padding: 0 var(--space-sm) 0 10px;
+  background: var(--accent-primary);
+  border: none;
+  color: #1a1a2e;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-body);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 100ms ease;
+  white-space: nowrap;
+}
+
+.runBtn:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.runBtn:disabled,
+.runBtn.busy {
+  background: var(--surface-primary);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--text-muted);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

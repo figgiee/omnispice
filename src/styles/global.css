@@ -22,3 +22,9 @@ body {
 #root {
   height: 100%;
 }
+
+/* D-21: Error navigation highlight -- applied via classList (not CSS Modules) */
+.omnispice-node-highlighted {
+  outline: 2px dashed var(--error-highlight) !important;
+  outline-offset: 2px;
+}

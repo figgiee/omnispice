@@ -1,0 +1,86 @@
+.popover {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  width: 260px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  z-index: 20;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--space-sm);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.title {
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 4px;
+  border-radius: 2px;
+}
+
+.closeBtn:hover {
+  color: var(--text-primary);
+  background: var(--surface-hover);
+}
+
+.fields {
+  padding: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.fieldRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.label {
+  font-size: var(--font-size-label);
+  color: var(--text-secondary);
+}
+
+.input,
+.select {
+  height: 28px;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  font-size: var(--font-size-body);
+  font-family: var(--font-mono);
+  border-radius: 4px;
+  padding: 0 var(--space-sm);
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.select {
+  font-family: var(--font-body);
+}
+
+.input:focus,
+.select:focus {
+  border-color: var(--accent-primary);
+  border-width: 2px;
+}

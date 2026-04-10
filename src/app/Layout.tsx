@@ -1,0 +1,289 @@
+/**
+ * Main application layout shell.
+ *
+ * Uses react-resizable-panels (v4) for resizable/collapsible panel management.
+ * Owns the SimulationController lifecycle (init/destroy).
+ * Bridges the circuit store data model to React Flow nodes/edges.
+ *
+ * Layout:
+ * +--------+------------------------------------------+
+ * |        |              Toolbar (48px)               |
+ * |  Side  +------------------------------------------+
+ * |  bar   |                                           |
+ * | 240px  |         Canvas (fills remaining)          |
+ * |        |                                           |
+ * |        +------------------------------------------+
+ * |        |         Bottom Panel (collapsible)        |
+ * +--------+------------------------------------------+
+ */
+
+import {
+  type Edge,
+  type Node,
+  type NodeChange,
+  ReactFlowProvider,
+  useEdgesState,
+  useNodesState,
+} from '@xyflow/react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Group,
+  Panel,
+  type PanelImperativeHandle,
+  Separator,
+  usePanelRef,
+} from 'react-resizable-panels';
+import { Canvas } from '@/canvas/Canvas';
+import type { CircuitNodeData } from '@/canvas/components/types';
+import { SimulationController } from '@/simulation/controller';
+import type { TranslatedError } from '@/simulation/errorTranslator';
+import { useCircuitStore } from '@/store/circuitStore';
+import { useSimulationStore } from '@/store/simulationStore';
+import { useUiStore } from '@/store/uiStore';
+import { BottomPanel } from '@/ui/BottomPanel';
+import { Sidebar } from '@/ui/Sidebar';
+import { Toolbar } from '@/ui/Toolbar';
+import styles from './Layout.module.css';
+
+/**
+ * Convert circuit store state to React Flow nodes.
+ */
+function circuitToNodes(
+  circuit: ReturnType<typeof useCircuitStore.getState>['circuit'],
+): Node<CircuitNodeData>[] {
+  return [...circuit.components.values()].map((comp) => ({
+    id: comp.id,
+    type: comp.type,
+    position: comp.position,
+    data: {
+      type: comp.type,
+      refDesignator: comp.refDesignator,
+      value: comp.value,
+      rotation: comp.rotation,
+    },
+  }));
+}
+
+/**
+ * Convert circuit store wires to React Flow edges.
+ */
+function circuitToEdges(circuit: ReturnType<typeof useCircuitStore.getState>['circuit']): Edge[] {
+  const portToNode = new Map<string, string>();
+  for (const comp of circuit.components.values()) {
+    for (const port of comp.ports) {
+      portToNode.set(port.id, comp.id);
+    }
+  }
+
+  return [...circuit.wires.values()].map((wire) => ({
+    id: wire.id,
+    source: portToNode.get(wire.sourcePortId) ?? '',
+    target: portToNode.get(wire.targetPortId) ?? '',
+    sourceHandle: wire.sourcePortId,
+    targetHandle: wire.targetPortId,
+    type: 'wire',
+  }));
+}
+
+/**
+ * Helper to safely call imperative panel methods via ref.
+ */
+function getPanelHandle(ref: ReturnType<typeof usePanelRef>): PanelImperativeHandle | null {
+  return (ref as React.RefObject<PanelImperativeHandle | null>).current ?? null;
+}
+
+/**
+ * Inner layout content -- must be inside ReactFlowProvider.
+ */
+function LayoutContent() {
+  const controllerRef = useRef<SimulationController | null>(null);
+  const [controllerReady, setControllerReady] = useState(false);
+
+  const bottomPanelRef = usePanelRef();
+  const sidebarPanelRef = usePanelRef();
+
+  const setStatus = useSimulationStore((s) => s.setStatus);
+  const setResults = useSimulationStore((s) => s.setResults);
+  const setErrors = useSimulationStore((s) => s.setErrors);
+  const setElapsedTime = useSimulationStore((s) => s.setElapsedTime);
+  const simStatus = useSimulationStore((s) => s.status);
+
+  const sidebarCollapsed = useUiStore((s) => s.sidebarCollapsed);
+  const toggleSidebar = useUiStore((s) => s.toggleSidebar);
+  const setBottomTab = useUiStore((s) => s.setBottomTab);
+
+  const circuit = useCircuitStore((s) => s.circuit);
+
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node<CircuitNodeData>>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+
+  // Sync circuit store -> React Flow nodes
+  useEffect(() => {
+    const newNodes = circuitToNodes(circuit);
+    setNodes((prev) => {
+      const prevMap = new Map(prev.map((n) => [n.id, n]));
+      return newNodes.map((n) => {
+        const existing = prevMap.get(n.id);
+        if (existing) {
+          return { ...existing, position: n.position, data: n.data };
+        }
+        return n;
+      });
+    });
+  }, [circuit, setNodes]);
+
+  // Sync circuit store -> React Flow edges
+  useEffect(() => {
+    setEdges(circuitToEdges(circuit));
+  }, [circuit, setEdges]);
+
+  // Sync React Flow node position changes back to circuit store
+  const handleNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      onNodesChange(changes as NodeChange<Node<CircuitNodeData>>[]);
+      const updatePosition = useCircuitStore.getState().updateComponentPosition;
+      for (const change of changes) {
+        if (change.type === 'position' && change.position) {
+          updatePosition(change.id, change.position);
+        }
+      }
+    },
+    [onNodesChange],
+  );
+
+  // Initialize SimulationController
+  useEffect(() => {
+    const controller = new SimulationController(
+      (elapsed) => {
+        setElapsedTime(elapsed);
+      },
+      (vectors) => {
+        setResults(vectors);
+        setStatus('complete');
+        setBottomTab('waveform');
+        getPanelHandle(bottomPanelRef)?.expand();
+      },
+      (error) => {
+        const adapted: TranslatedError = {
+          message: error.message,
+          suggestion: '',
+          severity: 'error',
+          raw: error.raw,
+        };
+        setErrors([adapted]);
+        setStatus('error');
+        setBottomTab('errors');
+        getPanelHandle(bottomPanelRef)?.expand();
+      },
+      () => {
+        setStatus('idle');
+        setControllerReady(true);
+      },
+    );
+
+    controllerRef.current = controller;
+    setStatus('loading_engine');
+    controller.initialize().catch(() => {
+      // Error handled by onError callback
+    });
+
+    return () => {
+      controller.destroy();
+      controllerRef.current = null;
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-expand bottom panel on sim complete/error
+  useEffect(() => {
+    if (simStatus === 'complete' || simStatus === 'error') {
+      getPanelHandle(bottomPanelRef)?.expand();
+    }
+  }, [simStatus, bottomPanelRef]);
+
+  // Sync sidebar collapse state
+  const prevSidebarCollapsedRef = useRef(sidebarCollapsed);
+  useEffect(() => {
+    if (prevSidebarCollapsedRef.current === sidebarCollapsed) return;
+    prevSidebarCollapsedRef.current = sidebarCollapsed;
+    if (sidebarCollapsed) {
+      getPanelHandle(sidebarPanelRef)?.collapse();
+    } else {
+      getPanelHandle(sidebarPanelRef)?.expand();
+    }
+  }, [sidebarCollapsed, sidebarPanelRef]);
+
+  const handleConnect = useCallback(() => {
+    // Wire connection is handled by Canvas via circuitStore.addWire
+  }, []);
+
+  const controller = controllerReady ? controllerRef.current : null;
+
+  return (
+    <div className={styles.layout}>
+      <Group orientation="horizontal" className={styles.outerGroup}>
+        {/* Sidebar panel */}
+        <Panel
+          defaultSize={240}
+          minSize={200}
+          maxSize={320}
+          collapsible
+          collapsedSize={40}
+          panelRef={sidebarPanelRef}
+          onResize={(size) => {
+            if (size.inPixels < 50 && !sidebarCollapsed) {
+              toggleSidebar();
+            } else if (size.inPixels >= 50 && sidebarCollapsed) {
+              toggleSidebar();
+            }
+          }}
+        >
+          <Sidebar />
+        </Panel>
+
+        <Separator className={`${styles.resizeHandle} ${styles.resizeHandleHorizontal}`} />
+
+        {/* Main content panel */}
+        <Panel>
+          <div className={styles.mainContent}>
+            <div className={styles.toolbar}>
+              <Toolbar controller={controller} />
+            </div>
+
+            <Group orientation="vertical" className={styles.verticalGroup}>
+              <Panel minSize={150}>
+                <Canvas
+                  nodes={nodes}
+                  edges={edges}
+                  onNodesChange={handleNodesChange}
+                  onEdgesChange={onEdgesChange}
+                  onConnect={handleConnect}
+                />
+              </Panel>
+
+              <Separator className={`${styles.resizeHandle} ${styles.resizeHandleVertical}`} />
+
+              <Panel
+                defaultSize={280}
+                minSize={80}
+                maxSize="55%"
+                collapsible
+                collapsedSize={32}
+                panelRef={bottomPanelRef}
+              >
+                <BottomPanel controller={controller} />
+              </Panel>
+            </Group>
+          </div>
+        </Panel>
+      </Group>
+    </div>
+  );
+}
+
+export function Layout() {
+  return (
+    <ReactFlowProvider>
+      <LayoutContent />
+    </ReactFlowProvider>
+  );
+}

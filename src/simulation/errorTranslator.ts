@@ -17,7 +17,7 @@ interface ErrorPattern {
   pattern: RegExp;
   translate: (
     match: RegExpMatchArray,
-    netMap?: Map<string, string>
+    netMap?: Map<string, string>,
   ) => Omit<TranslatedError, 'raw'>;
 }
 
@@ -25,7 +25,7 @@ const ERROR_PATTERNS: ErrorPattern[] = [
   {
     pattern: /singular matrix.*node (\w+)/i,
     translate: (match, netMap) => ({
-      message: `Node "${netMap?.get(match[1]) || match[1]}" has a problem in the circuit.`,
+      message: `Node "${netMap?.get(match[1]!) || match[1]!}" has a problem in the circuit.`,
       suggestion:
         'Check for floating nodes (components not connected to anything) or short circuits across voltage sources.',
       componentRef: match[1],
@@ -35,7 +35,7 @@ const ERROR_PATTERNS: ErrorPattern[] = [
   {
     pattern: /no dc path to ground.*node (\w+)/i,
     translate: (match, netMap) => ({
-      message: `Node "${netMap?.get(match[1]) || match[1]}" is not connected to ground.`,
+      message: `Node "${netMap?.get(match[1]!) || match[1]!}" is not connected to ground.`,
       suggestion:
         'Every node needs a path to ground (node 0). Add a ground connection or a large resistor (1M ohm) to ground.',
       componentRef: match[1],
@@ -91,10 +91,7 @@ function extractComponentRef(raw: string): string | undefined {
  * @param netMap - Optional map from internal net names to user-friendly names
  * @returns Translated error with message, suggestion, and optional component reference
  */
-export function translateError(
-  raw: string,
-  netMap?: Map<string, string>
-): TranslatedError {
+export function translateError(raw: string, netMap?: Map<string, string>): TranslatedError {
   for (const { pattern, translate } of ERROR_PATTERNS) {
     const match = raw.match(pattern);
     if (match) {

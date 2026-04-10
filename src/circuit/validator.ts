@@ -42,13 +42,8 @@ export function validateCircuit(circuit: Circuit): ValidationError[] {
 /**
  * Check if the circuit has at least one ground component.
  */
-function checkNoGround(
-  circuit: Circuit,
-  errors: ValidationError[]
-): void {
-  const hasGround = [...circuit.components.values()].some(
-    (c) => c.type === 'ground'
-  );
+function checkNoGround(circuit: Circuit, errors: ValidationError[]): void {
+  const hasGround = [...circuit.components.values()].some((c) => c.type === 'ground');
   if (!hasGround) {
     errors.push({
       type: 'no_ground',
@@ -65,10 +60,7 @@ function checkNoGround(
  * Check for floating nodes (individual ports not connected to any wire).
  * Skips ground components (they only have one implicit connection).
  */
-function checkFloatingNodes(
-  circuit: Circuit,
-  errors: ValidationError[]
-): void {
+function checkFloatingNodes(circuit: Circuit, errors: ValidationError[]): void {
   // Build set of all port IDs that are connected by wires
   const connectedPortIds = new Set<string>();
   for (const wire of circuit.wires.values()) {
@@ -96,10 +88,7 @@ function checkFloatingNodes(
 /**
  * Check for completely disconnected components (ALL ports unconnected).
  */
-function checkDisconnectedComponents(
-  circuit: Circuit,
-  errors: ValidationError[]
-): void {
+function checkDisconnectedComponents(circuit: Circuit, errors: ValidationError[]): void {
   const connectedPortIds = new Set<string>();
   for (const wire of circuit.wires.values()) {
     connectedPortIds.add(wire.sourcePortId);
@@ -109,9 +98,7 @@ function checkDisconnectedComponents(
   for (const [id, comp] of circuit.components) {
     if (comp.type === 'ground') continue;
 
-    const allDisconnected = comp.ports.every(
-      (port) => !connectedPortIds.has(port.id)
-    );
+    const allDisconnected = comp.ports.every((port) => !connectedPortIds.has(port.id));
 
     if (allDisconnected && comp.ports.length > 0) {
       errors.push({
@@ -131,10 +118,7 @@ function checkDisconnectedComponents(
  * This is a simplified check -- two voltage sources directly in parallel
  * (sharing the same two nets) creates an invalid circuit in SPICE.
  */
-function checkVoltageSourceLoops(
-  circuit: Circuit,
-  errors: ValidationError[]
-): void {
+function checkVoltageSourceLoops(circuit: Circuit, errors: ValidationError[]): void {
   const voltageSources: Array<{ id: string; comp: Component; nets: [string, string] }> = [];
 
   // Build set of connected port IDs for net computation
@@ -154,8 +138,8 @@ function checkVoltageSourceLoops(
       comp.type === 'pwl_voltage';
 
     if (isVoltageSource && comp.ports.length >= 2) {
-      const net1 = comp.ports[0].netId;
-      const net2 = comp.ports[1].netId;
+      const net1 = comp.ports[0]!.netId;
+      const net2 = comp.ports[1]!.netId;
       if (net1 && net2) {
         voltageSources.push({
           id,
@@ -169,8 +153,8 @@ function checkVoltageSourceLoops(
   // Check all pairs of voltage sources for shared nets
   for (let i = 0; i < voltageSources.length; i++) {
     for (let j = i + 1; j < voltageSources.length; j++) {
-      const a = voltageSources[i];
-      const b = voltageSources[j];
+      const a = voltageSources[i]!;
+      const b = voltageSources[j]!;
 
       const sameNets =
         (a.nets[0] === b.nets[0] && a.nets[1] === b.nets[1]) ||
@@ -180,8 +164,7 @@ function checkVoltageSourceLoops(
         errors.push({
           type: 'source_loop',
           message: `Voltage source loop between ${a.comp.refDesignator} and ${b.comp.refDesignator}.`,
-          suggestion:
-            'Remove one voltage source or add a resistor between them.',
+          suggestion: 'Remove one voltage source or add a resistor between them.',
           componentIds: [a.id, b.id],
           severity: 'error',
         });

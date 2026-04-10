@@ -1,0 +1,42 @@
+.layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background: var(--bg-primary);
+  overflow: hidden;
+}
+
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.toolbar {
+  height: var(--toolbar-height);
+  flex-shrink: 0;
+}
+
+/* react-resizable-panels resize handles */
+.resizeHandle {
+  background: var(--border-default);
+  transition: background 150ms ease;
+  flex-shrink: 0;
+  z-index: 11;
+}
+
+.resizeHandle:hover,
+.resizeHandle[data-resize-handle-active] {
+  background: var(--accent-primary);
+}
+
+.resizeHandleHorizontal {
+  width: 4px;
+  cursor: col-resize;
+}
+
+.resizeHandleVertical {
+  height: 4px;
+  cursor: row-resize;
+}

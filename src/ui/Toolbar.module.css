@@ -1,0 +1,73 @@
+.toolbar {
+  height: var(--toolbar-height);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 0 var(--space-sm);
+  background: var(--surface-primary);
+  border-bottom: 1px solid var(--border-default);
+  flex-shrink: 0;
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.group.right {
+  margin-left: auto;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 0 var(--space-xs);
+  user-select: none;
+}
+
+.logoText {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-default);
+  margin: 0 var(--space-xs);
+  flex-shrink: 0;
+}
+
+.toolBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 100ms ease, color 100ms ease;
+  flex-shrink: 0;
+}
+
+.toolBtn:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.toolBtn.active {
+  background: var(--surface-active);
+  color: var(--text-primary);
+}
+
+.toolBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

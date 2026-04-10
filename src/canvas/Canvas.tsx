@@ -3,32 +3,38 @@
  *
  * Integrates React Flow with custom node/edge types, keyboard shortcuts,
  * wire routing, magnetic snap, and drag-and-drop component placement.
+ *
+ * D-21: Error navigation -- watches highlightedComponentId, pans to the
+ *       component and applies a 3-second red dashed highlight.
+ * D-23: Validation warnings -- renders ValidationWarnings overlay inside
+ *       ReactFlow for yellow icons on problem components.
  */
 
-import { useCallback } from 'react';
 import {
-  ReactFlow,
   Background,
-  Controls,
   BackgroundVariant,
-  useReactFlow,
-  type Node,
-  type Edge,
-  type OnNodesChange,
-  type OnEdgesChange,
-  type OnConnect,
   type Connection,
+  Controls,
+  type Edge,
+  type Node,
+  type OnConnect,
+  type OnEdgesChange,
+  type OnNodesChange,
+  ReactFlow,
+  useReactFlow,
 } from '@xyflow/react';
+import { useCallback, useEffect, useRef } from 'react';
 import '@xyflow/react/dist/style.css';
+import type { ComponentType } from '@/circuit/types';
+import { useCircuitStore } from '@/store/circuitStore';
+import { useUiStore } from '@/store/uiStore';
+import styles from './Canvas.module.css';
 import { nodeTypes } from './components/nodeTypes';
 import { edgeTypes } from './edges/edgeTypes';
 import { useCanvasInteractions } from './hooks/useCanvasInteractions';
-import { useWireRouting } from './hooks/useWireRouting';
 import { useMagneticSnap } from './hooks/useMagneticSnap';
-import { useCircuitStore } from '@/store/circuitStore';
-import { useUiStore } from '@/store/uiStore';
-import type { ComponentType } from '@/circuit/types';
-import styles from './Canvas.module.css';
+import { useWireRouting } from './hooks/useWireRouting';
+import { ValidationWarnings } from './overlays/ValidationWarnings';
 
 /** MIME type for drag-and-drop component transfers from sidebar. */
 const DND_MIME_TYPE = 'application/omnispice-component';
@@ -41,24 +47,68 @@ export interface CanvasProps {
   onConnect: OnConnect;
 }
 
-export function Canvas({
-  nodes,
-  edges,
-  onNodesChange,
-  onEdgesChange,
-  onConnect,
-}: CanvasProps) {
-  const { screenToFlowPosition } = useReactFlow();
+export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }: CanvasProps) {
+  const { screenToFlowPosition, setCenter, getNode } = useReactFlow();
 
   // Store actions
   const addComponent = useCircuitStore((s) => s.addComponent);
   const addWire = useCircuitStore((s) => s.addWire);
   const setSelectedComponentIds = useUiStore((s) => s.setSelectedComponentIds);
+  const highlightedComponentId = useUiStore((s) => s.highlightedComponentId);
+  const setHighlightedComponentId = useUiStore((s) => s.setHighlightedComponentId);
+
+  // Ref to track the highlight timeout for cleanup
+  const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Canvas hooks
   const { onDragOver } = useCanvasInteractions();
   const { isRouting, cancelRouting } = useWireRouting();
   const { isSnapping, snapTarget, checkSnap, clearSnap } = useMagneticSnap();
+
+  /**
+   * D-21: Error navigation receive side.
+   * When highlightedComponentId changes, pan to the component and
+   * apply a temporary red dashed highlight for 3 seconds.
+   */
+  useEffect(() => {
+    if (!highlightedComponentId) return;
+
+    const node = getNode(highlightedComponentId);
+    if (!node) return;
+
+    // Pan to the component with 200ms ease-out animation
+    const cx = node.position.x + (node.measured?.width ?? node.width ?? 60) / 2;
+    const cy = node.position.y + (node.measured?.height ?? node.height ?? 40) / 2;
+
+    setCenter(cx, cy, { duration: 200, zoom: 1.5 });
+
+    // Apply highlight class to the node's DOM element
+    // Use a stable class name string to avoid CSS Modules undefined issue
+    const HIGHLIGHT_CLASS = 'omnispice-node-highlighted';
+    const nodeEl = document.querySelector(
+      `[data-id="${highlightedComponentId}"]`,
+    ) as HTMLElement | null;
+    if (nodeEl) {
+      nodeEl.classList.add(HIGHLIGHT_CLASS);
+    }
+
+    // Clear highlight after 3 seconds
+    if (highlightTimeoutRef.current) {
+      clearTimeout(highlightTimeoutRef.current);
+    }
+    highlightTimeoutRef.current = setTimeout(() => {
+      if (nodeEl) {
+        nodeEl.classList.remove(HIGHLIGHT_CLASS);
+      }
+      setHighlightedComponentId(null);
+    }, 3000);
+
+    return () => {
+      if (highlightTimeoutRef.current) {
+        clearTimeout(highlightTimeoutRef.current);
+      }
+    };
+  }, [highlightedComponentId, getNode, setCenter, setHighlightedComponentId]);
 
   /**
    * Handle new connections from React Flow.
@@ -71,7 +121,7 @@ export function Canvas({
       }
       onConnect(connection);
     },
-    [addWire, onConnect]
+    [addWire, onConnect],
   );
 
   /**
@@ -101,7 +151,7 @@ export function Canvas({
       const id = addComponent(componentType as ComponentType, snappedPosition);
       setSelectedComponentIds([id]);
     },
-    [screenToFlowPosition, addComponent, setSelectedComponentIds]
+    [screenToFlowPosition, addComponent, setSelectedComponentIds],
   );
 
   /**
@@ -117,7 +167,7 @@ export function Canvas({
         checkSnap(position);
       }
     },
-    [isRouting, screenToFlowPosition, checkSnap]
+    [isRouting, screenToFlowPosition, checkSnap],
   );
 
   /**
@@ -162,6 +212,8 @@ export function Canvas({
           size={1}
         />
         <Controls />
+        {/* D-23: Validation warning icons on problem components */}
+        <ValidationWarnings />
         {/* Magnetic snap feedback overlay */}
         {isSnapping && snapTarget && (
           <svg
