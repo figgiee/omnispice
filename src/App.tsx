@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Layout } from './app/Layout';
+import type { Component } from './circuit/types';
 import { SharedCircuitViewer } from './components/share/SharedCircuitViewer';
 import { useOverlaySync } from './overlay/useOverlaySync';
 import { AssignmentPage } from './pages/AssignmentPage';
@@ -15,7 +16,83 @@ import { LtiBootstrapPage } from './pages/LtiBootstrapPage';
 import { ReportPreviewPage } from './pages/ReportPreviewPage';
 import { SubmissionViewer } from './pages/SubmissionViewer';
 import { startOrchestrator, stopOrchestrator } from './simulation/simulationOrchestrator';
+import { useCircuitStore } from './store/circuitStore';
 import { ShortcutHelpOverlay } from './ui/ShortcutHelpOverlay';
+
+/**
+ * Plan 05-02 Task 5 — dev-only test hooks used by the Playwright orthogonal
+ * routing + pin-types specs.
+ *
+ * `__test_loadCircuit` accepts a simplified fixture format:
+ *   {
+ *     nodes: [{ id, type, x, y }, ...],
+ *     wires: [{ from: 'nodeId/portName', to: 'nodeId/portName' }, ...],
+ *   }
+ *
+ * It dispatches `addComponent` for each node (so ports get real UUIDs via
+ * `createPorts`), then dispatches `addWire` using the port NAMES as
+ * sourcePortId/targetPortId — matching the runtime path where React Flow's
+ * `connection.sourceHandle` is the port name (= Handle `id` attribute).
+ *
+ * Gate on `import.meta.env.DEV || MODE === 'test'` so production builds never
+ * expose the hook.
+ */
+interface TestFixtureNode {
+  id: string;
+  type: string;
+  x: number;
+  y: number;
+  value?: string;
+}
+interface TestFixtureWire {
+  from: string; // "nodeId/portName"
+  to: string;
+}
+interface TestCircuitFixture {
+  nodes: TestFixtureNode[];
+  wires: TestFixtureWire[];
+}
+declare global {
+  interface Window {
+    __test_loadCircuit?: (fixture: TestCircuitFixture) => void;
+  }
+}
+if (import.meta.env.DEV || import.meta.env.MODE === 'test') {
+  window.__test_loadCircuit = (fixture: TestCircuitFixture) => {
+    const store = useCircuitStore.getState();
+    store.clearCircuit();
+
+    // nodeId (as authored in the fixture) → runtime component UUID
+    const nodeIdMap = new Map<string, string>();
+
+    for (const node of fixture.nodes) {
+      const runtimeId = useCircuitStore
+        .getState()
+        .addComponent(node.type as Component['type'], { x: node.x, y: node.y });
+      nodeIdMap.set(node.id, runtimeId);
+      if (node.value !== undefined) {
+        useCircuitStore.getState().updateComponentValue(runtimeId, node.value);
+      }
+    }
+
+    // Create wires using port UUIDs (matching the fixed Canvas.handleConnect
+    // path that resolves handle names to UUIDs before calling addWire).
+    for (const wire of fixture.wires) {
+      const [fromNode, fromPort] = wire.from.split('/');
+      const [toNode, toPort] = wire.to.split('/');
+      if (!fromNode || !fromPort || !toNode || !toPort) continue;
+      const fromRuntimeId = nodeIdMap.get(fromNode);
+      const toRuntimeId = nodeIdMap.get(toNode);
+      if (!fromRuntimeId || !toRuntimeId) continue;
+      const fromComp = useCircuitStore.getState().circuit.components.get(fromRuntimeId);
+      const toComp = useCircuitStore.getState().circuit.components.get(toRuntimeId);
+      const sourcePort = fromComp?.ports.find((p) => p.name === fromPort);
+      const targetPort = toComp?.ports.find((p) => p.name === toPort);
+      if (!sourcePort || !targetPort) continue;
+      useCircuitStore.getState().addWire(sourcePort.id, targetPort.id);
+    }
+  };
+}
 
 function App() {
   useOverlaySync();

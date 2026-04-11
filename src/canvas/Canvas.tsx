@@ -128,12 +128,33 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
 
   /**
    * Handle new connections from React Flow.
-   * Calls circuitStore.addWire when a connection is completed.
+   *
+   * React Flow's `connection.sourceHandle` is the `<Handle id="...">` attribute
+   * (which every node component sets to the port NAME like "pin1", "base").
+   * The circuit store, however, keys ports by their globally-unique UUID. We
+   * resolve the port name → UUID via the source/target nodes' `Component.ports`
+   * so wires survive circuitToEdges lookups and render on screen.
+   *
+   * Plan 05-02 Rule 1 fix: previously this passed the port NAME directly to
+   * addWire, which broke the circuitToEdges source/target resolution and
+   * prevented edges from rendering at all.
    */
   const handleConnect = useCallback(
     (connection: Connection) => {
-      if (connection.sourceHandle && connection.targetHandle) {
-        addWire(connection.sourceHandle, connection.targetHandle);
+      if (
+        connection.source &&
+        connection.target &&
+        connection.sourceHandle &&
+        connection.targetHandle
+      ) {
+        const circuit = useCircuitStore.getState().circuit;
+        const sourceComp = circuit.components.get(connection.source);
+        const targetComp = circuit.components.get(connection.target);
+        const sourcePort = sourceComp?.ports.find((p) => p.name === connection.sourceHandle);
+        const targetPort = targetComp?.ports.find((p) => p.name === connection.targetHandle);
+        if (sourcePort && targetPort) {
+          addWire(sourcePort.id, targetPort.id);
+        }
       }
       onConnect(connection);
     },
