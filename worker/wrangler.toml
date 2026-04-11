@@ -26,3 +26,15 @@ LTI_PUBLIC_KID = "omnispice-prod-2026"
 # See worker/src/index.ts scheduled() handler + lti_score_log table.
 [triggers]
 crons = ["*/10 * * * *"]
+
+# Phase 5-01 — y-durableobjects transport spike.
+# Uncomment + install y-durableobjects in worker/package.json to enable.
+# See .planning/phases/05-collaboration-and-polish/05-01-COLLAB-SPIKE.md.
+#
+# [[durable_objects.bindings]]
+# name = "Y_DURABLE_OBJECTS"
+# class_name = "YDurableObjects"
+#
+# [[migrations]]
+# tag = "spike-yjs"
+# new_classes = ["YDurableObjects"]
