@@ -357,10 +357,8 @@ describe('Phase 5 hotkeys', () => {
     expect(phases?.keydown).toBeDefined();
     expect(phases?.keyup).toBeDefined();
 
-    const preventDefault = vi.fn();
-    phases!.keydown!({ preventDefault } as unknown as KeyboardEvent);
+    phases!.keydown!({ preventDefault: vi.fn() } as unknown as KeyboardEvent);
     expect(mockSetTempPanActive).toHaveBeenCalledWith(true);
-    expect(preventDefault).toHaveBeenCalled();
 
     phases!.keyup!({ preventDefault: vi.fn() } as unknown as KeyboardEvent);
     expect(mockSetTempPanActive).toHaveBeenCalledWith(false);

@@ -206,12 +206,17 @@ export function useCanvasInteractions() {
   });
 
   // Spacebar-hold temp pan (Pillar 2 modelessness).
-  // Keydown flips uiStore.tempPanActive → Canvas swaps panOnDrag to
-  // left-mouse while held. Keyup restores middle-mouse-only.
+  // Keydown sets uiStore.tempPanActive (cursor hint + panOnDrag flip);
+  // keyup clears it. We do NOT preventDefault on Space because React
+  // Flow's panActivationKeyCode="Space" also needs the keydown event
+  // to bubble to window for its useKeyPress listener — preventDefault
+  // does not stop propagation, but some React Flow versions gate on
+  // the raw event. Keep the flag here for downstream UI (Canvas reads
+  // `tempPanActive` to flip `selectionOnDrag`), while React Flow's
+  // built-in handles the actual pan activation.
   useHotkeys(
     'space',
-    (e) => {
-      e.preventDefault();
+    () => {
       useUiStore.getState().setTempPanActive(true);
     },
     { keydown: true, keyup: false },

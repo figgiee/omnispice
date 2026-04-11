@@ -199,7 +199,13 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
         minZoom={0.25}
         maxZoom={4}
         panOnDrag={tempPanActive ? true : [1]}
-        selectionOnDrag
+        selectionOnDrag={!tempPanActive}
+        // Phase 5 S5: Spacebar-hold temporary pan (Pillar 2 modelessness).
+        // React Flow flips panOnDrag=true internally while Space is held,
+        // overriding selectionOnDrag. Works in parallel with our uiStore
+        // tempPanActive flag (set by the Space hotkey) which drives cursor
+        // hints and any downstream UI listeners.
+        panActivationKeyCode="Space"
         onNodeDoubleClick={(_event, node) => {
           const w = node.measured?.width ?? node.width ?? 0;
           const h = node.measured?.height ?? node.height ?? 0;

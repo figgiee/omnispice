@@ -31,9 +31,15 @@ export default defineConfig({
     {
       // Phase 5 editor UX quick-wins E2E suite.
       // Run with: pnpm exec playwright test --project=phase5
+      // NOTE: phase5 intentionally targets a separate port (5174) so
+      // parallel executors in git worktrees do not collide on the shared
+      // 5173 dev server managed by the default webServer config.
       name: 'phase5',
       testMatch: /phase5\/.*\.spec\.ts$/,
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:5174',
+      },
     },
   ],
   webServer: {
