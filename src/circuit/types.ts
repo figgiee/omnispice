@@ -30,10 +30,41 @@ export type ComponentType =
   | 'ac_current'
   | 'ground';
 
+/**
+ * Pin electrical type (Phase 5 Pillar 1 — Schematic Honesty).
+ *
+ * Drives the live compatibility feedback system in the schematic editor:
+ * - signal: data/analog nets (resistor pins, BJT base, op-amp inputs)
+ * - power: power rail endpoints (voltage-source +, Vcc buses)
+ * - ground: ground reference (ground symbol, shield grounds)
+ * - supply: supply-side pins (voltage/current source, op-amp Vcc/Vee)
+ *
+ * See src/circuit/pinCompat.ts for the compatibility matrix.
+ */
+export type PinType = 'signal' | 'power' | 'ground' | 'supply';
+
+/**
+ * Pin signal direction (used for future bus/direction-aware routing).
+ */
+export type PinDirection = 'in' | 'out' | 'inout';
+
 export interface Port {
   id: string;
   name: string;
   netId: string | null;
+  /**
+   * Phase 5 — pin electrical type. Optional at the TS level so legacy
+   * saved circuits and unrelated test fixtures still compile; `createPorts`
+   * always populates it with `'signal'` as the fallback.
+   */
+  pinType?: PinType;
+  /**
+   * Phase 5 — pin signal direction. Optional at the TS level (same
+   * rationale as `pinType`); `createPorts` always fills `'inout'`.
+   */
+  direction?: PinDirection;
+  /** Optional human-readable label like 'C','B','E' for BJTs. */
+  label?: string;
 }
 
 export interface Component {

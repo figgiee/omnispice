@@ -8,7 +8,7 @@
 
 import { temporal } from 'zundo';
 import { create } from 'zustand';
-import { COMPONENT_LIBRARY } from '@/circuit/componentLibrary';
+import { COMPONENT_LIBRARY, type ComponentPortDefinition } from '@/circuit/componentLibrary';
 import type { Circuit, Component, ComponentType, Port, Wire } from '@/circuit/types';
 
 /**
@@ -63,14 +63,19 @@ function generateId(): string {
 
 /**
  * Create Port objects from a component definition's port config.
+ *
+ * Phase 5: pin metadata (`pinType`, `direction`, `label`) is forwarded from
+ * the library definition. Missing fields fall back to `signal`/`inout` so
+ * legacy saved circuits (pre-Phase 5) keep loading without a crash.
  */
-function createPorts(
-  portDefs: { name: string; position: 'left' | 'right' | 'top' | 'bottom' }[],
-): Port[] {
+function createPorts(portDefs: ComponentPortDefinition[]): Port[] {
   return portDefs.map((def) => ({
     id: generateId(),
     name: def.name,
     netId: null,
+    pinType: def.pinType ?? 'signal',
+    direction: def.direction ?? 'inout',
+    ...(def.label ? { label: def.label } : {}),
   }));
 }
 

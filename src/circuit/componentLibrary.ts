@@ -5,7 +5,23 @@
  * default values, pin configurations, and model information.
  */
 
-import type { ComponentType } from './types';
+import type { ComponentType, PinDirection, PinType } from './types';
+
+/**
+ * Pin definition for a component library entry.
+ *
+ * Phase 5 adds `pinType`, `direction`, and `label` so live compat highlights
+ * and structured tooltips can read the canonical metadata. These three fields
+ * are optional at the type level only to keep legacy migration painless;
+ * every entry in `COMPONENT_LIBRARY` MUST declare them.
+ */
+export interface ComponentPortDefinition {
+  name: string;
+  position: 'left' | 'right' | 'top' | 'bottom';
+  pinType?: PinType;
+  direction?: PinDirection;
+  label?: string;
+}
 
 export interface ComponentDefinition {
   type: ComponentType;
@@ -13,7 +29,7 @@ export interface ComponentDefinition {
   category: 'passives' | 'semiconductors' | 'sources' | 'opamps';
   spicePrefix: string;
   defaultValue: string;
-  ports: { name: string; position: 'left' | 'right' | 'top' | 'bottom' }[];
+  ports: ComponentPortDefinition[];
   defaultModel?: string;
   subcircuit?: boolean;
 }
