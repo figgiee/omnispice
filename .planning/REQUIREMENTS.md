@@ -171,8 +171,8 @@ Phase 5 v1 ships a **deterministic rules engine** with passive badges. The older
 
 ### Offline Support
 
-- **OFFLINE-01**: User can close the browser, reopen with no network, and see their circuit in the same state it was in; service worker precache includes the ngspice WASM binary via `vite-plugin-pwa` with `registerType: 'autoUpdate'` and `globPatterns` including `wasm`
-- **OFFLINE-02**: User can keep editing while offline; on reconnect, the Yjs awareness layer re-publishes automatically; circuit state is authoritative from local Zustand (persisted via `idb-keyval`) — no CRDT merge required because no circuit state crosses the Yjs wire in Phase 5
+- [x] **OFFLINE-01**: User can close the browser, reopen with no network, and see their circuit in the same state it was in; service worker precache includes the ngspice WASM binary via `vite-plugin-pwa` with `registerType: 'autoUpdate'` and `globPatterns` including `wasm`
+- [x] **OFFLINE-02**: User can keep editing while offline; on reconnect, the Yjs awareness layer re-publishes automatically; circuit state is authoritative from local Zustand (persisted via `idb-keyval`) — no CRDT merge required because no circuit state crosses the Yjs wire in Phase 5
 
 ## Out of Scope
 
