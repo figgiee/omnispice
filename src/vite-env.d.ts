@@ -1,4 +1,6 @@
 /// <reference types="vite/client" />
+/// <reference types="vite-plugin-pwa/react" />
+/// <reference types="vite-plugin-pwa/info" />
 
 /**
  * Type declaration for the ngspice WASM Emscripten module.

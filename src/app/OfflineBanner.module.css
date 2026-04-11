@@ -1,0 +1,50 @@
+/**
+ * OfflineBanner styles — UI-SPEC §9.3.
+ *
+ * Fixed top strip under the toolbar, warm tint to draw the eye without
+ * being alarming. Token-based colors so theme swaps Just Work.
+ */
+
+.banner {
+  position: fixed;
+  top: var(--toolbar-height, 48px);
+  left: 0;
+  right: 0;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md, 12px);
+  padding: 0 var(--space-md, 12px);
+  background: rgba(255, 167, 38, 0.15);
+  border-bottom: 1px solid var(--color-warning, #ffa726);
+  color: var(--text-primary, #e8e8f0);
+  font-size: var(--font-size-body, 14px);
+  z-index: 1500;
+}
+
+.text {
+  line-height: 1;
+}
+
+.dismiss {
+  background: none;
+  border: none;
+  color: var(--text-muted, #a0a0b8);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.dismiss:hover {
+  color: var(--text-primary, #e8e8f0);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dismiss:focus-visible {
+  outline: 2px solid var(--accent-primary, #6a7bff);
+  outline-offset: 2px;
+}

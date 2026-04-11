@@ -34,6 +34,7 @@
     "elkjs": "^0.11.1",
     "html-to-image": "1.11.13",
     "html2canvas": "^1.4.1",
+    "idb-keyval": "^6.2.2",
     "jspdf": "3.0.2",
     "jszip": "^3.10.1",
     "katex": "^0.16.45",
@@ -69,6 +70,8 @@
     "jsdom": "^29.0.2",
     "typescript": "^6.0.2",
     "vite": "^8.0.8",
-    "vitest": "^4.1.4"
+    "vite-plugin-pwa": "^1.2.0",
+    "vitest": "^4.1.4",
+    "workbox-window": "^7.4.0"
   }
 }
