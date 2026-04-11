@@ -16,6 +16,7 @@ import {
   type Connection,
   Controls,
   type Edge,
+  MiniMap,
   type Node,
   type OnConnect,
   type OnEdgesChange,
@@ -212,6 +213,18 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
           size={1}
         />
         <Controls />
+        <MiniMap
+          pannable
+          zoomable
+          position="bottom-right"
+          maskColor="rgba(18, 25, 46, 0.6)"
+          nodeColor={(n) => (n.selected ? 'var(--accent-primary)' : 'var(--text-secondary)')}
+          style={{
+            background: 'var(--waveform-bg)',
+            border: '1px solid var(--border-default)',
+            borderRadius: '4px',
+          }}
+        />
         {/* D-23: Validation warning icons on problem components */}
         <ValidationWarnings />
         {/* Magnetic snap feedback overlay */}
