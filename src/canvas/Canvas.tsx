@@ -57,6 +57,8 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
   const setSelectedComponentIds = useUiStore((s) => s.setSelectedComponentIds);
   const highlightedComponentId = useUiStore((s) => s.highlightedComponentId);
   const setHighlightedComponentId = useUiStore((s) => s.setHighlightedComponentId);
+  // Phase 5: Spacebar-hold temp pan (Pillar 2 modelessness)
+  const tempPanActive = useUiStore((s) => s.tempPanActive);
 
   // Ref to track the highlight timeout for cleanup
   const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -196,8 +198,16 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
         snapGrid={[10, 10]}
         minZoom={0.25}
         maxZoom={4}
-        panOnDrag={[1]}
+        panOnDrag={tempPanActive ? true : [1]}
         selectionOnDrag
+        onNodeDoubleClick={(_event, node) => {
+          const w = node.measured?.width ?? node.width ?? 0;
+          const h = node.measured?.height ?? node.height ?? 0;
+          setCenter(node.position.x + w / 2, node.position.y + h / 2, {
+            duration: 200,
+            zoom: 2,
+          });
+        }}
         deleteKeyCode={['Delete', 'Backspace']}
         multiSelectionKeyCode="Shift"
         fitView
