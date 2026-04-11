@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Layout } from './app/Layout';
+import { useRegisterSW } from './app/useRegisterSW';
 import { SharedCircuitViewer } from './components/share/SharedCircuitViewer';
 import { useOverlaySync } from './overlay/useOverlaySync';
 import { AssignmentPage } from './pages/AssignmentPage';
@@ -19,6 +20,11 @@ import { ShortcutHelpOverlay } from './ui/ShortcutHelpOverlay';
 
 function App() {
   useOverlaySync();
+  // Plan 05-10: register the offline service worker. `autoUpdate` mode
+  // silently activates new builds on reload — there is no UI surfaced
+  // from this hook by design (circuit state is persisted via
+  // zustand + idb-keyval so refreshes are non-destructive).
+  useRegisterSW();
   // Plan 05-04: mount the tiered simulation orchestrator for the lifetime
   // of the app. Subscribes to circuitStore, fires DC op-point on every
   // change, AC sweep (debounced) when an AC source is present, and
