@@ -4,12 +4,30 @@
  * Hosts the ngspice WASM module (or mock) in a dedicated thread,
  * keeping the main thread responsive. Communicates via the typed
  * SimCommand/SimResponse protocol.
+ *
+ * Plan 05-04: extended to support the four-lane tiered controller.
+ * The worker now:
+ *   - persists `currentCircuitHash` across RUN commands and skips reload
+ *     when the hash matches
+ *   - tags each RESULT/ERROR/CANCELLED with the incoming requestId so the
+ *     controller can correlate multiple in-flight requests
+ *   - accepts RESET_CIRCUIT to drop the loaded circuit without killing the
+ *     worker (which would cost ~200-400ms WASM re-init)
+ *   - tracks cancelled requestIds: if a CANCEL arrives before a RUN
+ *     finishes, the eventual result is emitted as `CANCELLED` instead of
+ *     `RESULT` so the main thread can discard it silently
+ *
+ * Backwards compatible: legacy `RUN { type, analysis }` without a
+ * requestId still works — the controller and tests that predate 05-04
+ * continue to function unchanged.
  */
 
-import type { SimCommand, SimResponse } from '../protocol';
-import { type NgspiceModule, loadNgspice, parseMockOutput } from './ngspice-wrapper';
+import type { ProtocolAnalysis, SimCommand, SimResponse } from '../protocol';
+import { loadNgspice, type NgspiceModule, parseMockOutput } from './ngspice-wrapper';
 
 let ngspiceModule: NgspiceModule | null = null;
+let currentCircuitHash: string | null = null;
+const cancelledRequestIds = new Set<string>();
 
 /**
  * Post a typed response to the main thread.
@@ -21,14 +39,39 @@ function respond(response: SimResponse): void {
 /**
  * Determine analysis type from netlist content or analysis command.
  */
-function detectAnalysisType(
-  text: string,
-): 'tran' | 'ac' | 'dc' | 'op' {
+function detectAnalysisType(text: string): ProtocolAnalysis {
   const lower = text.toLowerCase();
   if (lower.includes('.tran') || lower.includes('tran ')) return 'tran';
   if (lower.includes('.ac') || lower.includes('ac ')) return 'ac';
   if (lower.includes('.dc') || lower.includes('dc ')) return 'dc';
   return 'op';
+}
+
+/**
+ * Feed the analysis keyword (+ optional preformatted params fragment) to
+ * ngspice stdin. The `params` field is an already-formatted SPICE fragment
+ * supplied by the TieredSimulationController's helpers.
+ */
+function feedAnalysisCommand(
+  mod: NgspiceModule,
+  analysis: ProtocolAnalysis,
+  params: string | undefined,
+): void {
+  const suffix = params ? ` ${params}` : '';
+  switch (analysis) {
+    case 'op':
+      mod.feedStdin('op');
+      break;
+    case 'tran':
+      mod.feedStdin(`tran${suffix}`);
+      break;
+    case 'ac':
+      mod.feedStdin(`ac${suffix}`);
+      break;
+    case 'dc':
+      mod.feedStdin(`dc${suffix}`);
+      break;
+  }
 }
 
 /**
@@ -41,6 +84,8 @@ self.onmessage = async (event: MessageEvent<SimCommand>) => {
     case 'INIT': {
       try {
         ngspiceModule = await loadNgspice();
+        currentCircuitHash = null;
+        cancelledRequestIds.clear();
 
         // Pre-create MEMFS directories for model files
         try {
@@ -80,9 +125,23 @@ self.onmessage = async (event: MessageEvent<SimCommand>) => {
         break;
       }
 
+      // Fast path: if circuitHash matches the currently-loaded circuit, skip
+      // the FS write entirely. This is how the TieredSimulationController
+      // avoids reparsing the same netlist on every DC op-point tick.
+      if (cmd.circuitHash && currentCircuitHash === cmd.circuitHash) {
+        respond({
+          type: 'STDOUT',
+          text: `Circuit cached (hash ${cmd.circuitHash}), skipping reload`,
+        });
+        break;
+      }
+
       try {
         // Write netlist to MEMFS as /tmp/circuit.cir
         ngspiceModule.FS.writeFile('/tmp/circuit.cir', cmd.netlist);
+        if (cmd.circuitHash) {
+          currentCircuitHash = cmd.circuitHash;
+        }
         respond({
           type: 'STDOUT',
           text: 'Circuit loaded to /tmp/circuit.cir',
@@ -97,20 +156,35 @@ self.onmessage = async (event: MessageEvent<SimCommand>) => {
       break;
     }
 
+    case 'RESET_CIRCUIT': {
+      // Drop the cached netlist hash so the next LOAD_CIRCUIT re-parses fresh.
+      // We do NOT terminate the worker — that would cost ~200-400ms of WASM
+      // re-init. The MEMFS file is left in place; it will be overwritten on
+      // the next LOAD_CIRCUIT. ngspice's in-memory circuit state is
+      // implicitly destroyed when the next `source` / analysis cycle runs.
+      currentCircuitHash = null;
+      cancelledRequestIds.clear();
+      respond({ type: 'STDOUT', text: 'Circuit reset' });
+      break;
+    }
+
     case 'RUN': {
       if (!ngspiceModule) {
         respond({
           type: 'ERROR',
           message: 'ngspice not initialized. Send INIT first.',
           raw: 'ERR_NOT_INITIALIZED',
+          ...(cmd.requestId ? { requestId: cmd.requestId } : {}),
         });
         break;
       }
 
+      const requestId = cmd.requestId;
+
       try {
         ngspiceModule.clearBuffers();
 
-        // Read netlist to detect analysis type
+        // Read netlist to detect analysis type (legacy fallback path)
         let netlistContent = '';
         try {
           netlistContent = ngspiceModule.FS.readFile('/tmp/circuit.cir', {
@@ -122,11 +196,25 @@ self.onmessage = async (event: MessageEvent<SimCommand>) => {
 
         // Feed source command to ngspice stdin (pipe mode)
         ngspiceModule.feedStdin('source /tmp/circuit.cir');
-        ngspiceModule.feedStdin(cmd.analysis);
+
+        if (cmd.protocolAnalysis) {
+          // Plan 05-04 path: per-analysis dispatch
+          feedAnalysisCommand(ngspiceModule, cmd.protocolAnalysis, cmd.params);
+        } else {
+          // Legacy path: whatever the caller supplied
+          ngspiceModule.feedStdin(cmd.analysis);
+        }
         ngspiceModule.feedStdin('quit');
 
         // In mock mode, callMain triggers the simulation
         ngspiceModule.callMain(['-p']);
+
+        // If cancelled while the (synchronous mock) analysis ran, drop the result
+        if (requestId && cancelledRequestIds.has(requestId)) {
+          cancelledRequestIds.delete(requestId);
+          respond({ type: 'CANCELLED', requestId });
+          break;
+        }
 
         // Check for errors
         if (ngspiceModule.stderrBuffer.trim()) {
@@ -134,35 +222,43 @@ self.onmessage = async (event: MessageEvent<SimCommand>) => {
             type: 'ERROR',
             message: ngspiceModule.stderrBuffer.trim(),
             raw: ngspiceModule.stderrBuffer,
+            ...(requestId ? { requestId } : {}),
           });
           break;
         }
 
         // Parse output into VectorData
-        const analysisType = detectAnalysisType(
-          netlistContent || cmd.analysis,
-        );
-        const vectors = parseMockOutput(
-          ngspiceModule.stdoutBuffer,
-          analysisType,
-        );
+        const analysisType: ProtocolAnalysis =
+          cmd.protocolAnalysis ?? detectAnalysisType(netlistContent || cmd.analysis);
+        const vectors = parseMockOutput(ngspiceModule.stdoutBuffer, analysisType);
 
-        respond({ type: 'RESULT', vectors });
+        respond({
+          type: 'RESULT',
+          vectors,
+          ...(requestId ? { requestId } : {}),
+          ...(cmd.protocolAnalysis ? { protocolAnalysis: cmd.protocolAnalysis } : {}),
+        });
       } catch (err) {
         respond({
           type: 'ERROR',
           message: `Simulation failed: ${err instanceof Error ? err.message : String(err)}`,
           raw: String(err),
+          ...(requestId ? { requestId } : {}),
         });
       }
       break;
     }
 
     case 'CANCEL': {
-      // Cannot gracefully cancel ngspice mid-run.
-      // The main thread will terminate this worker and spawn a new one.
-      // We still send CANCELLED so the main thread knows we received it.
-      respond({ type: 'CANCELLED' });
+      // Cannot gracefully cancel ngspice mid-run. If the caller supplies a
+      // requestId, stash it so the pending RESULT is re-emitted as CANCELLED.
+      // The main thread will terminate this worker if it wants a hard stop.
+      if (cmd.requestId) {
+        cancelledRequestIds.add(cmd.requestId);
+        respond({ type: 'CANCELLED', requestId: cmd.requestId });
+      } else {
+        respond({ type: 'CANCELLED' });
+      }
       break;
     }
 
