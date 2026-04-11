@@ -11,13 +11,14 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import type { Component } from '@/circuit/types';
 import { useCircuitStore } from '@/store/circuitStore';
 import { useUiStore } from '@/store/uiStore';
+import { computeSelectionBbox, fitZoomForBbox } from '../framing';
 
 /**
  * Hook that registers all canvas keyboard shortcuts and returns
  * interaction state for the canvas component.
  */
 export function useCanvasInteractions() {
-  const { zoomIn, zoomOut, fitView } = useReactFlow();
+  const { zoomIn, zoomOut, fitView, setCenter, getNodes, getViewport } = useReactFlow();
 
   // Circuit store actions
   const removeComponent = useCircuitStore((s) => s.removeComponent);
@@ -162,6 +163,32 @@ export function useCanvasInteractions() {
     },
     { preventDefault: true },
   );
+
+  // Frame selection (F) per UI-SPEC §7.5 S5
+  useHotkeys('f', () => {
+    const selected = getNodes().filter((n) => n.selected);
+    if (selected.length === 0) return; // no-op per UI-SPEC
+    const bbox = computeSelectionBbox(selected);
+    const viewport = getViewport();
+    // React Flow's viewport returns transform, not dimensions — use window
+    // innerWidth/innerHeight as a reasonable approximation of the canvas
+    // area. This is close enough for a 60%-fill zoom and keeps the helper
+    // pure-math + testable.
+    const vw = typeof window !== 'undefined' ? window.innerWidth : 1200;
+    const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
+    const zoom = fitZoomForBbox(bbox, { width: vw, height: vh });
+    // touch viewport to keep it in the closure for future refinements
+    void viewport;
+    setCenter(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2, {
+      duration: 200,
+      zoom,
+    });
+  });
+
+  // Frame all (A or 0) per UI-SPEC §7.5 S5
+  useHotkeys('a, 0', () => {
+    fitView({ duration: 200 });
+  });
 
   // Run simulation (F5)
   useHotkeys(
