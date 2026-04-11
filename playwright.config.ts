@@ -17,9 +17,14 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      // Exclude phase-04 and phase5 specs from the default project so they
-      // only run under their dedicated projects (mirrors the Phase 3 pattern).
-      testIgnore: [/phase-04\/.*\.spec\.ts$/, /phase5\/.*\.spec\.ts$/],
+      // Exclude phase-04, phase5 and phase5-offline specs from the default
+      // project so they only run under their dedicated projects (mirrors
+      // the Phase 3 pattern).
+      testIgnore: [
+        /phase-04\/.*\.spec\.ts$/,
+        /phase5\/.*\.spec\.ts$/,
+        /phase5-offline\/.*\.spec\.ts$/,
+      ],
     },
     {
       // Phase 4 LTI + labs + report E2E suite.
@@ -39,6 +44,23 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         baseURL: 'http://localhost:5174',
+      },
+    },
+    {
+      // Phase 5 offline / PWA suite (Plan 05-10).
+      // Requires a production build served by `pnpm preview` because the
+      // service worker is only emitted by the production Vite build —
+      // `pnpm dev` does not generate sw.js (devOptions.enabled=false).
+      //
+      // Run with: pnpm build && pnpm exec playwright test --project=phase5-offline
+      // The preview server is started manually or by the webServer entry
+      // below when PHASE5_OFFLINE=1 is set.
+      name: 'phase5-offline',
+      testMatch: /phase5-offline\/.*\.spec\.ts$/,
+      testDir: './tests/e2e',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:4173',
       },
     },
   ],
