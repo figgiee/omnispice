@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-collaboration-and-polish 05-06 (CommandPalette + Templates + Type-to-Place)
-last_updated: "2026-04-11T11:27:43.484Z"
+stopped_at: "Completed 05-10-PLAN.md (offline PWA: SW + idb-keyval persist + OfflineBanner)"
+last_updated: "2026-04-11T21:08:46.225Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 37
-  completed_plans: 28
+  completed_plans: 30
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 ## Current Position
 
 Phase: 05 (collaboration-and-polish) — EXECUTING
-Plan: 3 of 11
+Plan: 5 of 11
 Status: Ready to execute
 Last activity: 2026-04-11
 
@@ -70,6 +70,8 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04-institutional-features P05 | session | 4 tasks | 20 files |
 | Phase 05-collaboration-and-polish P04 | 40min | 4 tasks | 12 files |
 | Phase 05-collaboration-and-polish P06 | 19min | 5 tasks | 22 files |
+| Phase 05-collaboration-and-polish P01 | 45min | 7 tasks | 15 files |
+| Phase 05-collaboration-and-polish P10 | 45min | 5 tasks | 18 files |
 
 ## Accumulated Context
 
@@ -144,6 +146,14 @@ Recent decisions affecting current work:
 - [Phase 05-collaboration-and-polish]: [Phase 05]: useTypeToPlace keydown listener attaches in capture phase so it runs BEFORE react-hotkeys-hook's R-rotate shortcut; selection-guard lets R still rotate when a component is selected
 - [Phase 05-collaboration-and-polish]: [Phase 05]: circuitStore.addComponentsAndWires({components, wires, refCounters?}) merges both maps in one set() so zundo captures template insertion as a single undo step
 - [Phase 05-collaboration-and-polish]: [Phase 05]: src/test/setup.ts polyfills ResizeObserver + Element.prototype.scrollIntoView for jsdom — Radix Dialog (cmdk Command.Dialog wrapper) refuses to mount in tests without them
+- [Phase 05-collaboration-and-polish]: React Flow panActivationKeyCode='Space' used in parallel with uiStore.tempPanActive — built-in handles drag activation, store drives cursor hints and selectionOnDrag toggle
+- [Phase 05-collaboration-and-polish]: Framing math extracted to src/canvas/framing.ts as pure helpers (computeSelectionBbox, fitZoomForBbox) for unit testing without React Flow runtime
+- [Phase 05-collaboration-and-polish]: phase5 Playwright project pinned to port 5174 separate from shared 5173 dev server so parallel worktree executors don't collide
+- [Phase 05-collaboration-and-polish]: y-durableobjects spike shipped as scaffold-only with live 4-step hibernation measurement deferred to Plan 05-09 Task 1 preflight; default recommendation use-y-durableobjects
+- [Phase 05-collaboration-and-polish]: Middleware order locked as temporal(persist(storeBody)) — persist wraps store body, temporal wraps persist, so rehydrated state flows through temporal and is undoable; enforced by circuitStoreOfflinePersist.test.ts
+- [Phase 05-collaboration-and-polish]: Plan 05-10 uses Zustand 5 createJSONStorage(getStorage, {replacer, reviver}) native option pair, not a bespoke mapAwareStorage wrapper
+- [Phase 05-collaboration-and-polish]: Plan 05-10 phase5-offline Playwright project targets pnpm preview on port 4173 because vite-plugin-pwa only emits sw.js in production builds; devOptions.enabled=false so dev mode never registers a SW (would break HMR + WASM worker init)
+- [Phase 05-collaboration-and-polish]: Plan 05-10 src/test/setup.ts adds global vi.mock('idb-keyval') stub — any test that indirectly imports circuitStore would crash with 'indexedDB is not defined' otherwise, and per-test mocks get shadowed by module caching
 
 ### Pending Todos
 
@@ -162,6 +172,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T11:27:43.481Z
-Stopped at: Completed 05-collaboration-and-polish 05-06 (CommandPalette + Templates + Type-to-Place)
+Last session: 2026-04-11T21:08:46.222Z
+Stopped at: Completed 05-10-PLAN.md (offline PWA: SW + idb-keyval persist + OfflineBanner)
 Resume file: None

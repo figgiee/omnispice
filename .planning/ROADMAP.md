@@ -130,7 +130,7 @@ Plans:
 **Plans:** 11 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Quick wins (minimap, F/A/0, Space-pan, Shift+D, double-click focus, ? overlay shell) + y-durableobjects hibernation spike
+- [x] 05-01-PLAN.md — Quick wins (minimap, F/A/0, Space-pan, Shift+D, double-click focus, ? overlay shell) + y-durableobjects hibernation spike
 - [ ] 05-02-PLAN.md — Pin type system + wireDragStore compat highlights + NetLabelNode + orthogonal routing stress baseline
 - [ ] 05-03-PLAN.md — Single-level subcircuit collapse/expand + breadcrumb + .subckt netlist emission
 - [x] 05-04-PLAN.md — TieredSimulationController (DC always-live / AC debounced / transient commit-on-release / sweep cache) + simulationOrchestrator
@@ -139,7 +139,7 @@ Plans:
 - [ ] 05-07-PLAN.md — HoverTooltip (V/I/P) + OKLab wire voltage coloring via culori + SweepFanOut waveform layer
 - [ ] 05-08-PLAN.md — Insight rules engine (5 rules) + MeasurementCalloutLayer + reportAnnotationsStore → PDF export round-trip
 - [ ] 05-09-PLAN.md — Yjs presence-only collaboration (y-durableobjects transport) + PresenceLayer cursors/selections/ghost chips + PresenceList
-- [ ] 05-10-PLAN.md — vite-plugin-pwa + Zustand persist over idb-keyval + Map serialization + OfflineBanner + middleware order test
+- [x] 05-10-PLAN.md — vite-plugin-pwa + Zustand persist over idb-keyval + Map serialization + OfflineBanner + middleware order test
 - [ ] 05-11-PLAN.md — ChangeCalloutLayer (Figma-style ephemeral toasts) + ShortcutHelpOverlay content completion + motion polish
 **Key risks**:
   - Yjs + React Flow sync adapter has no official support — needs a prototyping spike before Phase 5 planning
