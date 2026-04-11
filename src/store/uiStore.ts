@@ -27,6 +27,18 @@ export interface UiState {
    * to flip React Flow's `panOnDrag` from middle-mouse-only to left-mouse.
    */
   tempPanActive: boolean;
+  /**
+   * Plan 05-06: persistent "insert cursor" set by an empty-canvas click.
+   * While non-null, type-to-place and template insertion anchor to this
+   * flow-space coordinate.
+   */
+  insertCursor: { x: number; y: number } | null;
+  /**
+   * Plan 05-06: live mouse position in flow coordinates. Used as a fallback
+   * insertion anchor when `insertCursor` is null (e.g. template inserted via
+   * command palette without an explicit click).
+   */
+  cursorPosition: { x: number; y: number } | null;
 
   setActiveTool: (tool: ActiveTool) => void;
   setBottomTab: (tab: BottomTab) => void;
@@ -39,6 +51,8 @@ export interface UiState {
   setHighlightedComponentId: (id: string | null) => void;
   /** Phase 5: set temp-pan flag (true on Space keydown, false on keyup) */
   setTempPanActive: (v: boolean) => void;
+  setInsertCursor: (pos: { x: number; y: number } | null) => void;
+  setCursorPosition: (pos: { x: number; y: number } | null) => void;
 }
 
 export const useUiStore = create<UiState>()((set) => ({
@@ -51,6 +65,8 @@ export const useUiStore = create<UiState>()((set) => ({
   selectedWireIds: [],
   highlightedComponentId: null,
   tempPanActive: false,
+  insertCursor: null,
+  cursorPosition: null,
 
   setActiveTool: (tool) => set({ activeTool: tool }),
 
@@ -69,4 +85,8 @@ export const useUiStore = create<UiState>()((set) => ({
   setHighlightedComponentId: (id) => set({ highlightedComponentId: id }),
 
   setTempPanActive: (v) => set({ tempPanActive: v }),
+
+  setInsertCursor: (pos) => set({ insertCursor: pos }),
+
+  setCursorPosition: (pos) => set({ cursorPosition: pos }),
 }));

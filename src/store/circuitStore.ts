@@ -31,6 +31,17 @@ export interface CircuitState {
   removeWire: (id: string) => void;
   clearCircuit: () => void;
   addComponents: (components: Component[]) => void;
+  /**
+   * Bulk-insert pre-built components + wires in a single store update so
+   * undo captures one atomic step. Used by template insertion (plan 05-06).
+   * The optional `refCounters` arg overwrites the running SPICE ref designator
+   * counters so subsequent single-component adds continue from the right seed.
+   */
+  addComponentsAndWires: (
+    components: Component[],
+    wires: Wire[],
+    refCounters?: Record<string, number>,
+  ) => void;
   /** Replace the entire circuit (e.g., after LTspice import). Resets refCounters. */
   setCircuit: (circuit: Circuit) => void;
 }
@@ -214,6 +225,23 @@ export const useCircuitStore = create<CircuitState>()(
           }
           return {
             circuit: { ...s.circuit, components: newComponents },
+          };
+        });
+      },
+
+      addComponentsAndWires: (components, wires, refCounters) => {
+        set((s) => {
+          const newComponents = new Map(s.circuit.components);
+          for (const comp of components) {
+            newComponents.set(comp.id, comp);
+          }
+          const newWires = new Map(s.circuit.wires);
+          for (const wire of wires) {
+            newWires.set(wire.id, wire);
+          }
+          return {
+            circuit: { ...s.circuit, components: newComponents, wires: newWires },
+            refCounters: refCounters ?? s.refCounters,
           };
         });
       },

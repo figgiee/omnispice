@@ -37,6 +37,7 @@ import { Canvas } from '@/canvas/Canvas';
 import { circuitToEdges, circuitToNodes } from '@/canvas/circuitToFlow';
 import type { CircuitNodeData } from '@/canvas/components/types';
 import { ClassroomModeBar } from '@/components/classroom/ClassroomModeBar';
+import { exportSchematicAsPng } from '@/export/exportPng';
 import { SimulationController } from '@/simulation/controller';
 import type { TranslatedError } from '@/simulation/errorTranslator';
 import { useCircuitStore } from '@/store/circuitStore';
@@ -44,6 +45,7 @@ import { useClassroomStore } from '@/store/classroomStore';
 import { useSimulationStore } from '@/store/simulationStore';
 import { useUiStore } from '@/store/uiStore';
 import { BottomPanel } from '@/ui/BottomPanel';
+import { CommandPalette } from '@/ui/CommandPalette';
 import { Sidebar } from '@/ui/Sidebar';
 import { Toolbar } from '@/ui/Toolbar';
 import styles from './Layout.module.css';
@@ -166,6 +168,16 @@ function LayoutContent() {
     }
   }, [simStatus, bottomPanelRef]);
 
+  // Plan 05-06: command palette "Export Schematic as PNG" action dispatches
+  // `omnispice:export-png`; Layout owns `nodes` so it can pass them in.
+  useEffect(() => {
+    const handler = () => {
+      void exportSchematicAsPng(nodes);
+    };
+    window.addEventListener('omnispice:export-png', handler);
+    return () => window.removeEventListener('omnispice:export-png', handler);
+  }, [nodes]);
+
   // Sync sidebar collapse state
   const prevSidebarCollapsedRef = useRef(sidebarCollapsed);
   useEffect(() => {
@@ -245,6 +257,8 @@ function LayoutContent() {
           </div>
         </Panel>
       </Group>
+      {/* Global command palette — Ctrl+K front door (Plan 05-06). */}
+      <CommandPalette />
     </div>
   );
 }

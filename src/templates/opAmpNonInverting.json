@@ -1,0 +1,56 @@
+{
+  "id": "opamp-non-inverting",
+  "name": "Non-Inverting Op-Amp Amplifier",
+  "description": "Non-inverting amplifier with gain 1 + Rf/R1. High input impedance, unity-gain fallback if Rf = 0.",
+  "tags": ["opamp", "amplifier", "analog", "non-inverting"],
+  "components": [
+    {
+      "tmpId": "u1",
+      "type": "ideal_opamp",
+      "value": "",
+      "position": { "x": 0, "y": 0 },
+      "rotation": 0,
+      "portNames": ["non_inv", "inv", "output"]
+    },
+    {
+      "tmpId": "r1",
+      "type": "resistor",
+      "value": "10k",
+      "position": { "x": -60, "y": 120 },
+      "rotation": 0,
+      "portNames": ["pin1", "pin2"]
+    },
+    {
+      "tmpId": "rf",
+      "type": "resistor",
+      "value": "90k",
+      "position": { "x": 60, "y": 120 },
+      "rotation": 0,
+      "portNames": ["pin1", "pin2"]
+    },
+    {
+      "tmpId": "vin",
+      "type": "ac_voltage",
+      "value": "0.1",
+      "position": { "x": -260, "y": -20 },
+      "rotation": 0,
+      "portNames": ["positive", "negative"]
+    },
+    {
+      "tmpId": "gnd",
+      "type": "ground",
+      "value": "",
+      "position": { "x": -120, "y": 240 },
+      "rotation": 0,
+      "portNames": ["pin1"]
+    }
+  ],
+  "wires": [
+    { "tmpId": "w1", "from": { "comp": "vin", "port": "positive" }, "to": { "comp": "u1", "port": "non_inv" } },
+    { "tmpId": "w2", "from": { "comp": "u1", "port": "inv" }, "to": { "comp": "rf", "port": "pin1" } },
+    { "tmpId": "w3", "from": { "comp": "u1", "port": "inv" }, "to": { "comp": "r1", "port": "pin1" } },
+    { "tmpId": "w4", "from": { "comp": "rf", "port": "pin2" }, "to": { "comp": "u1", "port": "output" } },
+    { "tmpId": "w5", "from": { "comp": "r1", "port": "pin2" }, "to": { "comp": "gnd", "port": "pin1" } },
+    { "tmpId": "w6", "from": { "comp": "vin", "port": "negative" }, "to": { "comp": "gnd", "port": "pin1" } }
+  ]
+}
