@@ -39,6 +39,9 @@ function groupByCategory(): Record<string, { type: ComponentType; def: Component
     ComponentType,
     ComponentDefinition,
   ][]) {
+    // Phase 5: net_label is a pseudo-component placed via type-on-wire gesture,
+    // not dragged from the palette. Keep it out of the sidebar listing.
+    if (type === 'net_label') continue;
     if (groups[def.category]) {
       groups[def.category]!.push({ type, def });
     }

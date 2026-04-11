@@ -1,15 +1,16 @@
 import type { NodeTypes } from '@xyflow/react';
-import { ResistorNode } from './ResistorNode';
-import { CapacitorNode } from './CapacitorNode';
-import { InductorNode } from './InductorNode';
-import { TransformerNode } from './TransformerNode';
-import { DiodeNode } from './DiodeNode';
 import { BjtNode } from './BjtNode';
-import { MosfetNode } from './MosfetNode';
-import { OpAmpNode } from './OpAmpNode';
-import { VoltageSourceNode } from './VoltageSourceNode';
+import { CapacitorNode } from './CapacitorNode';
 import { CurrentSourceNode } from './CurrentSourceNode';
+import { DiodeNode } from './DiodeNode';
 import { GroundNode } from './GroundNode';
+import { InductorNode } from './InductorNode';
+import { MosfetNode } from './MosfetNode';
+import { NetLabelNode } from './NetLabelNode';
+import { OpAmpNode } from './OpAmpNode';
+import { ResistorNode } from './ResistorNode';
+import { TransformerNode } from './TransformerNode';
+import { VoltageSourceNode } from './VoltageSourceNode';
 
 /**
  * Registry of all custom React Flow node types for circuit components.
@@ -53,4 +54,7 @@ export const nodeTypes: NodeTypes = {
 
   // Ground
   ground: GroundNode,
+
+  // Phase 5 Pillar 1 — net label pseudo-component
+  net_label: NetLabelNode,
 };

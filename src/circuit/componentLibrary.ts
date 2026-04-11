@@ -309,4 +309,21 @@ export const COMPONENT_LIBRARY: Record<ComponentType, ComponentDefinition> = {
     defaultValue: '',
     ports: [{ name: 'pin1', position: 'top', pinType: 'ground', direction: 'inout', label: 'GND' }],
   },
+  /**
+   * Phase 5 Pillar 1 — net label pseudo-component.
+   *
+   * Not a real SPICE primitive; the netlister skips it. Its `data.netLabel`
+   * string becomes the net's SPICE name via `computeNets`. A single signal
+   * pin lets the user wire it into any existing net.
+   */
+  net_label: {
+    type: 'net_label',
+    name: 'Net Label',
+    category: 'passives',
+    spicePrefix: '',
+    defaultValue: '',
+    ports: [
+      { name: 'pin1', position: 'left', pinType: 'signal', direction: 'inout', label: 'NET' },
+    ],
+  },
 };

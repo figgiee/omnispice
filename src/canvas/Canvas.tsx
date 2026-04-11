@@ -36,6 +36,7 @@ import { pinTypeFor } from './components/usePinClassName';
 import { edgeTypes } from './edges/edgeTypes';
 import { useCanvasInteractions } from './hooks/useCanvasInteractions';
 import { useMagneticSnap } from './hooks/useMagneticSnap';
+import { useNetLabelInput } from './hooks/useNetLabelInput';
 import { useTypeToPlace } from './hooks/useTypeToPlace';
 import { useWireRouting } from './hooks/useWireRouting';
 import { ValidationWarnings } from './overlays/ValidationWarnings';
@@ -74,6 +75,11 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
   // Plan 05-06 Task 4: type-to-place gesture. Listens for printable letters
   // while uiStore.insertCursor is active + no component selected.
   useTypeToPlace();
+  // Plan 05-02 Task 4: type-on-selected-wire → creates a net label. This hook
+  // MUST run after useTypeToPlace so that when a wire is selected, the net
+  // label capture claims the key first (both hooks use window capture-phase
+  // listeners but react in selection-guarded branches).
+  useNetLabelInput();
 
   /**
    * D-21: Error navigation receive side.

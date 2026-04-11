@@ -39,9 +39,12 @@ export function generateNetlist(circuit: Circuit, config: AnalysisConfig): strin
   const nets = computeNets(circuit.components, circuit.wires);
   const portToNet = buildPortToNetMap(nets);
 
-  // 2. Emit component lines (skip ground -- it's implicit in net "0")
+  // 2. Emit component lines (skip ground -- it's implicit in net "0";
+  //    skip net_label -- it's a pseudo-component that only overrides the
+  //    net name via graph.computeNets, never emits SPICE primitives).
   for (const comp of circuit.components.values()) {
     if (comp.type === 'ground') continue;
+    if (comp.type === 'net_label') continue;
     const line = componentToSpiceLine(comp, portToNet);
     if (line) {
       lines.push(line);

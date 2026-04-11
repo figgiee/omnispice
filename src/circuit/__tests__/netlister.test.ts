@@ -1,17 +1,13 @@
-import { describe, it, expect } from 'vitest';
-import {
-  generateNetlist,
-  componentToSpiceLine,
-  analysisToDirective,
-} from '../netlister';
+import { describe, expect, it } from 'vitest';
 import { COMPONENT_LIBRARY } from '../componentLibrary';
-import type { Circuit, Component, Wire, AnalysisConfig, ComponentType } from '../types';
+import { analysisToDirective, componentToSpiceLine, generateNetlist } from '../netlister';
+import type { AnalysisConfig, Circuit, Component, ComponentType, Wire } from '../types';
 
 /**
  * Helper to create a component with typed ports.
  */
 function makeComponent(
-  overrides: Partial<Component> & { id: string; type: Component['type'] }
+  overrides: Partial<Component> & { id: string; type: Component['type'] },
 ): Component {
   return {
     refDesignator: overrides.id.toUpperCase(),
@@ -279,9 +275,7 @@ describe('componentToSpiceLine', () => {
       ],
     });
     // SPICE format: Q1 collector base emitter model
-    expect(componentToSpiceLine(comp, portToNet)).toBe(
-      'Q1 net_2 net_1 0 Q2N2222'
-    );
+    expect(componentToSpiceLine(comp, portToNet)).toBe('Q1 net_2 net_1 0 Q2N2222');
   });
 
   it('generates correct SPICE for NMOS (drain, gate, source, bulk order)', () => {
@@ -296,9 +290,7 @@ describe('componentToSpiceLine', () => {
       ],
     });
     // SPICE format: M1 drain gate source source model
-    expect(componentToSpiceLine(comp, portToNet)).toBe(
-      'M1 net_2 net_1 0 0 NMOS1'
-    );
+    expect(componentToSpiceLine(comp, portToNet)).toBe('M1 net_2 net_1 0 0 NMOS1');
   });
 
   it('generates correct SPICE for subcircuit op-amp', () => {
@@ -312,9 +304,7 @@ describe('componentToSpiceLine', () => {
         { id: 'p3', name: 'output', netId: 'net_2' },
       ],
     });
-    expect(componentToSpiceLine(comp, portToNet)).toBe(
-      'X1 net_1 0 net_2 IDEAL_OPAMP'
-    );
+    expect(componentToSpiceLine(comp, portToNet)).toBe('X1 net_1 0 net_2 IDEAL_OPAMP');
   });
 
   it('generates correct SPICE for DC voltage source', () => {
@@ -371,7 +361,7 @@ describe('analysisToDirective', () => {
         type: 'transient',
         timeStep: '1u',
         stopTime: '10m',
-      })
+      }),
     ).toBe('.tran 1u 10m');
   });
 
@@ -382,7 +372,7 @@ describe('analysisToDirective', () => {
         pointsPerDecade: 100,
         startFreq: '1',
         stopFreq: '1MEG',
-      })
+      }),
     ).toBe('.ac dec 100 1 1MEG');
   });
 
@@ -394,7 +384,7 @@ describe('analysisToDirective', () => {
         sweepStart: '0',
         sweepStop: '5',
         sweepStep: '0.1',
-      })
+      }),
     ).toBe('.dc V1 0 5 0.1');
   });
 
@@ -405,7 +395,7 @@ describe('analysisToDirective', () => {
         timeStep: '1u',
         stopTime: '10m',
         startTime: '1m',
-      })
+      }),
     ).toBe('.tran 1u 10m 1m');
   });
 });
@@ -452,8 +442,9 @@ describe('COMPONENT_LIBRARY coverage', () => {
       expect(def.name).toBeTruthy();
       expect(def.category).toBeTruthy();
       expect(def.ports.length).toBeGreaterThan(0);
-      // spicePrefix may be empty for ground
-      if (def.type !== 'ground') {
+      // spicePrefix may be empty for ground and for Phase 5 net_label
+      // (both are pseudo-components that never hit the SPICE netlister).
+      if (def.type !== 'ground' && def.type !== 'net_label') {
         expect(def.spicePrefix).toBeTruthy();
       }
     }

@@ -28,7 +28,13 @@ export type ComponentType =
   | 'pwl_voltage'
   | 'dc_current'
   | 'ac_current'
-  | 'ground';
+  | 'ground'
+  /**
+   * Phase 5 Pillar 1 — pseudo-component that overrides the name of the
+   * net it sits on. Not emitted to SPICE; its `data.netName` becomes
+   * the net's SPICE identifier. See `NetLabelNode.tsx` and `computeNets`.
+   */
+  | 'net_label';
 
 /**
  * Pin electrical type (Phase 5 Pillar 1 — Schematic Honesty).
@@ -77,6 +83,12 @@ export interface Component {
   rotation: number;
   spiceModel?: string;
   parameters?: Record<string, string>;
+  /**
+   * Phase 5 Pillar 1 — only populated on `net_label` components. The
+   * string is used by `computeNets` to override the generated net name
+   * and is surfaced directly in the rendered netlist.
+   */
+  netLabel?: string;
 }
 
 export interface Wire {
@@ -90,6 +102,12 @@ export interface Net {
   id: string;
   name: string;
   portIds: string[];
+  /**
+   * Phase 5 Pillar 1 — when a `net_label` pseudo-component touches this net,
+   * its `netLabel` field is hoisted here so downstream tooling (netlister,
+   * overlays, UI) can distinguish user-named nets from auto-generated ones.
+   */
+  netLabel?: string;
 }
 
 export interface Circuit {

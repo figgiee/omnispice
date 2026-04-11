@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { useCircuitStore } from '../circuitStore';
 
 function resetStore() {
@@ -132,6 +132,39 @@ describe('circuitStore', () => {
       }
       const pastStates = useCircuitStore.temporal.getState().pastStates;
       expect(pastStates.length).toBeLessThanOrEqual(100);
+    });
+  });
+
+  describe('splitWireWithNetLabel (Plan 05-02 Task 4)', () => {
+    it('replaces the target wire with two wires touching a new net_label', () => {
+      const state = useCircuitStore.getState();
+      const r1Id = state.addComponent('resistor', { x: 0, y: 0 });
+      const r2Id = state.addComponent('resistor', { x: 100, y: 0 });
+      const r1 = useCircuitStore.getState().circuit.components.get(r1Id)!;
+      const r2 = useCircuitStore.getState().circuit.components.get(r2Id)!;
+      const wireId = useCircuitStore.getState().addWire(r1.ports[1]!.id, r2.ports[0]!.id);
+      expect(useCircuitStore.getState().circuit.wires.size).toBe(1);
+
+      const labelId = useCircuitStore
+        .getState()
+        .splitWireWithNetLabel(wireId, { x: 50, y: 0 }, 'VOUT');
+      expect(labelId).not.toBeNull();
+
+      const circuit = useCircuitStore.getState().circuit;
+      expect(circuit.wires.has(wireId)).toBe(false);
+      expect(circuit.wires.size).toBe(2);
+      expect(circuit.components.size).toBe(3);
+
+      const label = circuit.components.get(labelId!);
+      expect(label).toBeDefined();
+      expect(label?.type).toBe('net_label');
+      expect(label?.netLabel).toBe('VOUT');
+      expect(label?.ports).toHaveLength(1);
+    });
+
+    it('returns null when the wire does not exist', () => {
+      const result = useCircuitStore.getState().splitWireWithNetLabel('nope', { x: 0, y: 0 }, 'X');
+      expect(result).toBeNull();
     });
   });
 });

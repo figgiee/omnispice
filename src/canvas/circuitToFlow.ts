@@ -5,8 +5,8 @@
  */
 
 import type { Edge, Node } from '@xyflow/react';
-import type { Circuit } from '@/circuit/types';
 import type { CircuitNodeData } from '@/canvas/components/types';
+import type { Circuit } from '@/circuit/types';
 
 /**
  * Convert circuit components to React Flow nodes.
@@ -21,6 +21,7 @@ export function circuitToNodes(circuit: Circuit): Node<CircuitNodeData>[] {
       refDesignator: comp.refDesignator,
       value: comp.value,
       rotation: comp.rotation,
+      ...(comp.netLabel ? { netLabel: comp.netLabel } : {}),
     },
   }));
 }

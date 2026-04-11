@@ -1,0 +1,40 @@
+/**
+ * Net label node — Phase 5 Pillar 1 (Schematic Honesty).
+ *
+ * Small rounded pill that carries the net identifier and serves as a
+ * type-target when the user hits a printable character with a wire selected.
+ * Per UI-SPEC §7.4 S4: 20px tall, monospace, surface-primary fill.
+ */
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 20px;
+  padding: 0 8px 0 12px;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: border-color var(--duration-fast) var(--easing-standard);
+}
+
+.label[data-selected='true'] {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 1px var(--accent-primary);
+}
+
+.netName {
+  letter-spacing: 0.02em;
+}
+
+.arrow {
+  opacity: 0.6;
+  font-size: 10px;
+}

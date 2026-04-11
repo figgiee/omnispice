@@ -1,19 +1,19 @@
-import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
 import { ReactFlowProvider } from '@xyflow/react';
-import { ResistorNode } from '../ResistorNode';
-import { CapacitorNode } from '../CapacitorNode';
-import { InductorNode } from '../InductorNode';
-import { DiodeNode } from '../DiodeNode';
-import { BjtNode } from '../BjtNode';
-import { MosfetNode } from '../MosfetNode';
-import { OpAmpNode } from '../OpAmpNode';
-import { VoltageSourceNode } from '../VoltageSourceNode';
-import { CurrentSourceNode } from '../CurrentSourceNode';
-import { GroundNode } from '../GroundNode';
-import { TransformerNode } from '../TransformerNode';
-import { nodeTypes } from '../nodeTypes';
+import { describe, expect, it } from 'vitest';
 import type { ComponentType } from '../../../circuit/types';
+import { BjtNode } from '../BjtNode';
+import { CapacitorNode } from '../CapacitorNode';
+import { CurrentSourceNode } from '../CurrentSourceNode';
+import { DiodeNode } from '../DiodeNode';
+import { GroundNode } from '../GroundNode';
+import { InductorNode } from '../InductorNode';
+import { MosfetNode } from '../MosfetNode';
+import { nodeTypes } from '../nodeTypes';
+import { OpAmpNode } from '../OpAmpNode';
+import { ResistorNode } from '../ResistorNode';
+import { TransformerNode } from '../TransformerNode';
+import { VoltageSourceNode } from '../VoltageSourceNode';
 
 /**
  * Wrapper that provides ReactFlowProvider context needed by Handle components.
@@ -323,6 +323,8 @@ describe('nodeTypes registry', () => {
     'dc_current',
     'ac_current',
     'ground',
+    // Phase 5 Pillar 1 — net label pseudo-component
+    'net_label',
   ];
 
   it('has entries for all ComponentType values', () => {
@@ -332,7 +334,7 @@ describe('nodeTypes registry', () => {
     }
   });
 
-  it('has exactly 22 entries', () => {
-    expect(Object.keys(nodeTypes).length).toBe(22);
+  it('has exactly 23 entries (22 real components + 1 net label)', () => {
+    expect(Object.keys(nodeTypes).length).toBe(23);
   });
 });
