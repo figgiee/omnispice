@@ -13,11 +13,26 @@ import { useCanvasInteractions } from '../useCanvasInteractions';
 const mockZoomIn = vi.fn();
 const mockZoomOut = vi.fn();
 const mockFitView = vi.fn();
+const mockSetCenter = vi.fn();
+const mockGetViewport = vi.fn(() => ({ x: 0, y: 0, zoom: 1 }));
+type MockNode = {
+  id: string;
+  position: { x: number; y: number };
+  width?: number;
+  height?: number;
+  measured?: { width?: number; height?: number };
+  selected?: boolean;
+};
+const mockNodes: MockNode[] = [];
+const mockGetNodes = vi.fn(() => mockNodes);
 vi.mock('@xyflow/react', () => ({
   useReactFlow: () => ({
     zoomIn: mockZoomIn,
     zoomOut: mockZoomOut,
     fitView: mockFitView,
+    setCenter: mockSetCenter,
+    getNodes: mockGetNodes,
+    getViewport: mockGetViewport,
     screenToFlowPosition: vi.fn((pos: { x: number; y: number }) => pos),
   }),
 }));
@@ -75,13 +90,28 @@ vi.mock('@/store/uiStore', () => ({
     }),
 }));
 
-// Track registered hotkeys and their handlers
-const registeredHotkeys = new Map<string, () => void>();
+// Track registered hotkeys and their handlers.
+// Some keys (e.g. 'space') register both a keydown and keyup handler —
+// keep the latest registration under the bare key (matches old tests) and
+// also expose a keyed-by-phase map for Phase 5 space tests.
+type HotkeyOptions = { keydown?: boolean; keyup?: boolean } & Record<string, unknown>;
+const registeredHotkeys = new Map<string, (e?: KeyboardEvent) => void>();
+const registeredHotkeyPhases = new Map<
+  string,
+  { keydown?: (e?: KeyboardEvent) => void; keyup?: (e?: KeyboardEvent) => void }
+>();
 vi.mock('react-hotkeys-hook', () => ({
-  useHotkeys: (keys: string, handler: () => void) => {
-    // Store each key combo and its handler for test invocation
+  useHotkeys: (keys: string, handler: (e?: KeyboardEvent) => void, options?: HotkeyOptions) => {
     for (const key of keys.split(',').map((k) => k.trim())) {
       registeredHotkeys.set(key, handler);
+      const phase = registeredHotkeyPhases.get(key) ?? {};
+      // Default react-hotkeys-hook behavior is keydown when no option set
+      if (options?.keyup === true && options?.keydown !== true) {
+        phase.keyup = handler;
+      } else {
+        phase.keydown = handler;
+      }
+      registeredHotkeyPhases.set(key, phase);
     }
   },
 }));
@@ -90,6 +120,8 @@ describe('useCanvasInteractions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     registeredHotkeys.clear();
+    registeredHotkeyPhases.clear();
+    mockNodes.length = 0;
     mockSelectedComponentIds = [];
     mockSelectedWireIds = [];
   });
@@ -222,15 +254,90 @@ describe('useCanvasInteractions', () => {
   });
 });
 
-// Phase 5 hotkeys — skeleton scaffold (un-skipped across Tasks 2-3 as hotkeys ship).
-// The describe.skip block below wraps Phase 5 tests so the suite stays green
-// until individual Phase 5 tasks implement the corresponding hotkeys.
-describe.skip('Phase 5 hotkeys', () => {
-  it('F / A / 0 framing hotkeys — filled in Task 2', () => {
-    // Implemented in Task 2
+// Phase 5 hotkeys — un-skipped across Tasks 2-3 as hotkeys ship.
+describe('Phase 5 hotkeys', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    registeredHotkeys.clear();
+    registeredHotkeyPhases.clear();
+    mockNodes.length = 0;
+    mockSelectedComponentIds = [];
+    mockSelectedWireIds = [];
   });
 
-  it('Space-hold temp pan + Shift+D duplicate — filled in Task 3', () => {
-    // Implemented in Task 3
+  function setupHook() {
+    renderHook(() => useCanvasInteractions());
+  }
+
+  it('F with no selection is a no-op (does not throw, does not call setCenter)', () => {
+    mockNodes.push(
+      {
+        id: 'comp-1',
+        position: { x: 0, y: 0 },
+        width: 60,
+        height: 40,
+        selected: false,
+      },
+      {
+        id: 'comp-2',
+        position: { x: 200, y: 100 },
+        width: 60,
+        height: 40,
+        selected: false,
+      },
+    );
+    setupHook();
+
+    const handler = registeredHotkeys.get('f');
+    expect(handler).toBeDefined();
+    expect(() => handler!()).not.toThrow();
+    expect(mockSetCenter).not.toHaveBeenCalled();
+  });
+
+  it('F with one selected node calls setCenter near the node centroid', () => {
+    mockNodes.push({
+      id: 'comp-1',
+      position: { x: 100, y: 50 },
+      width: 60,
+      height: 40,
+      selected: true,
+    });
+    setupHook();
+
+    const handler = registeredHotkeys.get('f');
+    expect(handler).toBeDefined();
+    handler!();
+
+    expect(mockSetCenter).toHaveBeenCalledTimes(1);
+    // Centroid for single node is position + size/2 = (130, 70)
+    const [x, y, opts] = mockSetCenter.mock.calls[0] as [
+      number,
+      number,
+      { duration?: number; zoom?: number },
+    ];
+    expect(x).toBeCloseTo(130, 0);
+    expect(y).toBeCloseTo(70, 0);
+    expect(opts).toMatchObject({ duration: 200 });
+  });
+
+  it('A calls fitView with a 200ms animation', () => {
+    setupHook();
+
+    const handler = registeredHotkeys.get('a');
+    expect(handler).toBeDefined();
+    handler!();
+
+    expect(mockFitView).toHaveBeenCalledWith({ duration: 200 });
+  });
+
+  it('0 (bare) calls fitView with a 200ms animation', () => {
+    setupHook();
+
+    // '0' shares the 'a, 0' registration with A
+    const handler = registeredHotkeys.get('0');
+    expect(handler).toBeDefined();
+    handler!();
+
+    expect(mockFitView).toHaveBeenCalledWith({ duration: 200 });
   });
 });
