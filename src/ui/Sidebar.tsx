@@ -12,7 +12,6 @@
 import { Command } from 'cmdk';
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useHotkeys } from 'react-hotkeys-hook';
 import type { ComponentDefinition } from '@/circuit/componentLibrary';
 import { COMPONENT_LIBRARY } from '@/circuit/componentLibrary';
 import type { ComponentType } from '@/circuit/types';
@@ -231,25 +230,16 @@ export function Sidebar() {
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Ctrl+K: focus search input (per UI-SPEC Keyboard Shortcuts)
-  useHotkeys(
-    'ctrl+k, meta+k',
-    (e) => {
-      e.preventDefault();
-      if (sidebarCollapsed) {
-        toggleSidebar();
-      }
-      // Small delay to let sidebar expand before focusing
-      setTimeout(() => {
-        searchInputRef.current?.focus();
-      }, 50);
-    },
-    { preventDefault: true },
-  );
-
-  // Also listen for the custom event emitted by canvas interactions
+  // Listen for Ctrl+K dispatch from useCanvasInteractions. Per locked decision
+  // #3 (focus-based disambiguation): Sidebar library search only claims the
+  // shortcut when focus is ALREADY inside the sidebar-library surface. When
+  // focus is on the canvas (or anywhere else), CommandPalette.tsx opens the
+  // global palette instead. The omnispice:type-to-place event is also handled
+  // here so type-to-place pre-fills the library search.
   useEffect(() => {
-    const handler = () => {
+    const handleOpenPalette = () => {
+      const active = document.activeElement;
+      if (!active?.closest('[data-surface="sidebar-library"]')) return;
       if (sidebarCollapsed) {
         toggleSidebar();
       }
@@ -257,8 +247,27 @@ export function Sidebar() {
         searchInputRef.current?.focus();
       }, 50);
     };
-    window.addEventListener('omnispice:open-command-palette', handler);
-    return () => window.removeEventListener('omnispice:open-command-palette', handler);
+    window.addEventListener('omnispice:open-command-palette', handleOpenPalette);
+    return () => window.removeEventListener('omnispice:open-command-palette', handleOpenPalette);
+  }, [sidebarCollapsed, toggleSidebar]);
+
+  // Type-to-place: when the canvas insert cursor is active and the user
+  // presses a printable letter, Sidebar pre-fills the library search with
+  // that character and auto-focuses the input (decision #3, Pillar 2).
+  useEffect(() => {
+    const handleTypeToPlace = (event: Event) => {
+      const detail = (event as CustomEvent).detail as { firstChar?: string } | undefined;
+      const firstChar = detail?.firstChar ?? '';
+      setSearch(firstChar);
+      if (sidebarCollapsed) {
+        toggleSidebar();
+      }
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 50);
+    };
+    window.addEventListener('omnispice:type-to-place', handleTypeToPlace);
+    return () => window.removeEventListener('omnispice:type-to-place', handleTypeToPlace);
   }, [sidebarCollapsed, toggleSidebar]);
 
   const handleDragStart = useCallback((event: React.DragEvent, type: ComponentType) => {
@@ -297,7 +306,8 @@ export function Sidebar() {
   return (
     <div
       className={`${styles.sidebar} ${sidebarCollapsed ? styles.collapsed : ''}`}
-      data-testid="sidebar"
+      data-testid="sidebar-library"
+      data-surface="sidebar-library"
     >
       {/* Collapse toggle */}
       <button
