@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Layout } from './app/Layout';
 import { SharedCircuitViewer } from './components/share/SharedCircuitViewer';
 import { useOverlaySync } from './overlay/useOverlaySync';
@@ -13,9 +14,18 @@ import { LtiAdminPage } from './pages/LtiAdminPage';
 import { LtiBootstrapPage } from './pages/LtiBootstrapPage';
 import { ReportPreviewPage } from './pages/ReportPreviewPage';
 import { SubmissionViewer } from './pages/SubmissionViewer';
+import { startOrchestrator, stopOrchestrator } from './simulation/simulationOrchestrator';
 
 function App() {
   useOverlaySync();
+  // Plan 05-04: mount the tiered simulation orchestrator for the lifetime
+  // of the app. Subscribes to circuitStore, fires DC op-point on every
+  // change, AC sweep (debounced) when an AC source is present, and
+  // transient only on the `omnispice:scrub-committed` event.
+  useEffect(() => {
+    startOrchestrator();
+    return () => stopOrchestrator();
+  }, []);
   const path = window.location.pathname;
 
   // /share/:token — Phase 2

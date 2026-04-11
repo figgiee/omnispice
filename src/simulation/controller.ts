@@ -4,6 +4,18 @@
  * Manages the lifecycle of the ngspice WASM Web Worker: initialization,
  * running simulations, cancellation, and cleanup. Provides callbacks for
  * progress updates, results, and errors.
+ *
+ * @deprecated Plan 05-04 — the long-term replacement for this class is
+ *   `TieredSimulationController`, which supports four concurrent analysis
+ *   lanes with per-request correlation via `requestId`. `controller.ts`
+ *   remains in place for the legacy single-shot F5 "Run" path (used by
+ *   `useSimulationRunner` / the manual run button and covered by
+ *   `controller.test.ts`). Plan 05-07 will migrate F5 through the
+ *   orchestrator and this file can be deleted at that point.
+ *
+ *   New code MUST NOT instantiate `SimulationController` directly —
+ *   import `TieredSimulationController` (or better, use the singleton
+ *   `simulationOrchestrator`) instead.
  */
 
 import type { AnalysisType } from '../circuit/types';
@@ -51,10 +63,9 @@ export class SimulationController {
    * Sends INIT command and waits for READY response.
    */
   async initialize(): Promise<void> {
-    this.worker = new Worker(
-      new URL('./worker/simulation.worker.ts', import.meta.url),
-      { type: 'module' },
-    );
+    this.worker = new Worker(new URL('./worker/simulation.worker.ts', import.meta.url), {
+      type: 'module',
+    });
 
     return new Promise<void>((resolve, reject) => {
       this.pendingResolve = resolve;
@@ -65,9 +76,7 @@ export class SimulationController {
       };
 
       this.worker!.onerror = (event: ErrorEvent) => {
-        const err = new Error(
-          `Worker error: ${event.message || 'Unknown error'}`,
-        );
+        const err = new Error(`Worker error: ${event.message || 'Unknown error'}`);
         if (this.pendingReject) {
           this.pendingReject(err);
           this.pendingResolve = null;
@@ -88,10 +97,7 @@ export class SimulationController {
    * @param netlist - SPICE netlist string
    * @param analysisType - Type of analysis to run
    */
-  async runSimulation(
-    netlist: string,
-    analysisType: AnalysisType,
-  ): Promise<void> {
+  async runSimulation(netlist: string, analysisType: AnalysisType): Promise<void> {
     // Lazy re-initialization after cancel
     if (!this.worker || !this.initialized) {
       await this.initialize();
