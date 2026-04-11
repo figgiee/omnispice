@@ -33,6 +33,7 @@ import { nodeTypes } from './components/nodeTypes';
 import { edgeTypes } from './edges/edgeTypes';
 import { useCanvasInteractions } from './hooks/useCanvasInteractions';
 import { useMagneticSnap } from './hooks/useMagneticSnap';
+import { useTypeToPlace } from './hooks/useTypeToPlace';
 import { useWireRouting } from './hooks/useWireRouting';
 import { ValidationWarnings } from './overlays/ValidationWarnings';
 
@@ -64,6 +65,9 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
   const { onDragOver } = useCanvasInteractions();
   const { isRouting, cancelRouting } = useWireRouting();
   const { isSnapping, snapTarget, checkSnap, clearSnap } = useMagneticSnap();
+  // Plan 05-06 Task 4: type-to-place gesture. Listens for printable letters
+  // while uiStore.insertCursor is active + no component selected.
+  useTypeToPlace();
 
   /**
    * D-21: Error navigation receive side.
@@ -155,15 +159,18 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
   );
 
   /**
-   * Handle mouse move for wire routing preview and magnetic snap.
+   * Handle mouse move for wire routing preview, magnetic snap, and live
+   * cursor-position tracking (Plan 05-06: template insertion uses this as
+   * a fallback anchor when there is no explicit click cursor).
    */
   const handleMouseMove = useCallback(
     (event: React.MouseEvent) => {
+      const position = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+      useUiStore.getState().setCursorPosition(position);
       if (isRouting) {
-        const position = screenToFlowPosition({
-          x: event.clientX,
-          y: event.clientY,
-        });
         checkSnap(position);
       }
     },
@@ -171,14 +178,31 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
   );
 
   /**
-   * Handle pane click to cancel wire routing.
+   * Handle pane click:
+   * - Cancels any in-progress wire routing
+   * - Sets the insert cursor at the click position in flow coordinates
+   *   (Plan 05-06: Modelessness pillar — type-to-place and template insert
+   *   both anchor here)
+   * - Clears selection so R becomes a type-to-place letter, not rotate
    */
-  const handlePaneClick = useCallback(() => {
-    if (isRouting) {
-      cancelRouting();
-      clearSnap();
-    }
-  }, [isRouting, cancelRouting, clearSnap]);
+  const handlePaneClick = useCallback(
+    (event: React.MouseEvent) => {
+      if (isRouting) {
+        cancelRouting();
+        clearSnap();
+      }
+      const flowPos = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+      useUiStore.getState().setInsertCursor({
+        x: Math.round(flowPos.x / 10) * 10,
+        y: Math.round(flowPos.y / 10) * 10,
+      });
+      setSelectedComponentIds([]);
+    },
+    [isRouting, cancelRouting, clearSnap, screenToFlowPosition, setSelectedComponentIds],
+  );
 
   return (
     <div className={styles.canvas}>
