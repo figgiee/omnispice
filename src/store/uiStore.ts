@@ -21,6 +21,12 @@ export interface UiState {
   selectedWireIds: string[];
   /** Per D-21: error navigation highlights component on canvas */
   highlightedComponentId: string | null;
+  /**
+   * Phase 5 Pillar 2 (Modelessness): true while the user holds Space to
+   * temporarily pan the canvas with left-click drag. Consumed by Canvas
+   * to flip React Flow's `panOnDrag` from middle-mouse-only to left-mouse.
+   */
+  tempPanActive: boolean;
 
   setActiveTool: (tool: ActiveTool) => void;
   setBottomTab: (tab: BottomTab) => void;
@@ -31,6 +37,8 @@ export interface UiState {
   setSelectedWireIds: (ids: string[]) => void;
   /** Per D-21: set highlighted component for error navigation */
   setHighlightedComponentId: (id: string | null) => void;
+  /** Phase 5: set temp-pan flag (true on Space keydown, false on keyup) */
+  setTempPanActive: (v: boolean) => void;
 }
 
 export const useUiStore = create<UiState>()((set) => ({
@@ -42,6 +50,7 @@ export const useUiStore = create<UiState>()((set) => ({
   selectedComponentIds: [],
   selectedWireIds: [],
   highlightedComponentId: null,
+  tempPanActive: false,
 
   setActiveTool: (tool) => set({ activeTool: tool }),
 
@@ -49,8 +58,7 @@ export const useUiStore = create<UiState>()((set) => ({
 
   toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
 
-  toggleBottomPanel: () =>
-    set((s) => ({ bottomPanelCollapsed: !s.bottomPanelCollapsed })),
+  toggleBottomPanel: () => set((s) => ({ bottomPanelCollapsed: !s.bottomPanelCollapsed })),
 
   setBottomPanelHeight: (height) => set({ bottomPanelHeight: height }),
 
@@ -59,4 +67,6 @@ export const useUiStore = create<UiState>()((set) => ({
   setSelectedWireIds: (ids) => set({ selectedWireIds: ids }),
 
   setHighlightedComponentId: (id) => set({ highlightedComponentId: id }),
+
+  setTempPanActive: (v) => set({ tempPanActive: v }),
 }));

@@ -79,15 +79,23 @@ let mockSelectedComponentIds: string[] = [];
 let mockSelectedWireIds: string[] = [];
 const mockSetSelectedComponentIds = vi.fn();
 const mockSetActiveTool = vi.fn();
+const mockSetTempPanActive = vi.fn();
+const mockUiState = () => ({
+  selectedComponentIds: mockSelectedComponentIds,
+  selectedWireIds: mockSelectedWireIds,
+  setSelectedComponentIds: mockSetSelectedComponentIds,
+  setActiveTool: mockSetActiveTool,
+  setTempPanActive: mockSetTempPanActive,
+  tempPanActive: false,
+});
 
 vi.mock('@/store/uiStore', () => ({
-  useUiStore: (selector: (state: Record<string, unknown>) => unknown) =>
-    selector({
-      selectedComponentIds: mockSelectedComponentIds,
-      selectedWireIds: mockSelectedWireIds,
-      setSelectedComponentIds: mockSetSelectedComponentIds,
-      setActiveTool: mockSetActiveTool,
-    }),
+  useUiStore: Object.assign(
+    (selector: (state: Record<string, unknown>) => unknown) => selector(mockUiState()),
+    {
+      getState: () => mockUiState(),
+    },
+  ),
 }));
 
 // Track registered hotkeys and their handlers.
@@ -339,5 +347,36 @@ describe('Phase 5 hotkeys', () => {
     handler!();
 
     expect(mockFitView).toHaveBeenCalledWith({ duration: 200 });
+  });
+
+  it('Space keydown sets tempPanActive true; Space keyup sets it false', () => {
+    setupHook();
+
+    const phases = registeredHotkeyPhases.get('space');
+    expect(phases).toBeDefined();
+    expect(phases?.keydown).toBeDefined();
+    expect(phases?.keyup).toBeDefined();
+
+    const preventDefault = vi.fn();
+    phases!.keydown!({ preventDefault } as unknown as KeyboardEvent);
+    expect(mockSetTempPanActive).toHaveBeenCalledWith(true);
+    expect(preventDefault).toHaveBeenCalled();
+
+    phases!.keyup!({ preventDefault: vi.fn() } as unknown as KeyboardEvent);
+    expect(mockSetTempPanActive).toHaveBeenCalledWith(false);
+  });
+
+  it('Shift+D copies then pastes the current selection', () => {
+    mockSelectedComponentIds = ['comp-1'];
+    setupHook();
+
+    const handler = registeredHotkeys.get('shift+d');
+    expect(handler).toBeDefined();
+    handler!({ preventDefault: vi.fn() } as unknown as KeyboardEvent);
+
+    // Paste creates new components via addComponents (see hook logic)
+    expect(mockAddComponents).toHaveBeenCalled();
+    // Paste also updates the selection to the newly-created ids
+    expect(mockSetSelectedComponentIds).toHaveBeenCalled();
   });
 });
