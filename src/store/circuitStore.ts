@@ -6,10 +6,34 @@
  * state updates compatible with Zustand's shallow equality checks.
  */
 
+import { del as idbDel, get as idbGet, set as idbSet } from 'idb-keyval';
 import { temporal } from 'zundo';
 import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { COMPONENT_LIBRARY } from '@/circuit/componentLibrary';
 import type { Circuit, Component, ComponentType, Port, Wire } from '@/circuit/types';
+import { mapReplacer, mapReviver } from './mapSerialization';
+
+/**
+ * Storage adapter that bridges zustand `persist` to `idb-keyval`. Strings go
+ * in, strings come out — the JSON serialization is handled by
+ * `createJSONStorage` with our Map/Set-aware replacer/reviver.
+ *
+ * Tests can `vi.mock('idb-keyval', ...)` to swap the backing store for
+ * an in-memory Map without touching this adapter.
+ */
+const indexedDbStorage = {
+  getItem: async (name: string): Promise<string | null> => {
+    const value = await idbGet<string>(name);
+    return value ?? null;
+  },
+  setItem: async (name: string, value: string): Promise<void> => {
+    await idbSet(name, value);
+  },
+  removeItem: async (name: string): Promise<void> => {
+    await idbDel(name);
+  },
+};
 
 /**
  * State shape for the circuit store.
@@ -76,183 +100,201 @@ function createPorts(
 
 export const useCircuitStore = create<CircuitState>()(
   temporal(
-    (set, get) => ({
-      circuit: createEmptyCircuit(),
-      refCounters: {},
+    persist(
+      (set, get) => ({
+        circuit: createEmptyCircuit(),
+        refCounters: {},
 
-      addComponent: (type, position) => {
-        const def = COMPONENT_LIBRARY[type];
-        const id = generateId();
-        const state = get();
+        addComponent: (type, position) => {
+          const def = COMPONENT_LIBRARY[type];
+          const id = generateId();
+          const state = get();
 
-        // Increment ref counter for this SPICE prefix
-        const prefix = def.spicePrefix || type.charAt(0).toUpperCase();
-        const currentCount = state.refCounters[prefix] ?? 0;
-        const nextCount = currentCount + 1;
-        const refDesignator = `${prefix}${nextCount}`;
+          // Increment ref counter for this SPICE prefix
+          const prefix = def.spicePrefix || type.charAt(0).toUpperCase();
+          const currentCount = state.refCounters[prefix] ?? 0;
+          const nextCount = currentCount + 1;
+          const refDesignator = `${prefix}${nextCount}`;
 
-        const component: Component = {
-          id,
-          type,
-          refDesignator,
-          value: def.defaultValue,
-          ports: createPorts(def.ports),
-          position,
-          rotation: 0,
-          ...(def.defaultModel ? { spiceModel: def.defaultModel } : {}),
-        };
-
-        set((s) => {
-          const components = new Map(s.circuit.components);
-          components.set(id, component);
-          return {
-            circuit: { ...s.circuit, components },
-            refCounters: { ...s.refCounters, [prefix]: nextCount },
+          const component: Component = {
+            id,
+            type,
+            refDesignator,
+            value: def.defaultValue,
+            ports: createPorts(def.ports),
+            position,
+            rotation: 0,
+            ...(def.defaultModel ? { spiceModel: def.defaultModel } : {}),
           };
-        });
 
-        return id;
-      },
+          set((s) => {
+            const components = new Map(s.circuit.components);
+            components.set(id, component);
+            return {
+              circuit: { ...s.circuit, components },
+              refCounters: { ...s.refCounters, [prefix]: nextCount },
+            };
+          });
 
-      removeComponent: (id) => {
-        set((s) => {
-          const comp = s.circuit.components.get(id);
-          if (!comp) return s;
+          return id;
+        },
 
-          // Collect port IDs for this component
-          const portIds = new Set(comp.ports.map((p) => p.id));
+        removeComponent: (id) => {
+          set((s) => {
+            const comp = s.circuit.components.get(id);
+            if (!comp) return s;
 
-          // Remove wires connected to any of the component's ports
-          const wires = new Map(s.circuit.wires);
-          for (const [wireId, wire] of wires) {
-            if (portIds.has(wire.sourcePortId) || portIds.has(wire.targetPortId)) {
-              wires.delete(wireId);
+            // Collect port IDs for this component
+            const portIds = new Set(comp.ports.map((p) => p.id));
+
+            // Remove wires connected to any of the component's ports
+            const wires = new Map(s.circuit.wires);
+            for (const [wireId, wire] of wires) {
+              if (portIds.has(wire.sourcePortId) || portIds.has(wire.targetPortId)) {
+                wires.delete(wireId);
+              }
             }
-          }
 
-          // Remove the component
-          const components = new Map(s.circuit.components);
-          components.delete(id);
+            // Remove the component
+            const components = new Map(s.circuit.components);
+            components.delete(id);
 
-          return {
-            circuit: { ...s.circuit, components, wires },
+            return {
+              circuit: { ...s.circuit, components, wires },
+            };
+          });
+        },
+
+        updateComponentValue: (id, value) => {
+          set((s) => {
+            const comp = s.circuit.components.get(id);
+            if (!comp) return s;
+
+            const components = new Map(s.circuit.components);
+            components.set(id, { ...comp, value });
+            return {
+              circuit: { ...s.circuit, components },
+            };
+          });
+        },
+
+        updateComponentPosition: (id, position) => {
+          set((s) => {
+            const comp = s.circuit.components.get(id);
+            if (!comp) return s;
+
+            const components = new Map(s.circuit.components);
+            components.set(id, { ...comp, position });
+            return {
+              circuit: { ...s.circuit, components },
+            };
+          });
+        },
+
+        rotateComponent: (id) => {
+          set((s) => {
+            const comp = s.circuit.components.get(id);
+            if (!comp) return s;
+
+            const components = new Map(s.circuit.components);
+            const nextRotation = (comp.rotation + 90) % 360;
+            components.set(id, { ...comp, rotation: nextRotation });
+            return {
+              circuit: { ...s.circuit, components },
+            };
+          });
+        },
+
+        addWire: (sourcePortId, targetPortId) => {
+          const id = generateId();
+          const wire: Wire = {
+            id,
+            sourcePortId,
+            targetPortId,
+            bendPoints: [],
           };
-        });
+
+          set((s) => {
+            const wires = new Map(s.circuit.wires);
+            wires.set(id, wire);
+            return {
+              circuit: { ...s.circuit, wires },
+            };
+          });
+
+          return id;
+        },
+
+        removeWire: (id) => {
+          set((s) => {
+            const wires = new Map(s.circuit.wires);
+            wires.delete(id);
+            return {
+              circuit: { ...s.circuit, wires },
+            };
+          });
+        },
+
+        clearCircuit: () => {
+          set({
+            circuit: createEmptyCircuit(),
+            refCounters: {},
+          });
+        },
+
+        addComponents: (components) => {
+          set((s) => {
+            const newComponents = new Map(s.circuit.components);
+            for (const comp of components) {
+              newComponents.set(comp.id, comp);
+            }
+            return {
+              circuit: { ...s.circuit, components: newComponents },
+            };
+          });
+        },
+
+        addComponentsAndWires: (components, wires, refCounters) => {
+          set((s) => {
+            const newComponents = new Map(s.circuit.components);
+            for (const comp of components) {
+              newComponents.set(comp.id, comp);
+            }
+            const newWires = new Map(s.circuit.wires);
+            for (const wire of wires) {
+              newWires.set(wire.id, wire);
+            }
+            return {
+              circuit: { ...s.circuit, components: newComponents, wires: newWires },
+              refCounters: refCounters ?? s.refCounters,
+            };
+          });
+        },
+
+        setCircuit: (circuit) => {
+          set({
+            circuit,
+            refCounters: {},
+          });
+        },
+      }),
+      {
+        name: 'omnispice-circuit',
+        storage: createJSONStorage(() => indexedDbStorage, {
+          replacer: mapReplacer,
+          reviver: mapReviver,
+        }),
+        // Only persist circuit data + refCounters, never derived / action state.
+        partialize: (state) => ({
+          circuit: state.circuit,
+          refCounters: state.refCounters,
+        }),
+        // Bump on breaking shape changes — consumers re-run the round-trip
+        // test (see __tests__/circuitStoreOfflinePersist.test.ts) when
+        // modifying this version.
+        version: 1,
       },
-
-      updateComponentValue: (id, value) => {
-        set((s) => {
-          const comp = s.circuit.components.get(id);
-          if (!comp) return s;
-
-          const components = new Map(s.circuit.components);
-          components.set(id, { ...comp, value });
-          return {
-            circuit: { ...s.circuit, components },
-          };
-        });
-      },
-
-      updateComponentPosition: (id, position) => {
-        set((s) => {
-          const comp = s.circuit.components.get(id);
-          if (!comp) return s;
-
-          const components = new Map(s.circuit.components);
-          components.set(id, { ...comp, position });
-          return {
-            circuit: { ...s.circuit, components },
-          };
-        });
-      },
-
-      rotateComponent: (id) => {
-        set((s) => {
-          const comp = s.circuit.components.get(id);
-          if (!comp) return s;
-
-          const components = new Map(s.circuit.components);
-          const nextRotation = (comp.rotation + 90) % 360;
-          components.set(id, { ...comp, rotation: nextRotation });
-          return {
-            circuit: { ...s.circuit, components },
-          };
-        });
-      },
-
-      addWire: (sourcePortId, targetPortId) => {
-        const id = generateId();
-        const wire: Wire = {
-          id,
-          sourcePortId,
-          targetPortId,
-          bendPoints: [],
-        };
-
-        set((s) => {
-          const wires = new Map(s.circuit.wires);
-          wires.set(id, wire);
-          return {
-            circuit: { ...s.circuit, wires },
-          };
-        });
-
-        return id;
-      },
-
-      removeWire: (id) => {
-        set((s) => {
-          const wires = new Map(s.circuit.wires);
-          wires.delete(id);
-          return {
-            circuit: { ...s.circuit, wires },
-          };
-        });
-      },
-
-      clearCircuit: () => {
-        set({
-          circuit: createEmptyCircuit(),
-          refCounters: {},
-        });
-      },
-
-      addComponents: (components) => {
-        set((s) => {
-          const newComponents = new Map(s.circuit.components);
-          for (const comp of components) {
-            newComponents.set(comp.id, comp);
-          }
-          return {
-            circuit: { ...s.circuit, components: newComponents },
-          };
-        });
-      },
-
-      addComponentsAndWires: (components, wires, refCounters) => {
-        set((s) => {
-          const newComponents = new Map(s.circuit.components);
-          for (const comp of components) {
-            newComponents.set(comp.id, comp);
-          }
-          const newWires = new Map(s.circuit.wires);
-          for (const wire of wires) {
-            newWires.set(wire.id, wire);
-          }
-          return {
-            circuit: { ...s.circuit, components: newComponents, wires: newWires },
-            refCounters: refCounters ?? s.refCounters,
-          };
-        });
-      },
-
-      setCircuit: (circuit) => {
-        set({
-          circuit,
-          refCounters: {},
-        });
-      },
-    }),
+    ),
     {
       limit: 100,
       partialize: (state) => ({
