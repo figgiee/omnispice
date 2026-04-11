@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-04-PLAN.md
-last_updated: "2026-04-11T11:19:51.289Z"
+stopped_at: Completed 05-collaboration-and-polish 05-06 (CommandPalette + Templates + Type-to-Place)
+last_updated: "2026-04-11T11:27:43.484Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 37
-  completed_plans: 27
+  completed_plans: 28
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 ## Current Position
 
 Phase: 05 (collaboration-and-polish) — EXECUTING
-Plan: 2 of 11
+Plan: 3 of 11
 Status: Ready to execute
 Last activity: 2026-04-11
 
@@ -69,6 +69,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04-institutional-features P06 | 90min | 4 tasks | 14 files |
 | Phase 04-institutional-features P05 | session | 4 tasks | 20 files |
 | Phase 05-collaboration-and-polish P04 | 40min | 4 tasks | 12 files |
+| Phase 05-collaboration-and-polish P06 | 19min | 5 tasks | 22 files |
 
 ## Accumulated Context
 
@@ -137,6 +138,12 @@ Recent decisions affecting current work:
 - [Phase 05-collaboration-and-polish]: simulationOrchestrator uses single-arg useCircuitStore.subscribe + lastCircuit ref compare (circuitStore is NOT wrapped with subscribeWithSelector); identical semantics, no middleware churn
 - [Phase 05-collaboration-and-polish]: DC/AC/transient failures are debug-logged silently by the orchestrator (never toasted) per RESEARCH 3.7 anti-pattern guidance on live-simulator vomit
 - [Phase 05-collaboration-and-polish]: controller.ts tagged @deprecated rather than refactored; Plan 05-07 deletes it when F5 manual-run path migrates through simulationOrchestrator
+- [Phase 05-collaboration-and-polish]: [Phase 05]: Focus-based Ctrl+K disambiguation via data-surface attribute + document.activeElement.closest() — sidebar library claims shortcut when focused, global CommandPalette claims it otherwise (locked decision #3 implementation)
+- [Phase 05-collaboration-and-polish]: [Phase 05]: Bundled circuit templates ship as static JSON imports (Vite bundler moduleResolution) so the palette can list them synchronously; portNames reference COMPONENT_LIBRARY keys verbatim with authoring-time validation in insertTemplate
+- [Phase 05-collaboration-and-polish]: [Phase 05]: commandPaletteActions uses window CustomEvents (omnispice:run-simulation, omnispice:export-png, omnispice:export-pdf) as a dispatch bus so the registry never imports Toolbar/SimulationController directly — avoids circular deps
+- [Phase 05-collaboration-and-polish]: [Phase 05]: useTypeToPlace keydown listener attaches in capture phase so it runs BEFORE react-hotkeys-hook's R-rotate shortcut; selection-guard lets R still rotate when a component is selected
+- [Phase 05-collaboration-and-polish]: [Phase 05]: circuitStore.addComponentsAndWires({components, wires, refCounters?}) merges both maps in one set() so zundo captures template insertion as a single undo step
+- [Phase 05-collaboration-and-polish]: [Phase 05]: src/test/setup.ts polyfills ResizeObserver + Element.prototype.scrollIntoView for jsdom — Radix Dialog (cmdk Command.Dialog wrapper) refuses to mount in tests without them
 
 ### Pending Todos
 
@@ -155,6 +162,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T11:19:35.124Z
-Stopped at: Completed 05-04-PLAN.md
+Last session: 2026-04-11T11:27:43.481Z
+Stopped at: Completed 05-collaboration-and-polish 05-06 (CommandPalette + Templates + Type-to-Place)
 Resume file: None

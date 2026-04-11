@@ -118,11 +118,11 @@ Pillar decomposition for Phase 5 — the vision-ceiling target for the schematic
 
 #### Pillar 2 — Modelessness
 
-- **EDIT-06**: Typing a letter on empty canvas opens the component-insert search at the cursor position; typing `R` + `Enter` places a resistor at the insert cursor; the word "mode" appears nowhere in editor UI
+- [x] **EDIT-06**: Typing a letter on empty canvas opens the component-insert search at the cursor position; typing `R` + `Enter` places a resistor at the insert cursor; the word "mode" appears nowhere in editor UI
 - **EDIT-07**: Clicking a component body shows a floating parameter chip (`@floating-ui/react`) above the node; clicking a value edits it inline; `Tab`/`Shift+Tab` cycles parameters; `Esc` deselects. PropertyPanel remains as a11y escape hatch
 - **EDIT-08**: Clicking and horizontal-dragging a parameter value in the chip scrubs it continuously via Pointer Lock API; DC op-point updates live; transient commits on pointer release
 - **EDIT-09**: `Space`-drag pans the canvas regardless of current context; `Shift+D` duplicates current selection preserving internal wires; double-click a node frames it via `setCenter`
-- **EDIT-10**: `R` rotates when a selection exists; `R` on empty canvas with insert cursor filters the component search to the resistor family; full-session undo covers every editor action including parameter edits
+- [x] **EDIT-10**: `R` rotates when a selection exists; `R` on empty canvas with insert cursor filters the component search to the resistor family; full-session undo covers every editor action including parameter edits
 
 #### Pillar 3 — Immediacy
 
@@ -133,7 +133,7 @@ Pillar decomposition for Phase 5 — the vision-ceiling target for the schematic
 
 #### Pillar 4 — Live Feedback
 
-- **EDIT-15**: `Ctrl+K` with canvas focus opens a command palette modal (`cmdk` Command.Dialog) with groups `Actions`, `Circuits`, `Templates`, `Docs`; library search (Sidebar) continues to own `Ctrl+K` only when sidebar input has focus
+- [x] **EDIT-15**: `Ctrl+K` with canvas focus opens a command palette modal (`cmdk` Command.Dialog) with groups `Actions`, `Circuits`, `Templates`, `Docs`; library search (Sidebar) continues to own `Ctrl+K` only when sidebar input has focus
 - **EDIT-16**: Hovering any node shows a tooltip with `V`, `I`, `P`, and DC op-point status; wires render their stroke colored by instantaneous voltage via OKLab interpolation between `--wire-v-low` and `--wire-v-high`
 - **EDIT-17**: `?` toggles a docked right-panel shortcut help overlay grouped by pillar; `<MiniMap/>` is always visible in the bottom-right; `F` / `A` / `0` frame selection / frame all / frame all; change callouts ("+ Added R3") render in a dedicated z-layer for 780ms
 
@@ -141,7 +141,7 @@ Pillar decomposition for Phase 5 — the vision-ceiling target for the schematic
 
 - **EDIT-18**: Passive insight badges render on the waveform viewer and on schematic nodes when rules fire; each badge is a pill with a one-sentence summary; click expands to a card with optional KaTeX formula. Five v1 rules: `rc-time-constant`, `class-a-bias`, `op-amp-saturation`, `gain-bandwidth-product`, `voltage-divider-ratio`
 - **EDIT-19**: Clicking a waveform peak/point opens a measurement callout populated from `useMeasurements`; user adds an optional note; callouts persist in `reportAnnotationsStore` and feed `ReportData.sections.annotations[]` so the Phase 4 PDF/LaTeX exporter renders them in the lab report
-- **EDIT-20**: Circuit templates (bundled JSON under `src/templates/`) appear in the command palette's `Templates` group; selecting a template inserts its components at the cursor with auto-renumbered ref designators. V1 templates: voltage divider, RC low-pass, BJT common-emitter, op-amp inverting, op-amp non-inverting
+- [x] **EDIT-20**: Circuit templates (bundled JSON under `src/templates/`) appear in the command palette's `Templates` group; selecting a template inserts its components at the cursor with auto-renumbered ref designators. V1 templates: voltage divider, RC low-pass, BJT common-emitter, op-amp inverting, op-amp non-inverting
 
 ### Collaboration
 
