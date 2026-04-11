@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Layout } from './app/Layout';
+import { OfflineBanner } from './app/OfflineBanner';
 import { useRegisterSW } from './app/useRegisterSW';
 import { SharedCircuitViewer } from './components/share/SharedCircuitViewer';
 import { useOverlaySync } from './overlay/useOverlaySync';
@@ -120,6 +121,7 @@ function App() {
 
   return (
     <>
+      <OfflineBanner />
       <Layout />
       <ShortcutHelpOverlay />
     </>
