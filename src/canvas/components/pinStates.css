@@ -1,0 +1,71 @@
+/**
+ * Phase 5 Pillar 1 — global pin classes for live compat feedback.
+ *
+ * These selectors target the React Flow Handle's rendered DOM element
+ * via the CSS-module-generated `.pin` class AND the appended global
+ * modifier class. They must live in a non-module stylesheet because
+ * the modifier is computed at runtime in `usePinClassName.ts`.
+ *
+ * Specificity: `.react-flow__handle.pin-type-signal` > `.pin` module,
+ * so the base CSS module styles (size, border-radius) are preserved and
+ * these overrides only change background, size, and overlays.
+ *
+ * See:
+ *   - src/canvas/components/usePinClassName.ts (class selection logic)
+ *   - src/canvas/components/ComponentNode.module.css (base `.pin`)
+ *   - src/styles/variables.css (colour tokens)
+ */
+
+/* ─── Base pin-type colours (no drag in progress) ───────────────────── */
+.react-flow__handle.pin-type-signal { background: var(--pin-signal); }
+.react-flow__handle.pin-type-power  { background: var(--pin-power); }
+.react-flow__handle.pin-type-ground { background: var(--pin-ground); }
+.react-flow__handle.pin-type-supply { background: var(--pin-supply); }
+
+/* ─── Compat states (drag in progress) ──────────────────────────────── */
+.react-flow__handle.pin-compat-ok {
+  background: var(--pin-compat-ok);
+  width: 16px;
+  height: 16px;
+  animation: compat-pulse var(--duration-slow) ease-in-out infinite;
+}
+
+.react-flow__handle.pin-compat-neutral {
+  background: var(--pin-compat-neutral);
+  width: 6px;
+  height: 6px;
+}
+
+.react-flow__handle.pin-compat-error {
+  background: var(--pin-compat-error);
+  width: 10px;
+  height: 10px;
+  position: relative;
+}
+
+/* Diagonal slash overlay for error state */
+.react-flow__handle.pin-compat-error::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    transparent 45%,
+    var(--text-primary) 45%,
+    var(--text-primary) 55%,
+    transparent 55%
+  );
+  pointer-events: none;
+}
+
+@keyframes compat-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.7; }
+}
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .react-flow__handle.pin-compat-ok {
+    animation: none;
+  }
+}

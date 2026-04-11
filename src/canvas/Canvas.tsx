@@ -19,6 +19,7 @@ import {
   MiniMap,
   type Node,
   type OnConnect,
+  type OnConnectStart,
   type OnEdgesChange,
   type OnNodesChange,
   ReactFlow,
@@ -31,12 +32,14 @@ import { useCircuitStore } from '@/store/circuitStore';
 import { useUiStore } from '@/store/uiStore';
 import styles from './Canvas.module.css';
 import { nodeTypes } from './components/nodeTypes';
+import { pinTypeFor } from './components/usePinClassName';
 import { edgeTypes } from './edges/edgeTypes';
 import { useCanvasInteractions } from './hooks/useCanvasInteractions';
 import { useMagneticSnap } from './hooks/useMagneticSnap';
 import { useTypeToPlace } from './hooks/useTypeToPlace';
 import { useWireRouting } from './hooks/useWireRouting';
 import { ValidationWarnings } from './overlays/ValidationWarnings';
+import { useWireDragStore } from './stores/wireDragStore';
 
 /** MIME type for drag-and-drop component transfers from sidebar. */
 const DND_MIME_TYPE = 'application/omnispice-component';
@@ -132,6 +135,36 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
   );
 
   /**
+   * Phase 5 Pillar 1 — wire drag lifecycle.
+   *
+   * onConnectStart: look up the source handle's pinType in the component
+   * library via the node's ComponentType, push into wireDragStore. Every
+   * subscribed pin re-colors live via `usePinClassName`.
+   *
+   * onConnectEnd: clear the store so pins revert to their base colours.
+   *
+   * isValidConnection: always `true` per locked decision D-01 — students
+   * must be allowed to complete any wire, even electrically wrong ones.
+   * The compat matrix drives VISUAL feedback only.
+   */
+  const handleConnectStart: OnConnectStart = useCallback(
+    (_event, { nodeId, handleId }) => {
+      if (!nodeId || !handleId) return;
+      const node = getNode(nodeId);
+      if (!node) return;
+      const pinType = pinTypeFor(node.type as ComponentType, handleId);
+      useWireDragStore.getState().start(`${nodeId}:${handleId}`, pinType);
+    },
+    [getNode],
+  );
+
+  const handleConnectEnd = useCallback(() => {
+    useWireDragStore.getState().end();
+  }, []);
+
+  const isValidConnection = useCallback(() => true, []);
+
+  /**
    * Handle drop events for component placement from sidebar.
    * Reads component type from dataTransfer, converts screen coordinates
    * to flow position, snaps to 10px grid per D-02.
@@ -215,6 +248,9 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={handleConnect}
+        onConnectStart={handleConnectStart}
+        onConnectEnd={handleConnectEnd}
+        isValidConnection={isValidConnection}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         defaultEdgeOptions={{ type: 'wire' }}

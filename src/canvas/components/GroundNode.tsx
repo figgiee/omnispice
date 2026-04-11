@@ -1,14 +1,20 @@
 import { Handle, type NodeProps, Position } from '@xyflow/react';
 import { useOverlayStore } from '@/overlay/overlayStore';
 import styles from './ComponentNode.module.css';
+import { usePinClassName } from './usePinClassName';
 
 /**
  * Ground symbol: three horizontal lines decreasing in width.
  * viewBox: 24x24, single pin at top.
  * Maps to node 0 in SPICE.
+ *
+ * Ground pin is typed `ground` in COMPONENT_LIBRARY; usePinClassName will
+ * match the library entry `pin1` even though the React Flow handle id is
+ * `gnd` — we call it with the library name directly.
  */
-export function GroundNode({ data, selected }: NodeProps) {
+export function GroundNode({ id, data, selected }: NodeProps) {
   const { isVisible, nodeVoltages } = useOverlayStore();
+  const gndClass = usePinClassName('ground', 'pin1', id);
   // Ground is always node 0 in SPICE; show "0 V" when any simulation data exists
   const hasData = Object.keys(nodeVoltages).length > 0;
 
@@ -33,7 +39,7 @@ export function GroundNode({ data, selected }: NodeProps) {
 
       {isVisible && hasData && <span className={styles.overlayLabel}>0 V</span>}
 
-      <Handle type="target" position={Position.Top} id="gnd" className={styles.pin} />
+      <Handle type="target" position={Position.Top} id="gnd" className={gndClass} />
     </div>
   );
 }

@@ -1,15 +1,20 @@
-import { Handle, Position, type NodeProps } from '@xyflow/react';
-import type { CircuitNodeData } from './types';
-import { useValueEdit } from './useValueEdit';
+import { Handle, type NodeProps, Position } from '@xyflow/react';
 import styles from './ComponentNode.module.css';
+import type { CircuitNodeData } from './types';
+import { usePinClassName } from './usePinClassName';
+import { useValueEdit } from './useValueEdit';
 
 /**
  * Op-Amp symbol: triangle with +/- inputs.
  * viewBox: 56x48, three pins (non_inv + at left-top, inv - at left-bottom, output at right).
  * Power pins are implicit (not rendered per plan).
  */
-export function OpAmpNode({ data, selected }: NodeProps) {
+export function OpAmpNode({ id, data, selected }: NodeProps) {
   const nodeData = data as CircuitNodeData;
+  const opType = nodeData.type ?? 'ideal_opamp';
+  const nonInvClass = usePinClassName(opType, 'non_inv', id);
+  const invClass = usePinClassName(opType, 'inv', id);
+  const outputClass = usePinClassName(opType, 'output', id);
   const { isEditing, editValue, setEditValue, inputRef, startEditing, handleKeyDown } =
     useValueEdit(nodeData.value);
 
@@ -23,7 +28,12 @@ export function OpAmpNode({ data, selected }: NodeProps) {
 
       <svg viewBox="0 0 56 48" width={56} height={48}>
         {/* Triangle body */}
-        <path d="M0,0 L0,48 L56,24 Z" stroke="var(--component-stroke)" strokeWidth={2} fill="none" />
+        <path
+          d="M0,0 L0,48 L56,24 Z"
+          stroke="var(--component-stroke)"
+          strokeWidth={2}
+          fill="none"
+        />
         {/* + sign (non-inverting input) */}
         <text
           x={8}
@@ -67,17 +77,17 @@ export function OpAmpNode({ data, selected }: NodeProps) {
         type="target"
         position={Position.Left}
         id="non_inv"
-        className={styles.pin}
+        className={nonInvClass}
         style={{ top: '25%' }}
       />
       <Handle
         type="target"
         position={Position.Left}
         id="inv"
-        className={styles.pin}
+        className={invClass}
         style={{ top: '75%' }}
       />
-      <Handle type="source" position={Position.Right} id="output" className={styles.pin} />
+      <Handle type="source" position={Position.Right} id="output" className={outputClass} />
     </div>
   );
 }

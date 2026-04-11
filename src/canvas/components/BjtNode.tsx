@@ -1,16 +1,21 @@
-import { Handle, Position, type NodeProps } from '@xyflow/react';
-import type { CircuitNodeData } from './types';
-import { useValueEdit } from './useValueEdit';
+import { Handle, type NodeProps, Position } from '@xyflow/react';
 import styles from './ComponentNode.module.css';
+import type { CircuitNodeData } from './types';
+import { usePinClassName } from './usePinClassName';
+import { useValueEdit } from './useValueEdit';
 
 /**
  * BJT transistor symbol (NPN/PNP).
  * NPN: arrow on emitter points outward. PNP: arrow on emitter points inward.
  * viewBox: 48x48, three pins (base left, collector top, emitter bottom).
  */
-export function BjtNode({ data, selected }: NodeProps) {
+export function BjtNode({ id, data, selected }: NodeProps) {
   const nodeData = data as CircuitNodeData;
   const isPnp = nodeData.type === 'pnp_bjt';
+  const bjtType = nodeData.type ?? 'npn_bjt';
+  const baseClass = usePinClassName(bjtType, 'base', id);
+  const collectorClass = usePinClassName(bjtType, 'collector', id);
+  const emitterClass = usePinClassName(bjtType, 'emitter', id);
   const { isEditing, editValue, setEditValue, inputRef, startEditing, handleKeyDown } =
     useValueEdit(nodeData.value);
 
@@ -24,7 +29,14 @@ export function BjtNode({ data, selected }: NodeProps) {
 
       <svg viewBox="0 0 48 48" width={48} height={48}>
         {/* Circle */}
-        <circle cx={28} cy={24} r={18} stroke="var(--component-stroke)" strokeWidth={2} fill="none" />
+        <circle
+          cx={28}
+          cy={24}
+          r={18}
+          stroke="var(--component-stroke)"
+          strokeWidth={2}
+          fill="none"
+        />
         {/* Base lead */}
         <line x1={0} y1={24} x2={16} y2={24} stroke="var(--component-stroke)" strokeWidth={2} />
         {/* Base vertical line */}
@@ -60,9 +72,9 @@ export function BjtNode({ data, selected }: NodeProps) {
         </span>
       )}
 
-      <Handle type="target" position={Position.Left} id="base" className={styles.pin} />
-      <Handle type="source" position={Position.Top} id="collector" className={styles.pin} />
-      <Handle type="source" position={Position.Bottom} id="emitter" className={styles.pin} />
+      <Handle type="target" position={Position.Left} id="base" className={baseClass} />
+      <Handle type="source" position={Position.Top} id="collector" className={collectorClass} />
+      <Handle type="source" position={Position.Bottom} id="emitter" className={emitterClass} />
     </div>
   );
 }

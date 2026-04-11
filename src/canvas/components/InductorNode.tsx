@@ -2,14 +2,17 @@ import { Handle, type NodeProps, Position } from '@xyflow/react';
 import { useOverlayStore } from '@/overlay/overlayStore';
 import styles from './ComponentNode.module.css';
 import type { CircuitNodeData } from './types';
+import { usePinClassName } from './usePinClassName';
 import { useValueEdit } from './useValueEdit';
 
 /**
  * Inductor symbol: 4 arc loops (coil).
  * viewBox: 60x24, two pins (left, right).
  */
-export function InductorNode({ data, selected }: NodeProps) {
+export function InductorNode({ id, data, selected }: NodeProps) {
   const nodeData = data as CircuitNodeData;
+  const pin1Class = usePinClassName(nodeData.type ?? 'inductor', 'pin1', id);
+  const pin2Class = usePinClassName(nodeData.type ?? 'inductor', 'pin2', id);
   const { isEditing, editValue, setEditValue, inputRef, startEditing, handleKeyDown } =
     useValueEdit(nodeData.value);
   const { isVisible, branchCurrents } = useOverlayStore();
@@ -57,8 +60,8 @@ export function InductorNode({ data, selected }: NodeProps) {
         </span>
       )}
 
-      <Handle type="target" position={Position.Left} id="pin1" className={styles.pin} />
-      <Handle type="source" position={Position.Right} id="pin2" className={styles.pin} />
+      <Handle type="target" position={Position.Left} id="pin1" className={pin1Class} />
+      <Handle type="source" position={Position.Right} id="pin2" className={pin2Class} />
     </div>
   );
 }
