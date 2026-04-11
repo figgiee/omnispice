@@ -15,6 +15,7 @@ import { LtiBootstrapPage } from './pages/LtiBootstrapPage';
 import { ReportPreviewPage } from './pages/ReportPreviewPage';
 import { SubmissionViewer } from './pages/SubmissionViewer';
 import { startOrchestrator, stopOrchestrator } from './simulation/simulationOrchestrator';
+import { ShortcutHelpOverlay } from './ui/ShortcutHelpOverlay';
 
 function App() {
   useOverlaySync();
@@ -111,7 +112,12 @@ function App() {
     return <ReportPreviewPage submissionId={reportMatch[1]} />;
   }
 
-  return <Layout />;
+  return (
+    <>
+      <Layout />
+      <ShortcutHelpOverlay />
+    </>
+  );
 }
 
 export default App;

@@ -16,6 +16,7 @@ import {
   type Connection,
   Controls,
   type Edge,
+  MiniMap,
   type Node,
   type OnConnect,
   type OnEdgesChange,
@@ -56,6 +57,8 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
   const setSelectedComponentIds = useUiStore((s) => s.setSelectedComponentIds);
   const highlightedComponentId = useUiStore((s) => s.highlightedComponentId);
   const setHighlightedComponentId = useUiStore((s) => s.setHighlightedComponentId);
+  // Phase 5: Spacebar-hold temp pan (Pillar 2 modelessness)
+  const tempPanActive = useUiStore((s) => s.tempPanActive);
 
   // Ref to track the highlight timeout for cleanup
   const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -195,8 +198,22 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
         snapGrid={[10, 10]}
         minZoom={0.25}
         maxZoom={4}
-        panOnDrag={[1]}
-        selectionOnDrag
+        panOnDrag={tempPanActive ? true : [1]}
+        selectionOnDrag={!tempPanActive}
+        // Phase 5 S5: Spacebar-hold temporary pan (Pillar 2 modelessness).
+        // React Flow flips panOnDrag=true internally while Space is held,
+        // overriding selectionOnDrag. Works in parallel with our uiStore
+        // tempPanActive flag (set by the Space hotkey) which drives cursor
+        // hints and any downstream UI listeners.
+        panActivationKeyCode="Space"
+        onNodeDoubleClick={(_event, node) => {
+          const w = node.measured?.width ?? node.width ?? 0;
+          const h = node.measured?.height ?? node.height ?? 0;
+          setCenter(node.position.x + w / 2, node.position.y + h / 2, {
+            duration: 200,
+            zoom: 2,
+          });
+        }}
         deleteKeyCode={['Delete', 'Backspace']}
         multiSelectionKeyCode="Shift"
         fitView
@@ -212,6 +229,18 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
           size={1}
         />
         <Controls />
+        <MiniMap
+          pannable
+          zoomable
+          position="bottom-right"
+          maskColor="rgba(18, 25, 46, 0.6)"
+          nodeColor={(n) => (n.selected ? 'var(--accent-primary)' : 'var(--text-secondary)')}
+          style={{
+            background: 'var(--waveform-bg)',
+            border: '1px solid var(--border-default)',
+            borderRadius: '4px',
+          }}
+        />
         {/* D-23: Validation warning icons on problem components */}
         <ValidationWarnings />
         {/* Magnetic snap feedback overlay */}

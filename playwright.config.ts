@@ -17,9 +17,9 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      // Exclude phase-04 specs from the default project so they only run
-      // under @phase4-lti (mirrors the Phase 3 pattern).
-      testIgnore: /phase-04\/.*\.spec\.ts$/,
+      // Exclude phase-04 and phase5 specs from the default project so they
+      // only run under their dedicated projects (mirrors the Phase 3 pattern).
+      testIgnore: [/phase-04\/.*\.spec\.ts$/, /phase5\/.*\.spec\.ts$/],
     },
     {
       // Phase 4 LTI + labs + report E2E suite.
@@ -27,6 +27,19 @@ export default defineConfig({
       name: '@phase4-lti',
       testMatch: /phase-04\/.*\.spec\.ts$/,
       use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      // Phase 5 editor UX quick-wins E2E suite.
+      // Run with: pnpm exec playwright test --project=phase5
+      // NOTE: phase5 intentionally targets a separate port (5174) so
+      // parallel executors in git worktrees do not collide on the shared
+      // 5173 dev server managed by the default webServer config.
+      name: 'phase5',
+      testMatch: /phase5\/.*\.spec\.ts$/,
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:5174',
+      },
     },
   ],
   webServer: {

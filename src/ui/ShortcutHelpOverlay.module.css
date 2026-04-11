@@ -1,0 +1,116 @@
+/**
+ * ShortcutHelpOverlay — UI-SPEC §7.6 S6.
+ *
+ * 320px-wide right-docked panel. Phase 5-01 ships minimal chrome;
+ * the full pillar-grouped content polish lives in Plan 05-11.
+ */
+
+.overlay {
+  position: fixed;
+  top: var(--toolbar-height, 48px);
+  right: 0;
+  bottom: var(--bottom-panel-height, 0);
+  width: 320px;
+  background: rgba(22, 33, 62, 0.94);
+  border-left: 1px solid var(--border-default, #2a3859);
+  color: var(--text-primary, #e8ecf4);
+  padding: var(--space-lg, 20px);
+  overflow-y: auto;
+  z-index: 1000;
+  animation: slideInRight 200ms var(--easing-standard, ease-out);
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.32);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md, 16px);
+  border-bottom: 1px solid var(--border-default, #2a3859);
+  padding-bottom: var(--space-sm, 8px);
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.closeBtn {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.closeBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.section {
+  margin-bottom: var(--space-md, 16px);
+}
+
+.section h3 {
+  margin: 0 0 var(--space-xs, 4px) 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-primary, #64d2ff);
+}
+
+.section dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  font-size: 12px;
+}
+
+.row {
+  display: contents;
+}
+
+.row dt {
+  margin: 0;
+}
+
+.row dd {
+  margin: 0;
+  color: var(--text-secondary, #a0a8c0);
+}
+
+.row kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  border: 1px solid var(--border-default, #2a3859);
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.24);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 11px;
+  color: var(--text-primary, #e8ecf4);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay {
+    animation: none;
+  }
+}
