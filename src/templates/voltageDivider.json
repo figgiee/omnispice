@@ -1,0 +1,46 @@
+{
+  "id": "voltage-divider",
+  "name": "Voltage Divider",
+  "description": "Two-resistor divider with a 5V DC supply and a mid-rail output node.",
+  "tags": ["passive", "biasing", "divider"],
+  "components": [
+    {
+      "tmpId": "v1",
+      "type": "dc_voltage",
+      "value": "5",
+      "position": { "x": -120, "y": 0 },
+      "rotation": 0,
+      "portNames": ["positive", "negative"]
+    },
+    {
+      "tmpId": "r1",
+      "type": "resistor",
+      "value": "10k",
+      "position": { "x": 0, "y": -40 },
+      "rotation": 0,
+      "portNames": ["pin1", "pin2"]
+    },
+    {
+      "tmpId": "r2",
+      "type": "resistor",
+      "value": "10k",
+      "position": { "x": 0, "y": 60 },
+      "rotation": 0,
+      "portNames": ["pin1", "pin2"]
+    },
+    {
+      "tmpId": "gnd",
+      "type": "ground",
+      "value": "",
+      "position": { "x": 0, "y": 160 },
+      "rotation": 0,
+      "portNames": ["pin1"]
+    }
+  ],
+  "wires": [
+    { "tmpId": "w1", "from": { "comp": "v1", "port": "positive" }, "to": { "comp": "r1", "port": "pin1" } },
+    { "tmpId": "w2", "from": { "comp": "r1", "port": "pin2" }, "to": { "comp": "r2", "port": "pin1" } },
+    { "tmpId": "w3", "from": { "comp": "r2", "port": "pin2" }, "to": { "comp": "gnd", "port": "pin1" } },
+    { "tmpId": "w4", "from": { "comp": "v1", "port": "negative" }, "to": { "comp": "gnd", "port": "pin1" } }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "id": "rc-low-pass",
+  "name": "RC Low-Pass Filter",
+  "description": "First-order RC low-pass filter driven by an AC source. Cutoff set by R and C.",
+  "tags": ["passive", "filter", "ac", "low-pass"],
+  "components": [
+    {
+      "tmpId": "v1",
+      "type": "ac_voltage",
+      "value": "1",
+      "position": { "x": -120, "y": 0 },
+      "rotation": 0,
+      "portNames": ["positive", "negative"]
+    },
+    {
+      "tmpId": "r1",
+      "type": "resistor",
+      "value": "1k",
+      "position": { "x": 0, "y": -40 },
+      "rotation": 0,
+      "portNames": ["pin1", "pin2"]
+    },
+    {
+      "tmpId": "c1",
+      "type": "capacitor",
+      "value": "100n",
+      "position": { "x": 80, "y": 40 },
+      "rotation": 0,
+      "portNames": ["pin1", "pin2"]
+    },
+    {
+      "tmpId": "gnd",
+      "type": "ground",
+      "value": "",
+      "position": { "x": 0, "y": 160 },
+      "rotation": 0,
+      "portNames": ["pin1"]
+    }
+  ],
+  "wires": [
+    { "tmpId": "w1", "from": { "comp": "v1", "port": "positive" }, "to": { "comp": "r1", "port": "pin1" } },
+    { "tmpId": "w2", "from": { "comp": "r1", "port": "pin2" }, "to": { "comp": "c1", "port": "pin1" } },
+    { "tmpId": "w3", "from": { "comp": "c1", "port": "pin2" }, "to": { "comp": "gnd", "port": "pin1" } },
+    { "tmpId": "w4", "from": { "comp": "v1", "port": "negative" }, "to": { "comp": "gnd", "port": "pin1" } }
+  ]
+}

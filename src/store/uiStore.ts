@@ -21,6 +21,18 @@ export interface UiState {
   selectedWireIds: string[];
   /** Per D-21: error navigation highlights component on canvas */
   highlightedComponentId: string | null;
+  /**
+   * Plan 05-06: persistent "insert cursor" set by an empty-canvas click.
+   * While non-null, type-to-place and template insertion anchor to this
+   * flow-space coordinate.
+   */
+  insertCursor: { x: number; y: number } | null;
+  /**
+   * Plan 05-06: live mouse position in flow coordinates. Used as a fallback
+   * insertion anchor when `insertCursor` is null (e.g. template inserted via
+   * command palette without an explicit click).
+   */
+  cursorPosition: { x: number; y: number } | null;
 
   setActiveTool: (tool: ActiveTool) => void;
   setBottomTab: (tab: BottomTab) => void;
@@ -31,6 +43,8 @@ export interface UiState {
   setSelectedWireIds: (ids: string[]) => void;
   /** Per D-21: set highlighted component for error navigation */
   setHighlightedComponentId: (id: string | null) => void;
+  setInsertCursor: (pos: { x: number; y: number } | null) => void;
+  setCursorPosition: (pos: { x: number; y: number } | null) => void;
 }
 
 export const useUiStore = create<UiState>()((set) => ({
@@ -42,6 +56,8 @@ export const useUiStore = create<UiState>()((set) => ({
   selectedComponentIds: [],
   selectedWireIds: [],
   highlightedComponentId: null,
+  insertCursor: null,
+  cursorPosition: null,
 
   setActiveTool: (tool) => set({ activeTool: tool }),
 
@@ -49,8 +65,7 @@ export const useUiStore = create<UiState>()((set) => ({
 
   toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
 
-  toggleBottomPanel: () =>
-    set((s) => ({ bottomPanelCollapsed: !s.bottomPanelCollapsed })),
+  toggleBottomPanel: () => set((s) => ({ bottomPanelCollapsed: !s.bottomPanelCollapsed })),
 
   setBottomPanelHeight: (height) => set({ bottomPanelHeight: height }),
 
@@ -59,4 +74,8 @@ export const useUiStore = create<UiState>()((set) => ({
   setSelectedWireIds: (ids) => set({ selectedWireIds: ids }),
 
   setHighlightedComponentId: (id) => set({ highlightedComponentId: id }),
+
+  setInsertCursor: (pos) => set({ insertCursor: pos }),
+
+  setCursorPosition: (pos) => set({ cursorPosition: pos }),
 }));

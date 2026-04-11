@@ -1,0 +1,85 @@
+{
+  "id": "bjt-common-emitter",
+  "name": "BJT Common Emitter Amplifier",
+  "description": "Voltage-divider biased NPN common-emitter amplifier with emitter degeneration and bypass cap.",
+  "tags": ["semiconductors", "amplifier", "bjt", "analog"],
+  "components": [
+    {
+      "tmpId": "vcc",
+      "type": "dc_voltage",
+      "value": "12",
+      "position": { "x": -160, "y": -120 },
+      "rotation": 0,
+      "portNames": ["positive", "negative"]
+    },
+    {
+      "tmpId": "r1",
+      "type": "resistor",
+      "value": "47k",
+      "position": { "x": 0, "y": -120 },
+      "rotation": 0,
+      "portNames": ["pin1", "pin2"]
+    },
+    {
+      "tmpId": "r2",
+      "type": "resistor",
+      "value": "10k",
+      "position": { "x": 0, "y": 60 },
+      "rotation": 0,
+      "portNames": ["pin1", "pin2"]
+    },
+    {
+      "tmpId": "rc",
+      "type": "resistor",
+      "value": "3k3",
+      "position": { "x": 120, "y": -120 },
+      "rotation": 0,
+      "portNames": ["pin1", "pin2"]
+    },
+    {
+      "tmpId": "re",
+      "type": "resistor",
+      "value": "1k",
+      "position": { "x": 120, "y": 120 },
+      "rotation": 0,
+      "portNames": ["pin1", "pin2"]
+    },
+    {
+      "tmpId": "ce",
+      "type": "capacitor",
+      "value": "10u",
+      "position": { "x": 200, "y": 120 },
+      "rotation": 0,
+      "portNames": ["pin1", "pin2"]
+    },
+    {
+      "tmpId": "q1",
+      "type": "npn_bjt",
+      "value": "",
+      "position": { "x": 80, "y": 0 },
+      "rotation": 0,
+      "portNames": ["base", "collector", "emitter"]
+    },
+    {
+      "tmpId": "gnd",
+      "type": "ground",
+      "value": "",
+      "position": { "x": 0, "y": 220 },
+      "rotation": 0,
+      "portNames": ["pin1"]
+    }
+  ],
+  "wires": [
+    { "tmpId": "w1", "from": { "comp": "vcc", "port": "positive" }, "to": { "comp": "r1", "port": "pin1" } },
+    { "tmpId": "w2", "from": { "comp": "vcc", "port": "positive" }, "to": { "comp": "rc", "port": "pin1" } },
+    { "tmpId": "w3", "from": { "comp": "r1", "port": "pin2" }, "to": { "comp": "q1", "port": "base" } },
+    { "tmpId": "w4", "from": { "comp": "q1", "port": "base" }, "to": { "comp": "r2", "port": "pin1" } },
+    { "tmpId": "w5", "from": { "comp": "rc", "port": "pin2" }, "to": { "comp": "q1", "port": "collector" } },
+    { "tmpId": "w6", "from": { "comp": "q1", "port": "emitter" }, "to": { "comp": "re", "port": "pin1" } },
+    { "tmpId": "w7", "from": { "comp": "q1", "port": "emitter" }, "to": { "comp": "ce", "port": "pin1" } },
+    { "tmpId": "w8", "from": { "comp": "re", "port": "pin2" }, "to": { "comp": "gnd", "port": "pin1" } },
+    { "tmpId": "w9", "from": { "comp": "ce", "port": "pin2" }, "to": { "comp": "gnd", "port": "pin1" } },
+    { "tmpId": "w10", "from": { "comp": "r2", "port": "pin2" }, "to": { "comp": "gnd", "port": "pin1" } },
+    { "tmpId": "w11", "from": { "comp": "vcc", "port": "negative" }, "to": { "comp": "gnd", "port": "pin1" } }
+  ]
+}
