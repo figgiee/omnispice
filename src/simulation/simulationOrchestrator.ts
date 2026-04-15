@@ -41,8 +41,10 @@
 import { buildPortToNetMap, computeNets } from '@/circuit/graph';
 import { generateNetlistWithMap } from '@/circuit/netlister';
 import type { AnalysisConfig, Circuit, Component } from '@/circuit/types';
+import { evaluateInsights } from '@/insights/engine';
 import { useOverlayStore } from '@/overlay/overlayStore';
 import { useCircuitStore } from '@/store/circuitStore';
+import { useInsightsStore } from '@/store/insightsStore';
 import { useSimulationStore } from '@/store/simulationStore';
 import type { VectorData } from './protocol';
 import { linearSamples, netlistWithSubstitution } from './sweepHelpers';
@@ -197,6 +199,10 @@ function driveStoreChange(circuit: Circuit): void {
     .then((vectors) => {
       writeDcOverlay(circuit, vectors);
       useOverlayStore.getState().setSimStatus('live');
+      // Evaluate insights on every DC result so schematic-anchored rules
+      // (RC time constant, voltage divider) fire even without a transient run.
+      const insights = evaluateInsights({ circuit, vectors, measurements: [] });
+      useInsightsStore.getState().setInsights(insights);
     })
     .catch((err: Error) => {
       // Log but don't toast — debounced failure noise is a classic
@@ -296,6 +302,11 @@ export function startOrchestrator(): void {
       .runTransient(netlist, DEFAULT_TRAN_PARAMS)
       .then((vectors) => {
         useSimulationStore.getState().setResults(vectors);
+        // Re-evaluate insights with transient vectors so waveform-region
+        // rules (op-amp saturation, class-A bias) get richer signal data.
+        const circuit = useCircuitStore.getState().circuit;
+        const insights = evaluateInsights({ circuit, vectors, measurements: [] });
+        useInsightsStore.getState().setInsights(insights);
       })
       .catch((err: Error) => {
         console.debug('[orchestrator] transient failed:', err.message);
