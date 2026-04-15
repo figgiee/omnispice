@@ -29,6 +29,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import '@xyflow/react/dist/style.css';
 import type { ComponentType } from '@/circuit/types';
+import { getCircuitYMaps, LOCAL_ORIGIN } from '@/collab/circuitBinding';
 import { PresenceLayer } from '@/collab/PresenceLayer';
 import { PresenceList } from '@/collab/PresenceList';
 import { useCollabRoomId, useCollabUser } from '@/collab/useCollabIdentity';
@@ -101,7 +102,9 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
   // a <ClerkProvider> which Canvas tests don't mount).
   const collabRoomId = useCollabRoomId();
   const collabUser = useCollabUser();
-  const providerRef = useCollabProvider(collabRoomId, collabUser);
+  // Plan 06-04: useCollabProvider now returns { providerRef, docRef }.
+  // docRef is used by onNodeDragStop to write position changes to Y.Map.
+  const { providerRef, docRef } = useCollabProvider(collabRoomId, collabUser);
   // Subscribe to React Flow transform so viewport publishing is reactive.
   const rfTransform = useReactFlowStore((s) => s.transform) as readonly [number, number, number];
   // Selection ids for remote selection broadcasting.
@@ -345,6 +348,29 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
     [isRouting, cancelRouting, clearSnap, screenToFlowPosition, setSelectedComponentIds],
   );
 
+  /**
+   * Plan 06-04 — write the dragged node's final position into Y.Map so peers
+   * receive the update via Yjs sync. Fires once on mouseup (not 60 fps during
+   * drag). Uses LOCAL_ORIGIN so the echo guard in circuitBinding skips the
+   * event for the local client, avoiding a redundant Zustand re-render.
+   *
+   * No-op when docRef.current is null (offline / collab disabled).
+   */
+  const handleNodeDragStop = useCallback(
+    (_event: React.MouseEvent, node: Node) => {
+      const yDoc = docRef.current;
+      if (!yDoc) return;
+      const { yComponents } = getCircuitYMaps(yDoc);
+      const existing = yComponents.get(node.id);
+      if (!existing) return; // component not yet in Y.Map (shouldn't happen)
+      const parsed = JSON.parse(existing) as Record<string, unknown>;
+      yDoc.transact(() => {
+        yComponents.set(node.id, JSON.stringify({ ...parsed, position: node.position }));
+      }, LOCAL_ORIGIN);
+    },
+    [docRef],
+  );
+
   return (
     <div className={styles.canvas}>
       {/* Plan 05-03: hierarchy breadcrumb (renders null at top level). */}
@@ -394,6 +420,7 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
         onDragOver={onDragOver}
         onMouseMove={handleMouseMove}
         onPaneClick={handlePaneClick}
+        onNodeDragStop={handleNodeDragStop}
       >
         <Background
           variant={BackgroundVariant.Dots}
