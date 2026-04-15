@@ -17,6 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Classroom Features** - Instructor dashboard, assignment management, and comparison mode — the revenue unlock
 - [ ] **Phase 4: Institutional Features** - LMS integration, guided labs, lab report export — the site license unlock
 - [ ] **Phase 5: Editor Craft and Collaboration** - Schematic-honest, modeless, live-reactive editor (five pillars from 05-VISION-CEILING.md) plus real-time co-editing presence, offline support, and Circuit Insights
+- [ ] **Phase 6: Circuit CRDT** - Upgrade presence-only Yjs to full real-time co-editing: two users see each other's circuit changes live, with correct collaborative undo and offline-first persistence
 
 ## Phase Details
 
@@ -150,10 +151,35 @@ Plans:
   - `R` key currently rotates selected components but the ceiling says `R` should place a resistor when the cursor is in insert state. Conflict resolution needed — probably "R rotates when a component is selected, opens resistor search when cursor is on empty canvas."
 **UI hint**: yes (trigger /gsd:ui-phase before /gsd:plan-phase)
 
+### Phase 6: Circuit CRDT
+**Goal**: Two users editing the same circuit in real time see each other's component adds, edits, deletes, position changes, and undo operations live — with no data loss under concurrent edits and no regression to the offline-first experience.
+**Depends on**: Phase 5 (useCollabProvider, y-durableobjects backend, Zustand persist infrastructure)
+**Requirements**: CRDT-01, CRDT-02, CRDT-03, CRDT-04, CRDT-05, CRDT-06
+**Success Criteria** (what must be TRUE):
+  1. User A adds a component; User B sees it appear within 500ms
+  2. User A edits a component value; User B sees the updated value within 500ms
+  3. User A deletes a component; User B sees it disappear within 500ms
+  4. Ctrl+Z in a collab session undoes only the local user's edits — a peer's interleaved edits are never erased
+  5. Both users add components simultaneously; after 1 second both canvases contain all components (no data loss)
+  6. A solo user (no collab session) has identical offline persistence behavior to Phase 5 — no regression
+**Plans:** 5 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — TDD: Y.Map binding helpers (circuitBinding.ts + yMapToCircuit.ts) with LOCAL_ORIGIN echo guard
+- [ ] 06-02-PLAN.md — Y.UndoManager + zundo bridge (split undo: collab vs. solo)
+- [ ] 06-03-PLAN.md — y-indexeddb integration + persist bypass (collabActive flag prevents double-write)
+- [ ] 06-04-PLAN.md — Integration wiring + safety guards (wire primitives into useCollabProvider + Canvas + store guards)
+- [ ] 06-05-PLAN.md — Two-browser E2E validation (Playwright: add/edit/delete/undo/concurrent scenarios)
+**Key risks**:
+  - zundo temporal.pause() API may differ between zundo v1 and v2 — verify installed version before 06-02
+  - Y.UndoManager trackedOrigins must use the same Symbol instance as circuitBinding.ts — module singleton pattern required
+  - collapseSubcircuit is permanently blocked during collab sessions in Phase 6 — UX follow-up needed (grey out button)
+  - Two-browser Playwright tests require a live wrangler dev process — CI must skip them (same pattern as Phase 5)
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -162,3 +188,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 3. Classroom Features | 4/7 | In Progress|  |
 | 4. Institutional Features | 0/TBD | Not started | - |
 | 5. Editor Craft and Collaboration | 0/11 | Not started | - |
+| 6. Circuit CRDT | 0/5 | Not started | - |
