@@ -81,13 +81,16 @@ function LayoutContent() {
   const activeAssignmentId = useClassroomStore((s) => s.activeAssignmentId);
 
   const circuit = useCircuitStore((s) => s.circuit);
+  // Plan 05-03: subcircuit hierarchy — the converter filters by level so
+  // only the current level's components / wires are emitted to React Flow.
+  const currentSubcircuitId = useUiStore((s) => s.currentSubcircuitId);
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<CircuitNodeData>>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
   // Sync circuit store -> React Flow nodes
   useEffect(() => {
-    const newNodes = circuitToNodes(circuit);
+    const newNodes = circuitToNodes(circuit, currentSubcircuitId);
     setNodes((prev) => {
       const prevMap = new Map(prev.map((n) => [n.id, n]));
       return newNodes.map((n) => {
@@ -98,12 +101,12 @@ function LayoutContent() {
         return n;
       });
     });
-  }, [circuit, setNodes]);
+  }, [circuit, currentSubcircuitId, setNodes]);
 
   // Sync circuit store -> React Flow edges
   useEffect(() => {
-    setEdges(circuitToEdges(circuit));
-  }, [circuit, setEdges]);
+    setEdges(circuitToEdges(circuit, currentSubcircuitId));
+  }, [circuit, currentSubcircuitId, setEdges]);
 
   // Sync React Flow node position changes back to circuit store
   const handleNodesChange = useCallback(

@@ -46,6 +46,14 @@ export interface UiState {
    * via `appendNetLabelChar`; Enter commits, Escape cancels.
    */
   pendingNetLabel: { wireId: string; chars: string } | null;
+  /**
+   * Plan 05-03 — current subcircuit the user has descended into. `null` means
+   * the top level. View-only state: NOT persisted via zundo temporal middleware
+   * (the store's temporal partialize only captures `circuit` + `refCounters`),
+   * so descending/ascending cannot be undone. Set by double-clicking a
+   * subcircuit block; cleared by Breadcrumb Home / Esc via `ascendSubcircuit`.
+   */
+  currentSubcircuitId: string | null;
 
   setActiveTool: (tool: ActiveTool) => void;
   setBottomTab: (tab: BottomTab) => void;
@@ -71,6 +79,10 @@ export interface UiState {
    * label in the circuit store. Returns the buffered value.
    */
   consumeNetLabel: () => { wireId: string; chars: string } | null;
+  /** Plan 05-03 — descend into a subcircuit (set to null to ascend). */
+  setCurrentSubcircuitId: (id: string | null) => void;
+  /** Plan 05-03 — ascend to top level. Equivalent to setCurrentSubcircuitId(null). */
+  ascendSubcircuit: () => void;
 }
 
 export const useUiStore = create<UiState>()((set, get) => ({
@@ -86,6 +98,7 @@ export const useUiStore = create<UiState>()((set, get) => ({
   insertCursor: null,
   cursorPosition: null,
   pendingNetLabel: null,
+  currentSubcircuitId: null,
 
   setActiveTool: (tool) => set({ activeTool: tool }),
 
@@ -136,4 +149,8 @@ export const useUiStore = create<UiState>()((set, get) => ({
     set({ pendingNetLabel: null });
     return current;
   },
+
+  setCurrentSubcircuitId: (id) => set({ currentSubcircuitId: id }),
+
+  ascendSubcircuit: () => set({ currentSubcircuitId: null }),
 }));
