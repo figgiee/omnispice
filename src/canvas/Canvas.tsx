@@ -40,6 +40,7 @@ import {
 } from '@/collab/useCollabProvider';
 import { useCircuitStore } from '@/store/circuitStore';
 import { useUiStore } from '@/store/uiStore';
+import { ChangeCalloutLayer } from '@/ui/ChangeCalloutLayer';
 import { Breadcrumb } from './Breadcrumb';
 import styles from './Canvas.module.css';
 import { nodeTypes } from './components/nodeTypes';
@@ -419,6 +420,8 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
         <PresenceLayer />
         {/* Plan 05-09: top-right peer avatar bar (click-to-frame). */}
         <PresenceList />
+        {/* Plan 05-11: transient mutation feedback pills anchored above components. */}
+        <ChangeCalloutLayer />
         {/* Magnetic snap feedback overlay */}
         {isSnapping && snapTarget && (
           <svg

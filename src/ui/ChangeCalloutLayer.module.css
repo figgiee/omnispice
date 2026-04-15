@@ -1,0 +1,50 @@
+/**
+ * ChangeCalloutLayer — transient mutation feedback pills (UI-SPEC §7.11).
+ *
+ * Timing: 80ms fade-in → 500ms hold → 200ms fade-out = 780ms total TTL.
+ * The JS layer computes per-frame opacity; CSS transition provides smoothing.
+ * Under prefers-reduced-motion, collapse to a single 400ms static fade.
+ */
+
+.layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 800;
+}
+
+.bubble {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  max-width: 280px;
+  height: 28px;
+  padding: 0 var(--space-md);
+  background: var(--callout-bg);
+  border: 1px solid var(--callout-border);
+  border-radius: 14px;
+  color: var(--text-primary);
+  font-size: var(--font-size-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity var(--duration-fast) var(--easing-standard);
+}
+
+.icon {
+  color: var(--accent-primary);
+  font-weight: var(--font-weight-semibold);
+  flex-shrink: 0;
+}
+
+.text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble {
+    transition: opacity 400ms linear;
+  }
+}
