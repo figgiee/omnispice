@@ -26,52 +26,52 @@ interface PillarSection {
 
 const SECTIONS: PillarSection[] = [
   {
-    title: 'SCHEMATIC HONESTY',
+    title: 'PLACING COMPONENTS',
     shortcuts: [
+      { keys: 'Drag from sidebar', action: 'Place component' },
+      { keys: 'Right-click canvas', action: 'Search & place' },
+      { keys: 'Drag wire to empty space', action: 'Place & auto-connect' },
+      { keys: 'Ctrl+K', action: 'Command palette / templates' },
+    ],
+  },
+  {
+    title: 'WIRING',
+    shortcuts: [
+      { keys: 'Drag from pin', action: 'Draw wire' },
       { keys: 'Select wire, type name', action: 'Label net' },
-      { keys: 'Shift+drag from pin', action: 'Diagonal wire' },
-      { keys: 'Ctrl+G', action: 'Collapse to subcircuit' },
-      { keys: 'Double-click subcircuit', action: 'Descend' },
-      { keys: 'Esc', action: 'Ascend from subcircuit' },
+      { keys: 'Right-click wire', action: 'Delete wire' },
     ],
   },
   {
-    title: 'MODELESSNESS',
+    title: 'EDITING',
     shortcuts: [
-      { keys: 'Type letter', action: 'Place component' },
-      { keys: 'R', action: 'Rotate (when selected)' },
-      { keys: 'R', action: 'Resistor search (when insert cursor)' },
-      { keys: 'Space+drag', action: 'Pan' },
-      { keys: 'Shift+D', action: 'Duplicate' },
-      { keys: 'Delete / Backspace', action: 'Delete selection' },
-      { keys: 'Ctrl+Z / Ctrl+Y', action: 'Undo / Redo' },
+      { keys: 'R', action: 'Rotate selected' },
+      { keys: 'Shift+D', action: 'Duplicate selected' },
+      { keys: 'Delete / Backspace', action: 'Delete selected' },
+      { keys: 'Ctrl+Z / Ctrl+Shift+Z', action: 'Undo / Redo' },
+      { keys: 'Ctrl+G', action: 'Group into subcircuit' },
+      { keys: 'Double-click subcircuit', action: 'Enter subcircuit' },
+      { keys: 'Esc', action: 'Exit subcircuit / cancel' },
+      { keys: 'Click value', action: 'Edit component value' },
     ],
   },
   {
-    title: 'IMMEDIACY',
+    title: 'VIEW & NAVIGATION',
     shortcuts: [
-      { keys: 'Click value, drag', action: 'Scrub' },
-      { keys: 'Shift+click value, drag', action: 'Sweep' },
-      { keys: 'Hover node', action: 'Show V, I, P' },
-      { keys: 'F5', action: 'Run simulation manually' },
-    ],
-  },
-  {
-    title: 'LIVE FEEDBACK',
-    shortcuts: [
-      { keys: 'Ctrl+K', action: 'Command palette' },
-      { keys: '?', action: 'This help' },
+      { keys: 'Space + drag', action: 'Pan canvas' },
+      { keys: 'Scroll', action: 'Zoom' },
       { keys: 'F', action: 'Frame selection' },
-      { keys: 'A or 0', action: 'Frame all' },
+      { keys: 'A  or  0', action: 'Frame all' },
       { keys: 'Shift+2', action: 'Zoom to 100%' },
     ],
   },
   {
-    title: 'PEDAGOGY',
+    title: 'SIMULATION',
     shortcuts: [
-      { keys: 'Click waveform peak', action: 'Annotate' },
-      { keys: 'Click insight badge', action: 'Expand' },
-      { keys: 'Ctrl+E', action: 'Export lab report PDF' },
+      { keys: 'F5', action: 'Run simulation' },
+      { keys: 'Ctrl+.', action: 'Cancel simulation' },
+      { keys: 'Hover node / wire', action: 'Show live voltage & current' },
+      { keys: 'Click insight badge', action: 'Expand insight detail' },
     ],
   },
 ];
