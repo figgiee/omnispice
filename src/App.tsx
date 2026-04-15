@@ -5,6 +5,7 @@ import { useRegisterSW } from './app/useRegisterSW';
 import { HoverTooltip } from './canvas/overlays/HoverTooltip';
 import type { Component } from './circuit/types';
 import { SharedCircuitViewer } from './components/share/SharedCircuitViewer';
+import { useOverlayStore } from './overlay/overlayStore';
 import { useOverlaySync } from './overlay/useOverlaySync';
 import { AssignmentPage } from './pages/AssignmentPage';
 import { CoursePage } from './pages/CoursePage';
@@ -55,9 +56,24 @@ interface TestCircuitFixture {
   nodes: TestFixtureNode[];
   wires: TestFixtureWire[];
 }
+/**
+ * Plan 05-07 — dev-only hook used by the hover-tooltip and wire-voltage-
+ * coloring Playwright specs. Pushes a synthetic DC op-point overlay into
+ * `useOverlayStore` so E2E specs can assert wire colours and tooltip
+ * readouts without booting the full ngspice worker. See
+ * `tests/e2e/phase5/wire-voltage-coloring.spec.ts`.
+ */
+interface TestOverlayPayload {
+  nodeVoltages?: Record<string, number>;
+  branchCurrents?: Record<string, number>;
+  wireVoltages?: Record<string, number>;
+  simStatus?: 'not-run' | 'computing' | 'live' | 'stale' | 'error';
+}
+
 declare global {
   interface Window {
     __test_loadCircuit?: (fixture: TestCircuitFixture) => void;
+    __test_setOverlay?: (payload: TestOverlayPayload) => void;
   }
 }
 if (import.meta.env.DEV || import.meta.env.MODE === 'test') {
@@ -93,6 +109,23 @@ if (import.meta.env.DEV || import.meta.env.MODE === 'test') {
       const targetPort = toComp?.ports.find((p) => p.name === toPort);
       if (!sourcePort || !targetPort) continue;
       useCircuitStore.getState().addWire(sourcePort.id, targetPort.id);
+    }
+  };
+
+  // Plan 05-07 — synchronous overlay injection for Playwright specs.
+  // Deliberately bypasses the simulationOrchestrator so tests don't
+  // need a live ngspice worker to assert wire colouring or tooltip
+  // readouts. Only exposed under DEV/test builds.
+  window.__test_setOverlay = (payload) => {
+    const state = useOverlayStore.getState();
+    state.setOverlay(
+      payload.nodeVoltages ?? {},
+      payload.branchCurrents ?? {},
+      {},
+      payload.wireVoltages ?? {},
+    );
+    if (payload.simStatus) {
+      state.setSimStatus(payload.simStatus);
     }
   };
 }

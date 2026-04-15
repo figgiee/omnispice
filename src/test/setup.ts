@@ -13,6 +13,36 @@ if (typeof globalThis.ResizeObserver === 'undefined') {
     ResizeObserverStub as unknown as typeof ResizeObserver;
 }
 
+// jsdom does not implement `window.matchMedia`. uPlot calls it at
+// module-init time (`setPxRatio → window.matchMedia('(min-resolution…)')`),
+// which crashes any test suite that transitively imports a uPlot-using
+// component (WaveformViewer → SweepFanOut → uplot). A no-op stub with
+// a matchMedia-shaped return value is enough for uPlot's feature-detect.
+if (typeof window !== 'undefined' && typeof window.matchMedia !== 'function') {
+  type MediaQueryListShape = {
+    matches: boolean;
+    media: string;
+    onchange: null;
+    addListener: () => void;
+    removeListener: () => void;
+    addEventListener: () => void;
+    removeEventListener: () => void;
+    dispatchEvent: () => boolean;
+  };
+  (window as unknown as { matchMedia: (query: string) => MediaQueryListShape }).matchMedia = (
+    query: string,
+  ) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => undefined,
+    removeListener: () => undefined,
+    addEventListener: () => undefined,
+    removeEventListener: () => undefined,
+    dispatchEvent: () => false,
+  });
+}
+
 // jsdom does not implement Element.prototype.scrollIntoView; cmdk calls it
 // when the active command item changes. No-op is correct for tests.
 if (typeof Element !== 'undefined' && !Element.prototype.scrollIntoView) {
