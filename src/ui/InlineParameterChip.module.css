@@ -1,0 +1,86 @@
+/*
+ * Plan 05-05 — Inline Parameter Chip (S2) styling.
+ *
+ * Pulls dimensions/tokens from UI-SPEC §7.2: 32px height, 15px mono
+ * value font, soft drop shadow, 4px radius. Pointer events are enabled
+ * so the chip remains interactive even while floating over React Flow.
+ */
+.chip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm, 6px);
+  height: 32px;
+  min-width: 120px;
+  max-width: 560px;
+  padding: 0 var(--space-md, 10px);
+  background: var(--chip-bg, var(--bg-elevated, #1f2228));
+  border: 1px solid var(--chip-border, var(--border-default, #3a3f47));
+  border-radius: 4px;
+  box-shadow: var(--chip-shadow, 0 4px 12px rgba(0, 0, 0, 0.35));
+  z-index: 500;
+  font-family: var(--font-mono, 'JetBrains Mono Variable', ui-monospace, monospace);
+  font-size: var(--font-size-chip-value, 15px);
+  line-height: 1;
+  color: var(--text-primary, #e6e9ef);
+  pointer-events: auto;
+}
+
+.refDesignator {
+  font-weight: 600;
+  color: var(--text-primary, #e6e9ef);
+  padding-right: 4px;
+}
+
+.separator {
+  color: var(--text-muted, #7a818c);
+  padding: 0 2px;
+  user-select: none;
+}
+
+.fieldWrap {
+  display: inline-flex;
+  align-items: center;
+}
+
+.field {
+  cursor: text;
+  user-select: none;
+  padding: 2px 4px;
+  border-radius: 3px;
+  color: var(--text-primary, #e6e9ef);
+  outline: none;
+}
+
+.field[data-mode='scrubbing'],
+.field[data-mode='sweeping'] {
+  cursor: ew-resize;
+  background: var(--chip-field-active, rgba(99, 179, 237, 0.12));
+}
+
+.field:focus-visible {
+  outline: 2px solid var(--focus-ring, #63b3ed);
+  outline-offset: 1px;
+}
+
+.input {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--border-default, #3a3f47);
+  border-radius: 3px;
+  padding: 2px 4px;
+  width: 8ch;
+  min-width: 4ch;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--focus-ring, #63b3ed);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip {
+    transition: none;
+  }
+}

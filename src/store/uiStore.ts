@@ -54,6 +54,19 @@ export interface UiState {
    * subcircuit block; cleared by Breadcrumb Home / Esc via `ascendSubcircuit`.
    */
   currentSubcircuitId: string | null;
+  /**
+   * Plan 05-05 — component id whose inline parameter chip is currently
+   * anchored above it. Null when no chip is visible. Driven off
+   * `selectedComponentIds` (exactly 1 selected → that id; 0 or 2+ → null)
+   * so the chip is the primary editing surface in single-selection mode
+   * and the PropertyPanel remains the multi-select / a11y fallback.
+   */
+  chipTargetId: string | null;
+  /**
+   * Plan 05-05 — which parameter name within the chip currently owns
+   * keyboard focus. Used by Tab / Shift+Tab cycling inside the chip.
+   */
+  chipFocusedParam: string | null;
 
   setActiveTool: (tool: ActiveTool) => void;
   setBottomTab: (tab: BottomTab) => void;
@@ -83,6 +96,10 @@ export interface UiState {
   setCurrentSubcircuitId: (id: string | null) => void;
   /** Plan 05-03 — ascend to top level. Equivalent to setCurrentSubcircuitId(null). */
   ascendSubcircuit: () => void;
+  /** Plan 05-05 — set the component whose chip is anchored. */
+  setChipTarget: (id: string | null) => void;
+  /** Plan 05-05 — set the focused parameter inside the chip (Tab cycling). */
+  setChipFocusedParam: (name: string | null) => void;
 }
 
 export const useUiStore = create<UiState>()((set, get) => ({
@@ -99,6 +116,8 @@ export const useUiStore = create<UiState>()((set, get) => ({
   cursorPosition: null,
   pendingNetLabel: null,
   currentSubcircuitId: null,
+  chipTargetId: null,
+  chipFocusedParam: null,
 
   setActiveTool: (tool) => set({ activeTool: tool }),
 
@@ -153,4 +172,8 @@ export const useUiStore = create<UiState>()((set, get) => ({
   setCurrentSubcircuitId: (id) => set({ currentSubcircuitId: id }),
 
   ascendSubcircuit: () => set({ currentSubcircuitId: null }),
+
+  setChipTarget: (id) => set({ chipTargetId: id, chipFocusedParam: null }),
+
+  setChipFocusedParam: (name) => set({ chipFocusedParam: name }),
 }));

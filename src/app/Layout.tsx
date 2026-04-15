@@ -46,6 +46,7 @@ import { useSimulationStore } from '@/store/simulationStore';
 import { useUiStore } from '@/store/uiStore';
 import { BottomPanel } from '@/ui/BottomPanel';
 import { CommandPalette } from '@/ui/CommandPalette';
+import { InlineParameterChip, InlineParameterChipController } from '@/ui/InlineParameterChip';
 import { Sidebar } from '@/ui/Sidebar';
 import { Toolbar } from '@/ui/Toolbar';
 import styles from './Layout.module.css';
@@ -262,6 +263,9 @@ function LayoutContent() {
       </Group>
       {/* Global command palette — Ctrl+K front door (Plan 05-06). */}
       <CommandPalette />
+      {/* Plan 05-05 — inline parameter chip anchored to selected node. */}
+      <InlineParameterChipController />
+      <InlineParameterChip />
     </div>
   );
 }
