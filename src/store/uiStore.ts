@@ -11,6 +11,25 @@ import { create } from 'zustand';
 export type ActiveTool = 'select' | 'wire';
 export type BottomTab = 'errors' | 'waveform' | 'properties';
 
+/**
+ * Plan 05-11 — A transient change callout shown above a component after a
+ * mutation (add, delete, rotate, param-edit, duplicate). TTL = 780ms total:
+ * 80ms fade-in + 500ms hold + 200ms fade-out (UI-SPEC §7.11).
+ */
+export interface ChangeCallout {
+  id: string;
+  icon: '+' | '−' | '↻' | '✎' | '⎘';
+  text: string;
+  anchor: {
+    componentId?: string;
+    lastPosition?: { x: number; y: number };
+  };
+  /** Set for remote-peer callouts (rendered with peer's presence colour border). */
+  presenceColor?: string;
+  addedAt: number;
+  expiresAt: number;
+}
+
 export interface UiState {
   activeTool: ActiveTool;
   bottomTab: BottomTab;
@@ -100,6 +119,22 @@ export interface UiState {
   setChipTarget: (id: string | null) => void;
   /** Plan 05-05 — set the focused parameter inside the chip (Tab cycling). */
   setChipFocusedParam: (name: string | null) => void;
+
+  // ---------------------------------------------------------------------------
+  // Plan 05-11 — change callout queue (UI-SPEC §7.11)
+  // ---------------------------------------------------------------------------
+  /**
+   * Transient queue of change callouts. Each entry has a TTL of 780ms
+   * (80ms fade-in + 500ms hold + 200ms fade-out). Consumed by
+   * ChangeCalloutLayer which calls expireCallouts on a 100ms interval.
+   */
+  changeCalloutQueue: ChangeCallout[];
+  /** Append a new callout. Auto-assigns id, addedAt, and expiresAt. */
+  enqueueChangeCallout: (c: Omit<ChangeCallout, 'id' | 'addedAt' | 'expiresAt'>) => void;
+  /** Remove callouts whose expiresAt is <= Date.now(). */
+  expireCallouts: () => void;
+  /** Flush the entire queue (e.g. on route change or circuit clear). */
+  clearAllCallouts: () => void;
 }
 
 export const useUiStore = create<UiState>()((set, get) => ({
@@ -118,6 +153,7 @@ export const useUiStore = create<UiState>()((set, get) => ({
   currentSubcircuitId: null,
   chipTargetId: null,
   chipFocusedParam: null,
+  changeCalloutQueue: [],
 
   setActiveTool: (tool) => set({ activeTool: tool }),
 
@@ -176,4 +212,26 @@ export const useUiStore = create<UiState>()((set, get) => ({
   setChipTarget: (id) => set({ chipTargetId: id, chipFocusedParam: null }),
 
   setChipFocusedParam: (name) => set({ chipFocusedParam: name }),
+
+  enqueueChangeCallout: (c) =>
+    set((state) => {
+      const now = Date.now();
+      const newCallout: ChangeCallout = {
+        ...c,
+        id: crypto.randomUUID(),
+        addedAt: now,
+        expiresAt: now + 780, // 80ms in + 500ms hold + 200ms out — UI-SPEC §7.11
+      };
+      return { changeCalloutQueue: [...state.changeCalloutQueue, newCallout] };
+    }),
+
+  expireCallouts: () =>
+    set((state) => {
+      const now = Date.now();
+      return {
+        changeCalloutQueue: state.changeCalloutQueue.filter((c) => c.expiresAt > now),
+      };
+    }),
+
+  clearAllCallouts: () => set({ changeCalloutQueue: [] }),
 }));
