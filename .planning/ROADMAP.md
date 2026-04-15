@@ -138,9 +138,9 @@ Plans:
 - [x] 05-06-PLAN.md — CommandPalette (cmdk Dialog) + type-to-place + R-key conflict resolution + 5 bundled circuit templates
 - [x] 05-07-PLAN.md — HoverTooltip (V/I/P) + OKLab wire voltage coloring via culori + SweepFanOut waveform layer
 - [ ] 05-08-PLAN.md — Insight rules engine (5 rules) + MeasurementCalloutLayer + reportAnnotationsStore → PDF export round-trip
-- [ ] 05-09-PLAN.md — Yjs presence-only collaboration (y-durableobjects transport) + PresenceLayer cursors/selections/ghost chips + PresenceList
+- [x] 05-09-PLAN.md — Yjs presence-only collaboration (y-durableobjects transport) + PresenceLayer cursors/selections/ghost chips + PresenceList
 - [x] 05-10-PLAN.md — vite-plugin-pwa + Zustand persist over idb-keyval + Map serialization + OfflineBanner + middleware order test
-- [ ] 05-11-PLAN.md — ChangeCalloutLayer (Figma-style ephemeral toasts) + ShortcutHelpOverlay content completion + motion polish
+- [x] 05-11-PLAN.md — ChangeCalloutLayer (Figma-style ephemeral toasts) + ShortcutHelpOverlay content completion + motion polish
 **Key risks**:
   - Yjs + React Flow sync adapter has no official support — needs a prototyping spike before Phase 5 planning
   - CRDT and simulation state can diverge — use snapshot-based simulation with version-tagged results
