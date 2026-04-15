@@ -167,4 +167,180 @@ describe('circuitStore', () => {
       expect(result).toBeNull();
     });
   });
+
+  describe('collapseSubcircuit (Plan 05-03 Task 1)', () => {
+    /**
+     * Helper: build a 3-resistor chain with boundary wires so we can
+     * exercise exposed-port derivation. Layout:
+     *
+     *   [R1.pin1] -- w0 --> [R2.pin1]  [R2.pin2] -- w1 --> [R3.pin1]
+     *
+     * Selecting R2 alone is a no-op (single-item guard); selecting
+     * {R2, R3} creates one subcircuit whose exposed ports are R2.pin1
+     * and (depending on wiring) nothing else.
+     */
+    function buildChain() {
+      const state = useCircuitStore.getState();
+      const r1Id = state.addComponent('resistor', { x: 0, y: 0 });
+      const r2Id = state.addComponent('resistor', { x: 100, y: 0 });
+      const r3Id = state.addComponent('resistor', { x: 200, y: 0 });
+      const r1 = useCircuitStore.getState().circuit.components.get(r1Id)!;
+      const r2 = useCircuitStore.getState().circuit.components.get(r2Id)!;
+      const r3 = useCircuitStore.getState().circuit.components.get(r3Id)!;
+      const w0 = useCircuitStore.getState().addWire(r1.ports[1]!.id, r2.ports[0]!.id);
+      const w1 = useCircuitStore.getState().addWire(r2.ports[1]!.id, r3.ports[0]!.id);
+      return { r1Id, r2Id, r3Id, w0, w1 };
+    }
+
+    it('creates a subcircuit component with exposed ports for crossing wires', () => {
+      const { r2Id, r3Id } = buildChain();
+      useCircuitStore.getState().collapseSubcircuit([r2Id, r3Id], 'MySub');
+
+      const circuit = useCircuitStore.getState().circuit;
+      // One new subcircuit + original 3 resistors = 4 components
+      expect(circuit.components.size).toBe(4);
+
+      const subs = [...circuit.components.values()].filter((c) => c.type === 'subcircuit');
+      expect(subs).toHaveLength(1);
+      const sub = subs[0]!;
+      expect(sub.refDesignator).toBe('X1');
+      expect(sub.subcircuitName).toBe('MySub');
+      // The w0 wire (R1 -> R2.pin1) crosses the boundary => exposed pin.
+      // w1 is fully inside the selection => no exposed pin for it.
+      expect(sub.ports.length).toBeGreaterThanOrEqual(1);
+      expect(sub.childComponentIds).toEqual([r2Id, r3Id]);
+      expect(sub.exposedPinMapping).toBeDefined();
+    });
+
+    it('assigns parentId to every child', () => {
+      const { r2Id, r3Id } = buildChain();
+      useCircuitStore.getState().collapseSubcircuit([r2Id, r3Id], 'MySub');
+      const circuit = useCircuitStore.getState().circuit;
+      expect(circuit.components.get(r2Id)!.parentId).toBeDefined();
+      expect(circuit.components.get(r3Id)!.parentId).toBeDefined();
+      expect(circuit.components.get(r2Id)!.parentId).toBe(circuit.components.get(r3Id)!.parentId);
+    });
+
+    it('infers exposed port pinType from inner port', () => {
+      const { r2Id, r3Id } = buildChain();
+      useCircuitStore.getState().collapseSubcircuit([r2Id, r3Id], 'MySub');
+      const sub = [...useCircuitStore.getState().circuit.components.values()].find(
+        (c) => c.type === 'subcircuit',
+      )!;
+      // Resistor pins are all 'signal'
+      for (const p of sub.ports) {
+        expect(p.pinType).toBe('signal');
+      }
+    });
+
+    it('re-points boundary wires onto the subcircuit exposed ports', () => {
+      const { r1Id, r2Id, r3Id, w0 } = buildChain();
+      useCircuitStore.getState().collapseSubcircuit([r2Id, r3Id], 'MySub');
+      const circuit = useCircuitStore.getState().circuit;
+      const sub = [...circuit.components.values()].find((c) => c.type === 'subcircuit')!;
+      const exposedIds = new Set(sub.ports.map((p) => p.id));
+      // w0 should still exist but now terminate at an exposed port of sub
+      const wire = circuit.wires.get(w0)!;
+      expect(wire).toBeDefined();
+      const r1 = circuit.components.get(r1Id)!;
+      const r1PortIds = new Set(r1.ports.map((p) => p.id));
+      // One endpoint is still R1's port; the other is now an exposed subcircuit port
+      const endpoints = [wire.sourcePortId, wire.targetPortId];
+      expect(endpoints.some((id) => r1PortIds.has(id))).toBe(true);
+      expect(endpoints.some((id) => exposedIds.has(id))).toBe(true);
+    });
+
+    it('is a silent no-op with empty selection', () => {
+      const before = useCircuitStore.getState().circuit.components.size;
+      useCircuitStore.getState().collapseSubcircuit([], 'Nope');
+      expect(useCircuitStore.getState().circuit.components.size).toBe(before);
+    });
+
+    it('is a silent no-op with single-item selection', () => {
+      const id = useCircuitStore.getState().addComponent('resistor', { x: 0, y: 0 });
+      const before = useCircuitStore.getState().circuit.components.size;
+      useCircuitStore.getState().collapseSubcircuit([id], 'Nope');
+      expect(useCircuitStore.getState().circuit.components.size).toBe(before);
+    });
+  });
+
+  describe('expandSubcircuit (Plan 05-03 Task 1)', () => {
+    function buildAndCollapse() {
+      const state = useCircuitStore.getState();
+      const r1Id = state.addComponent('resistor', { x: 0, y: 0 });
+      const r2Id = state.addComponent('resistor', { x: 100, y: 0 });
+      const r3Id = state.addComponent('resistor', { x: 200, y: 0 });
+      const r1 = useCircuitStore.getState().circuit.components.get(r1Id)!;
+      const r2 = useCircuitStore.getState().circuit.components.get(r2Id)!;
+      const r3 = useCircuitStore.getState().circuit.components.get(r3Id)!;
+      useCircuitStore.getState().addWire(r1.ports[1]!.id, r2.ports[0]!.id);
+      useCircuitStore.getState().addWire(r2.ports[1]!.id, r3.ports[0]!.id);
+      useCircuitStore.getState().collapseSubcircuit([r2Id, r3Id], 'MySub');
+      const sub = [...useCircuitStore.getState().circuit.components.values()].find(
+        (c) => c.type === 'subcircuit',
+      )!;
+      return { r1Id, r2Id, r3Id, subId: sub.id };
+    }
+
+    it('removes the subcircuit node', () => {
+      const { subId } = buildAndCollapse();
+      useCircuitStore.getState().expandSubcircuit(subId);
+      expect(useCircuitStore.getState().circuit.components.has(subId)).toBe(false);
+    });
+
+    it('clears parentId on former children', () => {
+      const { r2Id, r3Id, subId } = buildAndCollapse();
+      useCircuitStore.getState().expandSubcircuit(subId);
+      const circuit = useCircuitStore.getState().circuit;
+      expect(circuit.components.get(r2Id)!.parentId).toBeUndefined();
+      expect(circuit.components.get(r3Id)!.parentId).toBeUndefined();
+    });
+
+    it('restores wires to inner ports', () => {
+      const { r1Id, r2Id, subId } = buildAndCollapse();
+      useCircuitStore.getState().expandSubcircuit(subId);
+      const circuit = useCircuitStore.getState().circuit;
+      const r1 = circuit.components.get(r1Id)!;
+      const r2 = circuit.components.get(r2Id)!;
+      const r1PortIds = new Set(r1.ports.map((p) => p.id));
+      const r2PortIds = new Set(r2.ports.map((p) => p.id));
+      // There should be a wire connecting some R1 port to some R2 port
+      const bridge = [...circuit.wires.values()].find((w) => {
+        const a = r1PortIds.has(w.sourcePortId) || r1PortIds.has(w.targetPortId);
+        const b = r2PortIds.has(w.sourcePortId) || r2PortIds.has(w.targetPortId);
+        return a && b;
+      });
+      expect(bridge).toBeDefined();
+    });
+
+    it('round-trips a collapse + expand to structurally-equivalent circuit', () => {
+      const state0 = useCircuitStore.getState();
+      const r1Id = state0.addComponent('resistor', { x: 0, y: 0 });
+      const r2Id = state0.addComponent('resistor', { x: 100, y: 0 });
+      const r3Id = state0.addComponent('resistor', { x: 200, y: 0 });
+      const r1 = useCircuitStore.getState().circuit.components.get(r1Id)!;
+      const r2 = useCircuitStore.getState().circuit.components.get(r2Id)!;
+      const r3 = useCircuitStore.getState().circuit.components.get(r3Id)!;
+      useCircuitStore.getState().addWire(r1.ports[1]!.id, r2.ports[0]!.id);
+      useCircuitStore.getState().addWire(r2.ports[1]!.id, r3.ports[0]!.id);
+
+      const originalComponentIds = new Set(useCircuitStore.getState().circuit.components.keys());
+      const originalWireCount = useCircuitStore.getState().circuit.wires.size;
+
+      useCircuitStore.getState().collapseSubcircuit([r2Id, r3Id], 'MySub');
+      const sub = [...useCircuitStore.getState().circuit.components.values()].find(
+        (c) => c.type === 'subcircuit',
+      )!;
+      useCircuitStore.getState().expandSubcircuit(sub.id);
+
+      const after = useCircuitStore.getState().circuit;
+      // Original 3 components restored; subcircuit gone.
+      expect(after.components.size).toBe(originalComponentIds.size);
+      for (const id of originalComponentIds) {
+        expect(after.components.has(id)).toBe(true);
+      }
+      // Wire count preserved
+      expect(after.wires.size).toBe(originalWireCount);
+    });
+  });
 });

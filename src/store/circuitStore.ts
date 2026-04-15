@@ -81,6 +81,30 @@ export interface CircuitState {
     position: { x: number; y: number },
     netLabel: string,
   ) => string | null;
+
+  /**
+   * Plan 05-03 — collapse a multi-selection into a single subcircuit block.
+   *
+   * - Fewer than 2 selected components → silent no-op (UI-SPEC §9.3).
+   * - Creates a new `type='subcircuit'` component with auto-generated ref
+   *   `X{N}` and exposed ports derived from wires that cross the selection
+   *   boundary. Internal wires are preserved; boundary wires are re-pointed
+   *   so the outside endpoint connects to the subcircuit's exposed port.
+   * - Each selected component gets `parentId` set to the new subcircuit id
+   *   so `circuitToFlow` can hide them at the top level.
+   * - V1 single-level guard: if a caller passes `isNested=true` (the store
+   *   does not itself know the current view; the caller — typically
+   *   `useCanvasInteractions` — must pass `true` when `uiStore.currentSubcircuitId`
+   *   is non-null), the call is a silent no-op.
+   */
+  collapseSubcircuit: (componentIds: string[], name: string, isNested?: boolean) => string | null;
+
+  /**
+   * Plan 05-03 — inverse of `collapseSubcircuit`. Removes the subcircuit
+   * component, clears `parentId` on former children, and re-points boundary
+   * wires back to the original inner ports via `exposedPinMapping`.
+   */
+  expandSubcircuit: (subId: string) => void;
 }
 
 function createEmptyCircuit(): Circuit {
@@ -344,6 +368,197 @@ export const useCircuitStore = create<CircuitState>()(
           });
 
           return labelId;
+        },
+
+        collapseSubcircuit: (componentIds, name, isNested) => {
+          // Silent no-op per UI-SPEC §9.3: empty selection or single-item.
+          if (componentIds.length < 2) return null;
+          // V1 single-level guard (Plan 05-03 locked decision #2): callers
+          // must pass `isNested=true` when already inside a subcircuit.
+          if (isNested === true) return null;
+
+          const state = get();
+          const children: Component[] = [];
+          for (const id of componentIds) {
+            const c = state.circuit.components.get(id);
+            if (c) children.push(c);
+          }
+          if (children.length < 2) return null;
+
+          const selectionPortIds = new Set<string>(
+            children.flatMap((c) => c.ports.map((p) => p.id)),
+          );
+
+          // Inner port id -> child component, for pinType inheritance lookups.
+          const innerPortIndex = new Map<string, Port>();
+          for (const c of children) {
+            for (const p of c.ports) {
+              innerPortIndex.set(p.id, p);
+            }
+          }
+
+          // Walk every wire; classify as inside / outside / boundary.
+          // Boundary wires yield one exposed port per distinct inner port.
+          const exposedPorts: Port[] = [];
+          const exposedPinMapping: Record<string, string> = {};
+          // Reuse one exposed port when multiple boundary wires touch the
+          // same inner pin (e.g. a shared fan-out).
+          const innerPortToExposed = new Map<string, Port>();
+
+          const boundaryRepoints: {
+            wireId: string;
+            exposedPortId: string;
+            endpoint: 'source' | 'target';
+          }[] = [];
+
+          for (const wire of state.circuit.wires.values()) {
+            const sourceInside = selectionPortIds.has(wire.sourcePortId);
+            const targetInside = selectionPortIds.has(wire.targetPortId);
+            if (sourceInside === targetInside) {
+              // Fully inside or fully outside — leave wire as-is.
+              continue;
+            }
+            const insidePortId = sourceInside ? wire.sourcePortId : wire.targetPortId;
+            const innerPort = innerPortIndex.get(insidePortId);
+            if (!innerPort) continue;
+
+            let exposed = innerPortToExposed.get(insidePortId);
+            if (!exposed) {
+              exposed = {
+                id: generateId(),
+                name: innerPort.name,
+                netId: null,
+                pinType: innerPort.pinType ?? 'signal',
+                direction: innerPort.direction ?? 'inout',
+                ...(innerPort.label ? { label: innerPort.label } : { label: innerPort.name }),
+              };
+              innerPortToExposed.set(insidePortId, exposed);
+              exposedPorts.push(exposed);
+              exposedPinMapping[exposed.id] = insidePortId;
+            }
+
+            boundaryRepoints.push({
+              wireId: wire.id,
+              exposedPortId: exposed.id,
+              endpoint: sourceInside ? 'source' : 'target',
+            });
+          }
+
+          // Centroid placement so the block visually replaces the cluster.
+          let minX = Infinity;
+          let minY = Infinity;
+          let maxX = -Infinity;
+          let maxY = -Infinity;
+          for (const c of children) {
+            if (c.position.x < minX) minX = c.position.x;
+            if (c.position.y < minY) minY = c.position.y;
+            if (c.position.x > maxX) maxX = c.position.x;
+            if (c.position.y > maxY) maxY = c.position.y;
+          }
+          if (!Number.isFinite(minX)) {
+            minX = 0;
+            minY = 0;
+            maxX = 0;
+            maxY = 0;
+          }
+          const centroid = {
+            x: Math.round((minX + maxX) / 2 / 10) * 10,
+            y: Math.round((minY + maxY) / 2 / 10) * 10,
+          };
+
+          // Next X ref designator.
+          const currentX = state.refCounters.X ?? 0;
+          const nextX = currentX + 1;
+          const subId = generateId();
+          const subcircuit: Component = {
+            id: subId,
+            type: 'subcircuit',
+            refDesignator: `X${nextX}`,
+            value: name,
+            subcircuitName: name,
+            ports: exposedPorts,
+            position: centroid,
+            rotation: 0,
+            childComponentIds: [...componentIds],
+            exposedPinMapping,
+          };
+
+          set((s) => {
+            const newWires = new Map(s.circuit.wires);
+            for (const repoint of boundaryRepoints) {
+              const w = newWires.get(repoint.wireId);
+              if (!w) continue;
+              if (repoint.endpoint === 'source') {
+                newWires.set(w.id, { ...w, sourcePortId: repoint.exposedPortId });
+              } else {
+                newWires.set(w.id, { ...w, targetPortId: repoint.exposedPortId });
+              }
+            }
+
+            const newComponents = new Map(s.circuit.components);
+            newComponents.set(subId, subcircuit);
+            for (const id of componentIds) {
+              const child = newComponents.get(id);
+              if (!child) continue;
+              newComponents.set(id, { ...child, parentId: subId });
+            }
+
+            return {
+              circuit: {
+                ...s.circuit,
+                components: newComponents,
+                wires: newWires,
+              },
+              refCounters: { ...s.refCounters, X: nextX },
+            };
+          });
+
+          return subId;
+        },
+
+        expandSubcircuit: (subId) => {
+          const state = get();
+          const sub = state.circuit.components.get(subId);
+          if (!sub || sub.type !== 'subcircuit') return;
+          if (!sub.childComponentIds || !sub.exposedPinMapping) return;
+
+          const exposedPortIds = new Set(sub.ports.map((p) => p.id));
+          // Narrow once so the callback below closes over a non-optional map.
+          const pinMapping = sub.exposedPinMapping;
+
+          set((s) => {
+            const newWires = new Map(s.circuit.wires);
+            for (const w of s.circuit.wires.values()) {
+              let next = w;
+              if (exposedPortIds.has(w.sourcePortId)) {
+                const innerId = pinMapping[w.sourcePortId];
+                if (innerId) next = { ...next, sourcePortId: innerId };
+              }
+              if (exposedPortIds.has(w.targetPortId)) {
+                const innerId = pinMapping[w.targetPortId];
+                if (innerId) next = { ...next, targetPortId: innerId };
+              }
+              if (next !== w) newWires.set(w.id, next);
+            }
+
+            const newComponents = new Map(s.circuit.components);
+            newComponents.delete(subId);
+            for (const childId of sub.childComponentIds ?? []) {
+              const c = newComponents.get(childId);
+              if (!c) continue;
+              const { parentId: _parentId, ...rest } = c;
+              void _parentId;
+              newComponents.set(childId, rest as Component);
+            }
+
+            return {
+              circuit: {
+                ...s.circuit,
+                components: newComponents,
+                wires: newWires,
+              },
+            };
+          });
         },
       }),
       {

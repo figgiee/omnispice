@@ -34,7 +34,14 @@ export type ComponentType =
    * net it sits on. Not emitted to SPICE; its `data.netName` becomes
    * the net's SPICE identifier. See `NetLabelNode.tsx` and `computeNets`.
    */
-  | 'net_label';
+  | 'net_label'
+  /**
+   * Phase 5 Pillar 1 Part 2 (Plan 05-03) — collapsed subcircuit block.
+   * Represents a hierarchical grouping of child components. The netlister
+   * emits `.subckt ... .ends` + `X{ref} ...` for each instance. V1 supports
+   * a single level of nesting only (guarded in `collapseSubcircuit`).
+   */
+  | 'subcircuit';
 
 /**
  * Pin electrical type (Phase 5 Pillar 1 — Schematic Honesty).
@@ -89,6 +96,25 @@ export interface Component {
    * and is surfaced directly in the rendered netlist.
    */
   netLabel?: string;
+  /**
+   * Phase 5 Pillar 1 Part 2 (Plan 05-03) — subcircuit hierarchy fields.
+   *
+   * - `parentId`: on a child component, the id of the subcircuit that
+   *   contains it. When non-null, the component is hidden at the top
+   *   level and shown only when `uiStore.currentSubcircuitId` matches.
+   * - `subcircuitName`: only on `type='subcircuit'`. Human-facing name
+   *   emitted as the `.subckt` identifier.
+   * - `childComponentIds`: only on `type='subcircuit'`. Ordered list of
+   *   the child component ids that were collapsed into this block.
+   * - `exposedPinMapping`: only on `type='subcircuit'`. Maps each of the
+   *   subcircuit's exposed `Port.id` to the inner child `Port.id` it
+   *   represents. Used by `expandSubcircuit` to re-point wires back and
+   *   by the netlister to emit `.subckt` parameter lists.
+   */
+  parentId?: string;
+  subcircuitName?: string;
+  childComponentIds?: string[];
+  exposedPinMapping?: Record<string, string>;
 }
 
 export interface Wire {

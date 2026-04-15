@@ -326,4 +326,23 @@ export const COMPONENT_LIBRARY: Record<ComponentType, ComponentDefinition> = {
       { name: 'pin1', position: 'left', pinType: 'signal', direction: 'inout', label: 'NET' },
     ],
   },
+  /**
+   * Phase 5 Pillar 1 Part 2 (Plan 05-03) — collapsed subcircuit block.
+   *
+   * Not directly placeable from the sidebar. Instances are created via
+   * `circuitStore.collapseSubcircuit(selectedIds, name)`. The library
+   * entry exists so helpers that look up `COMPONENT_LIBRARY[type]` for
+   * spice prefix / category / port metadata do not crash. Ports here
+   * are empty; the real exposed pins are derived per-instance at
+   * collapse time from the boundary-crossing wires.
+   */
+  subcircuit: {
+    type: 'subcircuit',
+    name: 'Subcircuit',
+    category: 'passives',
+    spicePrefix: 'X',
+    defaultValue: '',
+    ports: [],
+    subcircuit: true,
+  },
 };
