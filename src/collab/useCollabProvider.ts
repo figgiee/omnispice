@@ -6,8 +6,21 @@
  * awareness into the `presenceStore`. This hook is the single owner of
  * the Yjs provider lifecycle for the Canvas.
  *
- * Circuit data is NEVER written into the Yjs doc — this is presence only
- * per locked Plan 05-09 scope.
+ * Plan 06-04 — CRDT activation extension.
+ *
+ * After provider creation, this hook now:
+ *   1. Calls setCollabActive(true) to halt Zustand persist writes.
+ *   2. Mounts useYIndexedDB for durable local Y.Doc snapshots.
+ *   3. Calls bindCircuitToYjs after the provider 'sync' event fires, so
+ *      the bidirectional Zustand ↔ Y.Doc binding starts only once the doc
+ *      is caught up with the server.
+ *   4. Mounts useCollabUndoManager to replace zundo with Y.UndoManager
+ *      during the session and registers Ctrl+Z / Ctrl+Shift+Z hotkeys.
+ *   5. On cleanup: tears down the binding, then calls setCollabActive(false)
+ *      so Zustand persist resumes only after the binding is fully removed.
+ *
+ * The existing awareness publisher and presenceStore logic (Phase 5) is
+ * fully preserved — this plan only ADDS to useCollabProvider.
  *
  * Environment toggles:
  *   VITE_COLLAB_ENABLED=false  disables the hook entirely (no provider,
@@ -17,10 +30,16 @@
  *                              should point at wss://api.omnispice.app.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
+import type { PeerUser } from '@/store/presenceStore';
 import { type PeerState, usePresenceStore } from '@/store/presenceStore';
+import { setCollabActive, useCircuitStore } from '@/store/circuitStore';
+import { bindCircuitToYjs } from './circuitBinding';
+import { useCollabUndoManager } from './useCollabUndoManager';
+import { useYIndexedDB } from './useYIndexedDB';
 
 export interface CollabUser {
   id: string;
@@ -55,16 +74,69 @@ function assignPresenceColor(userId: string): string {
 }
 
 /**
- * Wire the Yjs collab provider lifecycle to a Canvas mount. Returns a ref
- * pointing at the live `WebsocketProvider` so the Canvas can publish its
- * own cursor/selection/viewport awareness fields via the helpers below.
+ * Wire the Yjs collab provider lifecycle to a Canvas mount.
+ *
+ * Returns:
+ *   providerRef — ref to the live WebsocketProvider (for awareness publishers).
+ *   docRef      — ref to the live Y.Doc (for onNodeDragStop Y.Map writes).
+ *
+ * Plan 06-04: The hook now activates CRDT binding (bindCircuitToYjs),
+ * durable local persistence (useYIndexedDB), and the collab undo manager
+ * (useCollabUndoManager) in addition to the Phase 5 presence layer.
  */
 export function useCollabProvider(
   circuitId: string | null,
   user: CollabUser | null,
-) {
+): { providerRef: React.RefObject<WebsocketProvider | null>; docRef: React.RefObject<Y.Doc | null> } {
   const providerRef = useRef<WebsocketProvider | null>(null);
   const docRef = useRef<Y.Doc | null>(null);
+
+  // yDoc state drives useYIndexedDB and useCollabUndoManager re-renders.
+  // We need a state variable (not just a ref) so those hooks see the updated
+  // Y.Doc after the provider useEffect fires.
+  const [activeYDoc, setActiveYDoc] = useState<Y.Doc | null>(null);
+
+  // Ref to hold the binding cleanup so we can invoke it in the useEffect cleanup.
+  const bindCleanupRef = useRef<(() => void) | null>(null);
+
+  // Plan 06-04 — mount y-indexeddb for durable local Y.Doc snapshots.
+  // No-op when activeYDoc is null (collab disabled or not yet connected).
+  useYIndexedDB(activeYDoc, circuitId);
+
+  // Plan 06-04 — mount Y.UndoManager tied to the active Y.Doc. When non-null
+  // this pauses zundo and creates a Y.UndoManager scoped to LOCAL_ORIGIN writes.
+  const { undoCollab, redoCollab } = useCollabUndoManager(activeYDoc);
+
+  // Plan 06-04 — Ctrl+Z / Ctrl+Shift+Z hotkeys wired to Y.UndoManager.
+  // When activeYDoc is null, undoCollab / redoCollab fall back to zundo
+  // (see useCollabUndoManager implementation), so these bindings are safe
+  // in both solo and collab sessions.
+  //
+  // Note: useCanvasInteractions.ts also registers ctrl+z / ctrl+shift+z.
+  // react-hotkeys-hook resolves conflicts by calling the most-recently-
+  // registered handler first. These registrations happen inside
+  // useCollabProvider which mounts before useCanvasInteractions, so in
+  // practice both handlers fire; undoCollab handles the collab case and
+  // the useCanvasInteractions handler is a no-op duplicate in that path.
+  // The useCanvasInteractions Ctrl+Z bindings are documented as superseded
+  // by useCollabUndoManager in Phase 6 but left in place for solo sessions.
+  useHotkeys(
+    'ctrl+z, meta+z',
+    (e) => {
+      e.preventDefault();
+      undoCollab();
+    },
+    { enableOnFormTags: false },
+  );
+
+  useHotkeys(
+    'ctrl+shift+z, meta+shift+z',
+    (e) => {
+      e.preventDefault();
+      redoCollab();
+    },
+    { enableOnFormTags: false },
+  );
 
   useEffect(() => {
     if (!isCollabEnabled()) return;
@@ -74,6 +146,12 @@ export function useCollabProvider(
     docRef.current = doc;
     const provider = new WebsocketProvider(collabWsUrl(), circuitId, doc);
     providerRef.current = provider;
+
+    // Plan 06-04 — step 1: stop Zustand persist from racing with y-indexeddb.
+    setCollabActive(true);
+
+    // Expose the Y.Doc to useYIndexedDB and useCollabUndoManager via state.
+    setActiveYDoc(doc);
 
     // Publish self-awareness. Only the `user` field ships on mount —
     // cursor/selection/viewport update via `publishCursor` et al. from
@@ -110,27 +188,50 @@ export function useCollabProvider(
     // Seed an initial snapshot so late joiners see existing peers at once.
     onAwarenessChange();
 
+    // Plan 06-04 — step 3: start the bidirectional Zustand ↔ Y.Doc binding
+    // only after the Y.Doc is fully synced with the server. This ensures
+    // that the local store is populated from the authoritative server state
+    // before we start propagating local edits outward.
+    const onSync = (isSynced: boolean) => {
+      if (!isSynced) return;
+      // Tear down any prior binding before installing a fresh one.
+      bindCleanupRef.current?.();
+      bindCleanupRef.current = bindCircuitToYjs(doc, useCircuitStore);
+    };
+    provider.on('sync', onSync);
+
     return () => {
+      provider.off('sync', onSync);
       provider.awareness.off('change', onAwarenessChange);
+
+      // Plan 06-04 — tear down binding before destroying provider/doc.
+      bindCleanupRef.current?.();
+      bindCleanupRef.current = null;
+
       provider.destroy();
       doc.destroy();
       usePresenceStore.getState().clearAll();
       providerRef.current = null;
       docRef.current = null;
+
+      // Clear state so useYIndexedDB and useCollabUndoManager clean up.
+      setActiveYDoc(null);
+
+      // Plan 06-04 — step 5: resume Zustand persist after binding is fully
+      // torn down so there is no window where both write to IDB simultaneously.
+      setCollabActive(false);
     };
     // Only re-connect when circuit or user identity changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [circuitId, user?.id]);
 
-  return providerRef;
+  return { providerRef, docRef };
 }
 
 // --- Awareness publishers ------------------------------------------------
 // Thin wrappers called by Canvas interaction handlers. Kept as plain
 // functions so they can be throttled/debounced at the call site without
 // fighting React closures.
-
-import type { PeerUser } from '@/store/presenceStore';
 
 export function publishCursor(
   provider: WebsocketProvider | null,

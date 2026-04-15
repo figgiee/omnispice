@@ -57,6 +57,7 @@ class MockDoc {
 class MockWebsocketProvider {
   awareness: MockAwareness;
   destroy = vi.fn();
+  private listeners = new Map<string, Set<(arg: unknown) => void>>();
   constructor(
     public url: string,
     public room: string,
@@ -64,6 +65,16 @@ class MockWebsocketProvider {
   ) {
     this.awareness = new MockAwareness();
     lastProvider = this;
+  }
+  on(event: string, cb: (arg: unknown) => void) {
+    if (!this.listeners.has(event)) this.listeners.set(event, new Set());
+    this.listeners.get(event)?.add(cb);
+  }
+  off(event: string, cb: (arg: unknown) => void) {
+    this.listeners.get(event)?.delete(cb);
+  }
+  emit(event: string, arg: unknown) {
+    for (const cb of this.listeners.get(event) ?? []) cb(arg);
   }
 }
 
@@ -75,6 +86,40 @@ vi.mock('yjs', () => ({
 
 vi.mock('y-websocket', () => ({
   WebsocketProvider: MockWebsocketProvider,
+}));
+
+// Plan 06-04 — mock the CRDT primitives so tests don't need a real Y.Doc
+// binding, undo manager, or IndexedDB provider in jsdom.
+vi.mock('@/collab/circuitBinding', () => ({
+  bindCircuitToYjs: vi.fn(() => vi.fn()), // returns a cleanup no-op
+  getCircuitYMaps: vi.fn(() => ({ yComponents: new Map(), yWires: new Map() })),
+  LOCAL_ORIGIN: Symbol('test-local-origin'),
+}));
+
+vi.mock('@/collab/useCollabUndoManager', () => ({
+  useCollabUndoManager: vi.fn(() => ({
+    undoCollab: vi.fn(),
+    redoCollab: vi.fn(),
+    canUndo: vi.fn(() => false),
+    canRedo: vi.fn(() => false),
+  })),
+}));
+
+vi.mock('@/collab/useYIndexedDB', () => ({
+  useYIndexedDB: vi.fn(),
+}));
+
+vi.mock('@/store/circuitStore', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/store/circuitStore')>();
+  return {
+    ...actual,
+    setCollabActive: vi.fn(),
+    useCircuitStore: actual.useCircuitStore,
+  };
+});
+
+vi.mock('react-hotkeys-hook', () => ({
+  useHotkeys: vi.fn(),
 }));
 
 // We dynamically import BOTH the hook under test AND the presenceStore so
