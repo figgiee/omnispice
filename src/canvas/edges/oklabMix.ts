@@ -21,10 +21,9 @@
  * the end-to-end behaviour.
  */
 
-// culori does not ship TypeScript declarations for this path shape, but
-// @types/culori provides them for the default entry. The three named
-// exports we use (`interpolate`, `formatHex`) are stable since 3.x.
-import { interpolate, formatHex } from 'culori';
+// culori ships TypeScript declarations via @types/culori. The three
+// named exports we use (`interpolate`, `formatHex`) are stable since 3.x.
+import { type Color, formatHex, interpolate } from 'culori';
 
 /** Keep these in sync with `--wire-v-low` and `--wire-v-high`. */
 const LOW_COLOR = '#42a5f5';
@@ -34,7 +33,7 @@ const HIGH_COLOR = '#ef5350';
 // mixer once at module load is a ~20µs fixed cost that pays itself back
 // on every wire: WireEdge recomputes its stroke whenever its net voltage
 // changes, which on a Shift-scrub can be 60Hz × N wires.
-const mixer = interpolate([LOW_COLOR, HIGH_COLOR], 'oklab') as (t: number) => unknown;
+const mixer = interpolate([LOW_COLOR, HIGH_COLOR], 'oklab') as (t: number) => Color;
 
 /**
  * Interpolate between `--wire-v-low` and `--wire-v-high` in OKLab space.

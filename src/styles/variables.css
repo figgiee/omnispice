@@ -71,6 +71,11 @@
   --component-stroke: #e8eaf6;
   --wire-stroke: #4fc3f7;
   --wire-selected: #81d4fa;
+  /* Phase 5 Plan 05-07 — wire voltage-colouring tokens (UI-SPEC §7.7). */
+  --wire-v-low:     #42a5f5; /* Low-rail (cool) endpoint for OKLab lerp */
+  --wire-v-high:    #ef5350; /* High-rail (warm) endpoint for OKLab lerp */
+  --wire-v-neutral: #26c6da; /* Ground net override — always neutral cyan */
+  --wire-stale:     #6b7494; /* Dimmed when transient is scrubbing */
   --pin-dot: #e8eaf6;
   --pin-hover: #4fc3f7;
   --tjunction-dot: #e8eaf6;
