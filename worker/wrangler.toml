@@ -27,14 +27,20 @@ LTI_PUBLIC_KID = "omnispice-prod-2026"
 [triggers]
 crons = ["*/10 * * * *"]
 
-# Phase 5-01 — y-durableobjects transport spike.
-# Uncomment + install y-durableobjects in worker/package.json to enable.
-# See .planning/phases/05-collaboration-and-polish/05-01-COLLAB-SPIKE.md.
+# Phase 5-09 — Yjs presence-only collaboration transport.
+# Plan 05-01 spike decision was `use-y-durableobjects`. This binding is now
+# the live collaboration path consumed by src/collab/useCollabProvider.ts
+# via wss://{worker-host}/editor/{circuitId}.
 #
-# [[durable_objects.bindings]]
-# name = "Y_DURABLE_OBJECTS"
-# class_name = "YDurableObjects"
-#
-# [[migrations]]
-# tag = "spike-yjs"
-# new_classes = ["YDurableObjects"]
+# See:
+#  - worker/src/yjs.ts (Hono route + YDurableObjects class)
+#  - .planning/phases/05-collaboration-and-polish/05-01-COLLAB-SPIKE.md
+#  - .planning/phases/05-collaboration-and-polish/05-09-PLAN.md
+
+[[durable_objects.bindings]]
+name = "Y_DURABLE_OBJECTS"
+class_name = "YDurableObjects"
+
+[[migrations]]
+tag = "v1-yjs"
+new_sqlite_classes = ["YDurableObjects"]
