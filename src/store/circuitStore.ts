@@ -15,6 +15,27 @@ import type { Circuit, Component, ComponentType, Port, Wire } from '@/circuit/ty
 import { mapReplacer, mapReviver } from './mapSerialization';
 
 /**
+ * Plan 06-03 — collab bypass flag.
+ *
+ * When a y-indexeddb provider owns the IndexedDB slot during a collab session,
+ * we must prevent Zustand persist from writing to the same key at the same
+ * time. Callers set this to `true` before mounting useYIndexedDB and reset it
+ * to `false` when the collab session ends.
+ *
+ * Only `setItem` is gated — `getItem` and `removeItem` are read-only or
+ * deletion paths used by the offline-first bootstrap and are safe regardless.
+ */
+let collabActive = false;
+
+/**
+ * Exported setter so the collab lifecycle (useCollabProvider, useYIndexedDB)
+ * can flip the flag without importing Zustand state into the collab layer.
+ */
+export const setCollabActive = (active: boolean): void => {
+  collabActive = active;
+};
+
+/**
  * Storage adapter that bridges zustand `persist` to `idb-keyval`. Strings go
  * in, strings come out — the JSON serialization is handled by
  * `createJSONStorage` with our Map/Set-aware replacer/reviver.
@@ -28,6 +49,9 @@ const indexedDbStorage = {
     return value ?? null;
   },
   setItem: async (name: string, value: string): Promise<void> => {
+    // During collab sessions y-indexeddb owns the IndexedDB slot.
+    // Skip Zustand persist writes to prevent a double-write race.
+    if (collabActive) return;
     await idbSet(name, value);
   },
   removeItem: async (name: string): Promise<void> => {
