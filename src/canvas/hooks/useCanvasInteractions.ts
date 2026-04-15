@@ -275,8 +275,16 @@ export function useCanvasInteractions() {
     'shift+d',
     (e) => {
       e.preventDefault();
+      const countBefore = selectedComponentIds.length;
       doCopy();
       doPaste();
+      if (countBefore > 0) {
+        window.dispatchEvent(
+          new CustomEvent('omnispice:change-callout', {
+            detail: { kind: 'duplicate', count: countBefore },
+          }),
+        );
+      }
     },
     { preventDefault: true },
   );

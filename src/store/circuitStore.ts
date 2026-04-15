@@ -132,6 +132,23 @@ function createEmptyCircuit(): Circuit {
 }
 
 /**
+ * Plan 05-11 — emit a raw change-callout event. The ChangeCalloutLayer
+ * listens for this event and maps it to a formatted pill. Kept outside
+ * uiStore so circuitStore has no dependency on React or uiStore.
+ */
+function dispatchChangeCallout(detail: {
+  kind: 'add' | 'delete' | 'rotate' | 'param-edit' | 'duplicate';
+  ref?: string;
+  componentId?: string;
+  value?: string;
+  param?: string;
+  count?: number;
+  lastPosition?: { x: number; y: number };
+}) {
+  window.dispatchEvent(new CustomEvent('omnispice:change-callout', { detail }));
+}
+
+/**
  * Generate a unique ID using crypto.randomUUID().
  */
 function generateId(): string {
@@ -194,10 +211,17 @@ export const useCircuitStore = create<CircuitState>()(
             };
           });
 
+          dispatchChangeCallout({ kind: 'add', ref: refDesignator, componentId: id });
+
           return id;
         },
 
         removeComponent: (id) => {
+          // Capture position + ref before mutating state (needed for delete callout)
+          const preComp = get().circuit.components.get(id);
+          const deletedRef = preComp?.refDesignator;
+          const deletedPos = preComp?.position;
+
           set((s) => {
             const comp = s.circuit.components.get(id);
             if (!comp) return s;
@@ -221,9 +245,16 @@ export const useCircuitStore = create<CircuitState>()(
               circuit: { ...s.circuit, components, wires },
             };
           });
+
+          dispatchChangeCallout({
+            kind: 'delete',
+            ref: deletedRef,
+            lastPosition: deletedPos,
+          });
         },
 
         updateComponentValue: (id, value) => {
+          const preComp = get().circuit.components.get(id);
           set((s) => {
             const comp = s.circuit.components.get(id);
             if (!comp) return s;
@@ -234,9 +265,19 @@ export const useCircuitStore = create<CircuitState>()(
               circuit: { ...s.circuit, components },
             };
           });
+          if (preComp) {
+            dispatchChangeCallout({
+              kind: 'param-edit',
+              ref: preComp.refDesignator,
+              componentId: id,
+              param: 'value',
+              value,
+            });
+          }
         },
 
         updateComponentParam: (id, paramName, value) => {
+          const preComp = get().circuit.components.get(id);
           set((s) => {
             const comp = s.circuit.components.get(id);
             if (!comp) return s;
@@ -252,6 +293,15 @@ export const useCircuitStore = create<CircuitState>()(
               circuit: { ...s.circuit, components },
             };
           });
+          if (preComp) {
+            dispatchChangeCallout({
+              kind: 'param-edit',
+              ref: preComp.refDesignator,
+              componentId: id,
+              param: paramName,
+              value,
+            });
+          }
         },
 
         setSweepParam: (id, range) => {
@@ -285,6 +335,7 @@ export const useCircuitStore = create<CircuitState>()(
         },
 
         rotateComponent: (id) => {
+          const preComp = get().circuit.components.get(id);
           set((s) => {
             const comp = s.circuit.components.get(id);
             if (!comp) return s;
@@ -296,6 +347,9 @@ export const useCircuitStore = create<CircuitState>()(
               circuit: { ...s.circuit, components },
             };
           });
+          if (preComp) {
+            dispatchChangeCallout({ kind: 'rotate', ref: preComp.refDesignator, componentId: id });
+          }
         },
 
         addWire: (sourcePortId, targetPortId) => {
