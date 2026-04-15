@@ -131,12 +131,12 @@ Plans:
 
 Plans:
 - [x] 05-01-PLAN.md — Quick wins (minimap, F/A/0, Space-pan, Shift+D, double-click focus, ? overlay shell) + y-durableobjects hibernation spike
-- [ ] 05-02-PLAN.md — Pin type system + wireDragStore compat highlights + NetLabelNode + orthogonal routing stress baseline
+- [x] 05-02-PLAN.md — Pin type system + wireDragStore compat highlights + NetLabelNode + orthogonal routing stress baseline
 - [ ] 05-03-PLAN.md — Single-level subcircuit collapse/expand + breadcrumb + .subckt netlist emission
 - [x] 05-04-PLAN.md — TieredSimulationController (DC always-live / AC debounced / transient commit-on-release / sweep cache) + simulationOrchestrator
-- [ ] 05-05-PLAN.md — InlineParameterChip (@floating-ui) + Pointer Lock scrubber gesture + Shift-scrub sweep
+- [x] 05-05-PLAN.md — InlineParameterChip (@floating-ui) + Pointer Lock scrubber gesture + Shift-scrub sweep
 - [x] 05-06-PLAN.md — CommandPalette (cmdk Dialog) + type-to-place + R-key conflict resolution + 5 bundled circuit templates
-- [ ] 05-07-PLAN.md — HoverTooltip (V/I/P) + OKLab wire voltage coloring via culori + SweepFanOut waveform layer
+- [x] 05-07-PLAN.md — HoverTooltip (V/I/P) + OKLab wire voltage coloring via culori + SweepFanOut waveform layer
 - [ ] 05-08-PLAN.md — Insight rules engine (5 rules) + MeasurementCalloutLayer + reportAnnotationsStore → PDF export round-trip
 - [ ] 05-09-PLAN.md — Yjs presence-only collaboration (y-durableobjects transport) + PresenceLayer cursors/selections/ghost chips + PresenceList
 - [x] 05-10-PLAN.md — vite-plugin-pwa + Zustand persist over idb-keyval + Map serialization + OfflineBanner + middleware order test

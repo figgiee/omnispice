@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed 05-10-PLAN.md (offline PWA: SW + idb-keyval persist + OfflineBanner)"
-last_updated: "2026-04-11T21:08:46.225Z"
-last_activity: 2026-04-11
+stopped_at: Completed 05-07-PLAN.md (hover tooltip + OKLab wire colouring + sweep fan-out)
+last_updated: "2026-04-15T06:14:02.376Z"
+last_activity: 2026-04-15
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 37
-  completed_plans: 30
+  completed_plans: 33
   percent: 0
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 ## Current Position
 
 Phase: 05 (collaboration-and-polish) — EXECUTING
-Plan: 5 of 11
+Plan: 7 of 11
 Status: Ready to execute
-Last activity: 2026-04-11
+Last activity: 2026-04-15
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -72,6 +72,8 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05-collaboration-and-polish P06 | 19min | 5 tasks | 22 files |
 | Phase 05-collaboration-and-polish P01 | 45min | 7 tasks | 15 files |
 | Phase 05-collaboration-and-polish P10 | 45min | 5 tasks | 18 files |
+| Phase 05-collaboration-and-polish P05 | 40min | 5 tasks | 14 files |
+| Phase 05-collaboration-and-polish P07 | 45min | 6 tasks | 22 files |
 
 ## Accumulated Context
 
@@ -154,6 +156,15 @@ Recent decisions affecting current work:
 - [Phase 05-collaboration-and-polish]: Plan 05-10 uses Zustand 5 createJSONStorage(getStorage, {replacer, reviver}) native option pair, not a bespoke mapAwareStorage wrapper
 - [Phase 05-collaboration-and-polish]: Plan 05-10 phase5-offline Playwright project targets pnpm preview on port 4173 because vite-plugin-pwa only emits sw.js in production builds; devOptions.enabled=false so dev mode never registers a SW (would break HMR + WASM worker init)
 - [Phase 05-collaboration-and-polish]: Plan 05-10 src/test/setup.ts adds global vi.mock('idb-keyval') stub — any test that indirectly imports circuitStore would crash with 'indexedDB is not defined' otherwise, and per-test mocks get shadowed by module caching
+- [Phase 05-collaboration-and-polish]: [Phase 05]: Inline parameter chip mounts inside ReactFlowProvider (Layout.tsx) not App.tsx — chip uses useStore(transform) which requires the provider above it; InlineParameterChipController is a sibling effect component that bridges selectedComponentIds → chipTargetId
+- [Phase 05-collaboration-and-polish]: [Phase 05]: useParameterScrub never mutates store directly — Pointer Lock hook calls opts.onChange(newValue) and dispatches omnispice:scrub-committed on pointerup; Escape reverts via onChange(startValue) with NO committed event so Plan 05-04 orchestrator skips the transient re-run on cancel
+- [Phase 05-collaboration-and-polish]: [Phase 05]: src/circuit/units.ts engineering notation parser uses longest-first suffix match so 'Meg' beats 'm' — matches ngspice convention (M=milli, Meg=mega); formatEngineeringNotation targets mantissa in [1,1000) with trailing-zero strip
+- [Phase 05-collaboration-and-polish]: [Phase 05]: circuitStore.updateComponentParam routes paramName==='value' back through the existing .value slot so undo/redo keeps capturing resistor value edits identically pre/post chip; non-value paramNames go to parameters[paramName]
+- [Phase 05-collaboration-and-polish]: [Phase 05]: setSweepParam writes parameters.__sweep as CSV 'min,max,steps' with steps hardcoded to 10; consumer (waveform fan-out rendering) deferred to Plan 05-07
+- [Phase 05-collaboration-and-polish]: Plan 05-07: OKLab wire colouring via culori@4 (MIT, 0.2KB gzipped); mixer built once at module load, WireEdge useMemo keyed on [selected,netName,simStatus,voltage] keeps per-frame cost to the wires whose net voltage actually changed
+- [Phase 05-collaboration-and-polish]: Plan 05-07: wireVoltages keyed by SPICE net name (not wire id) and simStatus transitions (not-run/computing/live/stale/error) live on overlayStore; orchestrator emits both alongside edgeVoltages so WireEdge + HoverTooltip read the same source of truth
+- [Phase 05-collaboration-and-polish]: Plan 05-07: rejected @floating-ui/react (plan referenced it as 'already installed' but it never was); HoverTooltip uses fixed-position div + delegated document mouseover/mouseout listeners filtered by .react-flow__node data-id for zero-per-node-prop overhead
+- [Phase 05-collaboration-and-polish]: Plan 05-07: window.matchMedia jsdom polyfill added to src/test/setup.ts — fixes pre-existing AssignmentPage.test.tsx crash that went latent when WaveformViewer started importing SweepFanOut and transitively pulling uPlot into the test graph
 
 ### Pending Todos
 
@@ -172,6 +183,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T21:08:46.222Z
-Stopped at: Completed 05-10-PLAN.md (offline PWA: SW + idb-keyval persist + OfflineBanner)
+Last session: 2026-04-15T06:14:02.373Z
+Stopped at: Completed 05-07-PLAN.md (hover tooltip + OKLab wire colouring + sweep fan-out)
 Resume file: None
