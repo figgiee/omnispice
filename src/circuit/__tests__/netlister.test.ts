@@ -400,6 +400,164 @@ describe('analysisToDirective', () => {
   });
 });
 
+describe('subcircuit netlist emission (Plan 05-03)', () => {
+  /**
+   * Build a circuit whose top-level wiring is:
+   *   V1(+) -> sub(pin_a) ... sub(pin_b) -> GND
+   *   V1(-) -> GND
+   * with the subcircuit internally containing R1-R2 in series.
+   *
+   * Uses the real collapseSubcircuit path is unnecessary here — we hand
+   * build the shape so the netlister test is self-contained.
+   */
+  function buildSubcircuitFixture(): Circuit {
+    const components = new Map<string, Component>();
+    const wires = new Map<string, Wire>();
+
+    // Inner children of the subcircuit:
+    const r1 = makeComponent({
+      id: 'r1',
+      type: 'resistor',
+      refDesignator: 'R1',
+      value: '10k',
+      parentId: 'sub1',
+      ports: [
+        { id: 'r1_p1', name: 'pin1', netId: null, pinType: 'signal', direction: 'inout' },
+        { id: 'r1_p2', name: 'pin2', netId: null, pinType: 'signal', direction: 'inout' },
+      ],
+    });
+    const r2 = makeComponent({
+      id: 'r2',
+      type: 'resistor',
+      refDesignator: 'R2',
+      value: '5k',
+      parentId: 'sub1',
+      ports: [
+        { id: 'r2_p1', name: 'pin1', netId: null, pinType: 'signal', direction: 'inout' },
+        { id: 'r2_p2', name: 'pin2', netId: null, pinType: 'signal', direction: 'inout' },
+      ],
+    });
+
+    // Subcircuit block with two exposed pins. Port ids live on the block
+    // and map to the inner children's ports via exposedPinMapping.
+    const sub = makeComponent({
+      id: 'sub1',
+      type: 'subcircuit',
+      refDesignator: 'X1',
+      value: 'MyAmp',
+      subcircuitName: 'MyAmp',
+      ports: [
+        { id: 'sub1_a', name: 'pin_a', netId: null, pinType: 'signal', direction: 'inout' },
+        { id: 'sub1_b', name: 'pin_b', netId: null, pinType: 'signal', direction: 'inout' },
+      ],
+      childComponentIds: ['r1', 'r2'],
+      exposedPinMapping: {
+        sub1_a: 'r1_p1',
+        sub1_b: 'r2_p2',
+      },
+    });
+
+    // Top-level source + ground
+    const v1 = makeComponent({
+      id: 'v1',
+      type: 'dc_voltage',
+      refDesignator: 'V1',
+      value: '5',
+      ports: [
+        { id: 'v1_pos', name: 'positive', netId: null },
+        { id: 'v1_neg', name: 'negative', netId: null },
+      ],
+    });
+    const gnd = makeComponent({
+      id: 'gnd1',
+      type: 'ground',
+      refDesignator: 'GND',
+      ports: [{ id: 'gnd1_p1', name: 'pin1', netId: null }],
+    });
+
+    components.set('r1', r1);
+    components.set('r2', r2);
+    components.set('sub1', sub);
+    components.set('v1', v1);
+    components.set('gnd1', gnd);
+
+    // Internal wire (fully inside the subcircuit).
+    wires.set('wInner', makeWire('wInner', 'r1_p2', 'r2_p1'));
+    // Boundary wires — since we are hand-building, they already terminate
+    // at the block's exposed ports.
+    wires.set('wTop', makeWire('wTop', 'v1_pos', 'sub1_a'));
+    wires.set('wBot', makeWire('wBot', 'sub1_b', 'gnd1_p1'));
+    wires.set('wNeg', makeWire('wNeg', 'v1_neg', 'gnd1_p1'));
+
+    return { components, wires, nets: new Map() };
+  }
+
+  it('emits a .subckt ... .ends block for the collapsed subcircuit', () => {
+    const netlist = generateNetlist(buildSubcircuitFixture(), { type: 'dc_op' });
+    expect(netlist).toMatch(/\.subckt MyAmp /);
+    expect(netlist).toContain('.ends');
+  });
+
+  it('emits R1 and R2 inside the .subckt block', () => {
+    const netlist = generateNetlist(buildSubcircuitFixture(), { type: 'dc_op' });
+    // The two inner resistors must appear between .subckt and .ends.
+    const startIdx = netlist.indexOf('.subckt');
+    const endIdx = netlist.indexOf('.ends');
+    expect(startIdx).toBeGreaterThanOrEqual(0);
+    expect(endIdx).toBeGreaterThan(startIdx);
+    const body = netlist.slice(startIdx, endIdx);
+    expect(body).toMatch(/\bR1 /);
+    expect(body).toMatch(/\bR2 /);
+    expect(body).toContain('10k');
+    expect(body).toContain('5k');
+  });
+
+  it('emits the X{ref} instantiation at top level with subcircuit name', () => {
+    const netlist = generateNetlist(buildSubcircuitFixture(), { type: 'dc_op' });
+    // Top-level X1 line references MyAmp.
+    expect(netlist).toMatch(/^X1 .+ MyAmp\s*$/m);
+  });
+
+  it('.subckt block appears BEFORE the top-level X instantiation', () => {
+    const netlist = generateNetlist(buildSubcircuitFixture(), { type: 'dc_op' });
+    const endsIdx = netlist.indexOf('.ends');
+    const xIdx = netlist.search(/^X1 /m);
+    expect(endsIdx).toBeGreaterThan(0);
+    expect(xIdx).toBeGreaterThan(endsIdx);
+  });
+
+  it('no regression for flat circuits without subcircuits', () => {
+    // Existing fixture must netlist identically after the changes.
+    const flat = buildSimpleResistorCircuit();
+    const netlist = generateNetlist(flat, { type: 'dc_op' });
+    expect(netlist).toContain('R1');
+    expect(netlist).not.toContain('.subckt');
+    expect(netlist).not.toContain('.ends');
+  });
+
+  it('rejects nested subcircuits with a clear error (V1 single-level guard)', () => {
+    // Build a subcircuit whose childComponentIds points at another subcircuit
+    // — this cannot happen via the UI (collapseSubcircuit guards against it),
+    // but the netlister still defends against malformed input.
+    const circuit = buildSubcircuitFixture();
+    const innerSub = makeComponent({
+      id: 'innerSub',
+      type: 'subcircuit',
+      refDesignator: 'X2',
+      value: 'Inner',
+      subcircuitName: 'Inner',
+      parentId: 'sub1',
+      ports: [],
+      childComponentIds: [],
+      exposedPinMapping: {},
+    });
+    circuit.components.set('innerSub', innerSub);
+    const sub = circuit.components.get('sub1');
+    if (sub) sub.childComponentIds = ['r1', 'r2', 'innerSub'];
+    expect(() => generateNetlist(circuit, { type: 'dc_op' })).toThrow(/single-level/i);
+  });
+});
+
 describe('COMPONENT_LIBRARY coverage', () => {
   const expectedTypes: ComponentType[] = [
     'resistor',

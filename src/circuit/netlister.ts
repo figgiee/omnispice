@@ -3,11 +3,17 @@
  *
  * Converts a Circuit data model into a valid SPICE netlist string.
  * Pure function -- no side effects, no UI dependencies.
+ *
+ * Plan 05-03: supports single-level hierarchy via `.subckt` / `.ends`
+ * blocks. For each top-level component of type `subcircuit`, the
+ * netlister emits a `.subckt` block with the inner children and a
+ * top-level `X{N}` instantiation. Nested subcircuits are explicitly
+ * rejected (V1 decision #2).
  */
 
 import { COMPONENT_LIBRARY } from './componentLibrary';
 import { buildPortToNetMap, computeNets } from './graph';
-import type { AnalysisConfig, Circuit, Component } from './types';
+import type { AnalysisConfig, Circuit, Component, Wire } from './types';
 
 /**
  * Generate netlist AND return the netId → spiceName map.
@@ -31,34 +37,202 @@ export function generateNetlistWithMap(
 
 /**
  * Generate a complete SPICE netlist from a circuit and analysis config.
+ *
+ * Emission order (Plan 05-03):
+ *   1. Title comment
+ *   2. `.subckt` blocks for every top-level subcircuit component (one
+ *      per unique subcircuitName; duplicates share a single definition)
+ *   3. Top-level components (ground skipped, net_label skipped, plain
+ *      components emit their SPICE line, subcircuit blocks emit an
+ *      `X{ref}` instantiation line)
+ *   4. Analysis directive
+ *   5. Save directive
+ *   6. `.end`
  */
 export function generateNetlist(circuit: Circuit, config: AnalysisConfig): string {
   const lines: string[] = ['* OmniSpice Generated Netlist'];
 
-  // 1. Compute nets via union-find on connected ports
-  const nets = computeNets(circuit.components, circuit.wires);
-  const portToNet = buildPortToNetMap(nets);
+  // 1. Compute TOP-LEVEL nets (used for the top-level components + the
+  //    `X{ref}` subcircuit instantiation lines). Building this from the
+  //    full circuit is correct: inner wires still participate in the
+  //    union-find, but every inner port ends up sharing a net with its
+  //    parent subcircuit block's exposed port because `collapseSubcircuit`
+  //    re-points the boundary wire onto the exposed port.
+  const topNets = computeNets(circuit.components, circuit.wires);
+  const topPortToNet = buildPortToNetMap(topNets);
 
-  // 2. Emit component lines (skip ground -- it's implicit in net "0";
-  //    skip net_label -- it's a pseudo-component that only overrides the
-  //    net name via graph.computeNets, never emits SPICE primitives).
+  // 2. Emit `.subckt` blocks for every top-level subcircuit instance,
+  //    deduped by subcircuit name so two instances of the same shape
+  //    share one definition (standard SPICE practice).
+  const emittedSubNames = new Set<string>();
   for (const comp of circuit.components.values()) {
-    if (comp.type === 'ground') continue;
-    if (comp.type === 'net_label') continue;
-    const line = componentToSpiceLine(comp, portToNet);
-    if (line) {
-      lines.push(line);
-    }
+    if (comp.type !== 'subcircuit') continue;
+    if (comp.parentId) continue; // only top-level subcircuit blocks
+    const name = comp.subcircuitName ?? comp.value;
+    if (!name || emittedSubNames.has(name)) continue;
+    emittedSubNames.add(name);
+    const block = emitSubcircuitBlock(comp, circuit);
+    lines.push(...block);
   }
 
-  // 3. Emit analysis directive
+  // 3. Emit top-level components.
+  for (const comp of circuit.components.values()) {
+    if (comp.parentId) continue; // skip inner children
+    if (comp.type === 'ground') continue;
+    if (comp.type === 'net_label') continue;
+
+    if (comp.type === 'subcircuit') {
+      const line = subcircuitInstanceLine(comp, topPortToNet);
+      if (line) lines.push(line);
+      continue;
+    }
+
+    const line = componentToSpiceLine(comp, topPortToNet);
+    if (line) lines.push(line);
+  }
+
+  // 4. Analysis directive
   lines.push(analysisToDirective(config));
 
-  // 4. Emit save directive
+  // 5. Save directive
   lines.push(generateSaveDirective(circuit));
 
   lines.push('.end');
   return lines.join('\n');
+}
+
+/**
+ * Emit a single `.subckt ... .ends` block for a subcircuit component.
+ *
+ * Builds a self-contained sub-circuit over the block's children +
+ * internal wires, runs `computeNets` on that narrow view, and emits
+ * each child's SPICE line using net names scoped to the block. Internal
+ * net names are prefixed with the subcircuit ref so they never collide
+ * with top-level names.
+ *
+ * Throws if any child is itself a subcircuit (V1 single-level guard).
+ */
+function emitSubcircuitBlock(sub: Component, circuit: Circuit): string[] {
+  if (sub.type !== 'subcircuit') return [];
+  const childIds = sub.childComponentIds ?? [];
+  const exposedMap = sub.exposedPinMapping ?? {};
+
+  const children: Component[] = [];
+  for (const id of childIds) {
+    const c = circuit.components.get(id);
+    if (!c) continue;
+    // V1 guard: nested subcircuits are not supported. The UI path can't
+    // produce this (collapseSubcircuit refuses to collapse while nested),
+    // but an imported or constructed circuit could smuggle one in.
+    if (c.type === 'subcircuit') {
+      throw new Error(
+        `Nested subcircuit detected in '${sub.subcircuitName ?? sub.refDesignator}' — V1 supports single-level nesting only`,
+      );
+    }
+    children.push(c);
+  }
+
+  // Collect the internal wires: both endpoints must belong to the
+  // children's ports (NOT the subcircuit block's exposed ports).
+  const childPortIds = new Set<string>();
+  for (const c of children) {
+    for (const p of c.ports) childPortIds.add(p.id);
+  }
+  const innerWires = new Map<string, Wire>();
+  for (const w of circuit.wires.values()) {
+    if (childPortIds.has(w.sourcePortId) && childPortIds.has(w.targetPortId)) {
+      innerWires.set(w.id, w);
+    }
+  }
+
+  // Build a narrow component map so computeNets only sees the inside.
+  const innerComponents = new Map<string, Component>();
+  for (const c of children) innerComponents.set(c.id, c);
+
+  // Run union-find on the narrow view. The resulting nets cover every
+  // inner port; ports that were the inside-end of a boundary wire remain
+  // as their own singleton nets (no wires left to union them to anything
+  // else). Those are precisely the ports that map to exposed pins.
+  const innerNets = computeNets(innerComponents, innerWires);
+  const innerPortToNet = buildPortToNetMap(innerNets);
+
+  // Assign scoped SPICE names:
+  //   - Exposed pins (mapped inner port ids) become the .subckt formal
+  //     parameters `p_<name>`
+  //   - Everything else becomes `<subref>_net_<n>`
+  const exposedInnerIds = new Set(Object.values(exposedMap));
+  const formalName = (innerPortId: string): string => {
+    // Find the exposed port that maps to this inner id and use its name.
+    for (const [exposedId, innerId] of Object.entries(exposedMap)) {
+      if (innerId === innerPortId) {
+        const exposedPort = sub.ports.find((p) => p.id === exposedId);
+        return exposedPort ? `p_${exposedPort.name}` : `p_${exposedId.slice(0, 6)}`;
+      }
+    }
+    return `p_${innerPortId.slice(0, 6)}`;
+  };
+
+  const scopedNetName = new Map<string, string>();
+  let internalCounter = 1;
+  const subRef = sub.refDesignator.toLowerCase();
+  for (const net of innerNets.values()) {
+    // If ANY port in the net is an exposed inside port, the whole net
+    // takes the formal parameter name (so the inner line references the
+    // same identifier that appears in the `.subckt` header).
+    const exposedMatch = net.portIds.find((pid) => exposedInnerIds.has(pid));
+    if (exposedMatch) {
+      scopedNetName.set(net.id, formalName(exposedMatch));
+    } else {
+      scopedNetName.set(net.id, `${subRef}_net_${internalCounter++}`);
+    }
+  }
+
+  // Build a port->scopedName lookup for the SPICE emitter.
+  const scopedPortMap = new Map<string, string>();
+  for (const net of innerNets.values()) {
+    const name = scopedNetName.get(net.id) ?? '?';
+    for (const pid of net.portIds) scopedPortMap.set(pid, name);
+  }
+
+  // Header: `.subckt <name> <formal1> <formal2> ...` — ordered by the
+  // subcircuit block's port declaration order so the top-level X line
+  // lines up with `.subckt` pin-for-pin.
+  const formalParams: string[] = [];
+  for (const p of sub.ports) {
+    const innerId = exposedMap[p.id];
+    if (!innerId) continue;
+    const net = innerNets.get(innerPortToNet.get(innerId) ?? '');
+    // If computeNets classified the inner port into a net, use that
+    // net's scoped name; otherwise fall back to the formal name so
+    // parsing still succeeds.
+    const named = net ? (scopedNetName.get(net.id) ?? formalName(innerId)) : formalName(innerId);
+    formalParams.push(named);
+  }
+
+  const lines: string[] = [];
+  lines.push(`.subckt ${sub.subcircuitName ?? sub.value} ${formalParams.join(' ')}`.trimEnd());
+  for (const child of children) {
+    if (child.type === 'ground') continue;
+    if (child.type === 'net_label') continue;
+    const line = componentToSpiceLine(child, scopedPortMap);
+    if (line) lines.push(line);
+  }
+  lines.push('.ends');
+  return lines;
+}
+
+/**
+ * Emit the top-level `X{ref} net1 net2 ... subName` instantiation line
+ * for a subcircuit block. Ports on the block are already wired to
+ * top-level nets via `topPortToNet` because boundary wires terminate on
+ * the exposed ports.
+ */
+function subcircuitInstanceLine(sub: Component, topPortToNet: Map<string, string>): string {
+  if (sub.type !== 'subcircuit') return '';
+  const name = sub.subcircuitName ?? sub.value;
+  if (!name) return '';
+  const nets = sub.ports.map((p) => topPortToNet.get(p.id) ?? '?');
+  return `${sub.refDesignator} ${nets.join(' ')} ${name}`.replace(/\s+$/, '');
 }
 
 /**
@@ -77,7 +251,6 @@ export function componentToSpiceLine(component: Component, portToNet: Map<string
   const lib = COMPONENT_LIBRARY[component.type];
   if (!lib) return '';
 
-  const prefix = lib.spicePrefix;
   const ref = component.refDesignator;
 
   // Get net names for each port
@@ -176,6 +349,8 @@ export function componentToSpiceLine(component: Component, portToNet: Map<string
       return `${ref} ${netNames[0]} ${netNames[1]} ac ${component.value}`;
 
     default:
+      // Subcircuit instances are handled by `subcircuitInstanceLine`;
+      // `ground` and `net_label` are skipped at the top of generateNetlist.
       return '';
   }
 }
