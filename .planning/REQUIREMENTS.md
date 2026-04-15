@@ -113,7 +113,7 @@ Pillar decomposition for Phase 5 — the vision-ceiling target for the schematic
 - **EDIT-01**: Every pin carries a `pinType` (signal / power / ground / supply) and `direction` (in / out / inout); the 12 existing node components declare pin metadata statically and the netlister reads from it
 - **EDIT-02**: Dragging a wire from a pin highlights every other visible pin with one of three compat states (`ok` green + pulse, `neutral` gray shrunk, `error` red with diagonal slash). Connection is never blocked — the slash is pedagogical feedback only
 - **EDIT-03**: User can type a name while a wire is selected to drop a net label; label is a `net-label` node type; every wire in the same electrical net re-labels automatically
-- **EDIT-04**: `Ctrl+G` collapses the current selection into a subcircuit node with auto-derived exposed pins; double-click descends with a breadcrumb; `Esc` or breadcrumb `Home` ascends. V1 ships single-level nesting only
+- [x] **EDIT-04**: `Ctrl+G` collapses the current selection into a subcircuit node with auto-derived exposed pins; double-click descends with a breadcrumb; `Esc` or breadcrumb `Home` ascends. V1 ships single-level nesting only
 - **EDIT-05**: Orthogonal wire routing produces readable schematics on a 20+ component reference circuit (Playwright visual-regression baseline); no wire overlaps a component body; all segments are H or V except explicit `Shift`-drag diagonals
 
 #### Pillar 2 — Modelessness
@@ -265,7 +265,7 @@ Phase 5 v1 ships a **deterministic rules engine** with passive badges. The older
 | EDIT-01 | Phase 5 — Editor Craft and Collaboration | v2 (Plan 05-02) |
 | EDIT-02 | Phase 5 — Editor Craft and Collaboration | v2 (Plan 05-02) |
 | EDIT-03 | Phase 5 — Editor Craft and Collaboration | v2 (Plan 05-02) |
-| EDIT-04 | Phase 5 — Editor Craft and Collaboration | v2 (Plan 05-03) |
+| EDIT-04 | Phase 5 — Editor Craft and Collaboration | Completed (05-03) |
 | EDIT-05 | Phase 5 — Editor Craft and Collaboration | v2 (Plan 05-02) |
 | EDIT-06 | Phase 5 — Editor Craft and Collaboration | v2 (Plan 05-06) |
 | EDIT-07 | Phase 5 — Editor Craft and Collaboration | v2 (Plan 05-05) |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-07-PLAN.md (hover tooltip + OKLab wire colouring + sweep fan-out)
-last_updated: "2026-04-15T06:14:02.376Z"
+stopped_at: Completed 05-03-PLAN.md (subcircuits single-level hierarchy)
+last_updated: "2026-04-15T06:17:02.464Z"
 last_activity: 2026-04-15
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 37
-  completed_plans: 33
+  completed_plans: 34
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 ## Current Position
 
 Phase: 05 (collaboration-and-polish) — EXECUTING
-Plan: 7 of 11
+Plan: 8 of 11
 Status: Ready to execute
 Last activity: 2026-04-15
 
@@ -74,6 +74,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05-collaboration-and-polish P10 | 45min | 5 tasks | 18 files |
 | Phase 05-collaboration-and-polish P05 | 40min | 5 tasks | 14 files |
 | Phase 05-collaboration-and-polish P07 | 45min | 6 tasks | 22 files |
+| Phase 05-collaboration-and-polish P03 | 21min | 5 tasks | 20 files |
 
 ## Accumulated Context
 
@@ -165,6 +166,8 @@ Recent decisions affecting current work:
 - [Phase 05-collaboration-and-polish]: Plan 05-07: wireVoltages keyed by SPICE net name (not wire id) and simStatus transitions (not-run/computing/live/stale/error) live on overlayStore; orchestrator emits both alongside edgeVoltages so WireEdge + HoverTooltip read the same source of truth
 - [Phase 05-collaboration-and-polish]: Plan 05-07: rejected @floating-ui/react (plan referenced it as 'already installed' but it never was); HoverTooltip uses fixed-position div + delegated document mouseover/mouseout listeners filtered by .react-flow__node data-id for zero-per-node-prop overhead
 - [Phase 05-collaboration-and-polish]: Plan 05-07: window.matchMedia jsdom polyfill added to src/test/setup.ts — fixes pre-existing AssignmentPage.test.tsx crash that went latent when WaveformViewer started importing SweepFanOut and transitively pulling uPlot into the test graph
+- [Phase 05-collaboration-and-polish]: Plan 05-03: Subcircuits use per-instance exposed pin derivation from boundary wires; currentSubcircuitId lives in uiStore (never in zundo) because descending is a view operation not an undoable mutation
+- [Phase 05-collaboration-and-polish]: Plan 05-03: .subckt internal nets are namespaced {subref}_net_N; formal parameters use exposed-port names so block header and X{ref} line up pin-for-pin; nested subcircuits throw at netlister (defense-in-depth beyond UI guard)
 
 ### Pending Todos
 
@@ -183,6 +186,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-15T06:14:02.373Z
-Stopped at: Completed 05-07-PLAN.md (hover tooltip + OKLab wire colouring + sweep fan-out)
+Last session: 2026-04-15T06:16:53.583Z
+Stopped at: Completed 05-03-PLAN.md (subcircuits single-level hierarchy)
 Resume file: None
