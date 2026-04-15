@@ -49,6 +49,22 @@ export interface CircuitState {
   addComponent: (type: ComponentType, position: { x: number; y: number }) => string;
   removeComponent: (id: string) => void;
   updateComponentValue: (id: string, value: string) => void;
+  /**
+   * Plan 05-05 — set an arbitrary named parameter on a component. If
+   * `paramName === 'value'` this is equivalent to `updateComponentValue`.
+   * Otherwise it writes into `component.parameters[paramName]`. Used by
+   * the inline parameter chip to edit multi-parameter components (sources,
+   * op-amps, etc.) without a dedicated per-field action per component type.
+   */
+  updateComponentParam: (id: string, paramName: string, value: string) => void;
+  /**
+   * Plan 05-05 — record a sweep range on a component. Stored inline on
+   * `component.parameters.__sweep` as a CSV "min,max,steps" string. The
+   * tiered simulation orchestrator + fan-out waveform renderer will
+   * consume this in Plan 05-07; this plan just writes it so the shift-drag
+   * sweep gesture has somewhere to land.
+   */
+  setSweepParam: (id: string, range: { min: number; max: number; steps: number }) => void;
   updateComponentPosition: (id: string, position: { x: number; y: number }) => void;
   rotateComponent: (id: string) => void;
   addWire: (sourcePortId: string, targetPortId: string) => string;
@@ -190,6 +206,41 @@ export const useCircuitStore = create<CircuitState>()(
 
             const components = new Map(s.circuit.components);
             components.set(id, { ...comp, value });
+            return {
+              circuit: { ...s.circuit, components },
+            };
+          });
+        },
+
+        updateComponentParam: (id, paramName, value) => {
+          set((s) => {
+            const comp = s.circuit.components.get(id);
+            if (!comp) return s;
+
+            const components = new Map(s.circuit.components);
+            if (paramName === 'value') {
+              components.set(id, { ...comp, value });
+            } else {
+              const parameters = { ...(comp.parameters ?? {}), [paramName]: value };
+              components.set(id, { ...comp, parameters });
+            }
+            return {
+              circuit: { ...s.circuit, components },
+            };
+          });
+        },
+
+        setSweepParam: (id, range) => {
+          set((s) => {
+            const comp = s.circuit.components.get(id);
+            if (!comp) return s;
+
+            const components = new Map(s.circuit.components);
+            const parameters = {
+              ...(comp.parameters ?? {}),
+              __sweep: `${range.min},${range.max},${range.steps}`,
+            };
+            components.set(id, { ...comp, parameters });
             return {
               circuit: { ...s.circuit, components },
             };
