@@ -55,6 +55,7 @@ import { useNetLabelInput } from './hooks/useNetLabelInput';
 import { useTypeToPlace } from './hooks/useTypeToPlace';
 import { useWireRouting } from './hooks/useWireRouting';
 import { ValidationWarnings } from './overlays/ValidationWarnings';
+import { QuickPlaceMenu, type QuickPlaceMenuTarget } from './QuickPlaceMenu';
 import { useWireDragStore } from './stores/wireDragStore';
 
 /** MIME type for drag-and-drop component transfers from sidebar. */
@@ -114,9 +115,13 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
 
   // Context menu state
   const [contextMenu, setContextMenu] = useState<ContextMenuTarget | null>(null);
+  // Quick-place menu state (wire-drop on empty space / right-click canvas)
+  const [quickPlace, setQuickPlace] = useState<QuickPlaceMenuTarget | null>(null);
 
   // Ref to track the highlight timeout for cleanup
   const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Flag set by handleConnect so handleConnectEnd knows it was a successful connection
+  const didConnectRef = useRef(false);
 
   // Canvas hooks
   const { onDragOver } = useCanvasInteractions();
@@ -237,6 +242,7 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
         const targetPort = targetComp?.ports.find((p) => p.name === connection.targetHandle);
         if (sourcePort && targetPort) {
           addWire(sourcePort.id, targetPort.id);
+          didConnectRef.current = true;
         }
       }
       onConnect(connection);
@@ -268,9 +274,33 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
     [getNode],
   );
 
-  const handleConnectEnd = useCallback(() => {
-    useWireDragStore.getState().end();
-  }, []);
+  const handleConnectEnd = useCallback(
+    (event: MouseEvent | TouchEvent) => {
+      const { sourcePortId, sourcePinType } = useWireDragStore.getState();
+      useWireDragStore.getState().end();
+
+      // onConnect fires before onConnectEnd on a successful drop — skip the menu in that case.
+      if (didConnectRef.current) {
+        didConnectRef.current = false;
+        return;
+      }
+
+      // Wire dropped on empty space → show QuickPlaceMenu filtered by source pin type.
+      if (sourcePortId && sourcePinType) {
+        const e = event as MouseEvent;
+        const flowPos = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+        setQuickPlace({
+          screenX: e.clientX,
+          screenY: e.clientY,
+          flowX: flowPos.x,
+          flowY: flowPos.y,
+          sourcePortId,
+          sourcePinType,
+        });
+      }
+    },
+    [screenToFlowPosition],
+  );
 
   const isValidConnection = useCallback(() => true, []);
 
@@ -289,7 +319,8 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
       event.preventDefault();
       const e = event as React.MouseEvent;
       const flowPos = screenToFlowPosition({ x: e.clientX, y: e.clientY });
-      setContextMenu({ x: e.clientX, y: e.clientY, flowX: flowPos.x, flowY: flowPos.y });
+      // Open QuickPlaceMenu (searchable) instead of the static context menu
+      setQuickPlace({ screenX: e.clientX, screenY: e.clientY, flowX: flowPos.x, flowY: flowPos.y });
     },
     [screenToFlowPosition],
   );
@@ -506,6 +537,7 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
       {contextMenu && (
         <CanvasContextMenu target={contextMenu} onClose={() => setContextMenu(null)} />
       )}
+      {quickPlace && <QuickPlaceMenu target={quickPlace} onClose={() => setQuickPlace(null)} />}
     </div>
   );
 }
