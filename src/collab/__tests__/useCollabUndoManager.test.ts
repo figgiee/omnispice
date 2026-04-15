@@ -10,8 +10,9 @@
  *   6. redoCollab delegates to Y.UndoManager when active
  */
 
-import * as Y from 'yjs';
+import { renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import * as Y from 'yjs';
 
 // ---------------------------------------------------------------------------
 // Module-level mocks
@@ -141,10 +142,10 @@ describe('createCircuitUndoManager', () => {
   it('undoCollab falls through to zundo when no Y.UndoManager is active', async () => {
     const { useCollabUndoManager } = await import('../useCollabUndoManager');
 
-    const result = useCollabUndoManager(null);
+    const { result } = renderHook(() => useCollabUndoManager(null));
 
     // No yDoc → no Y.UndoManager created → should fall back to zundo
-    result.undoCollab();
+    result.current.undoCollab();
 
     expect(mockTemporalState.undo).toHaveBeenCalledTimes(1);
     expect(mockTemporalState.pause).not.toHaveBeenCalled();
@@ -178,8 +179,8 @@ describe('createCircuitUndoManager', () => {
     expect(mockTemporalState.resume).toHaveBeenCalledTimes(1);
 
     // useCollabUndoManager itself still works
-    const result = useCollabUndoManager(null);
-    expect(typeof result.undoCollab).toBe('function');
+    const { result } = renderHook(() => useCollabUndoManager(null));
+    expect(typeof result.current.undoCollab).toBe('function');
   });
 
   it('redoCollab delegates to Y.UndoManager when active', async () => {
@@ -244,9 +245,9 @@ describe('useCollabUndoManager hook', () => {
   it('redoCollab falls through to zundo when no Y.UndoManager is active', async () => {
     const { useCollabUndoManager } = await import('../useCollabUndoManager');
 
-    const result = useCollabUndoManager(null);
+    const { result } = renderHook(() => useCollabUndoManager(null));
 
-    result.redoCollab();
+    result.current.redoCollab();
 
     expect(mockTemporalState.redo).toHaveBeenCalledTimes(1);
   });
