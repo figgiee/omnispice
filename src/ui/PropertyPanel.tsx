@@ -5,11 +5,11 @@
  * rotation, SPICE model. Includes SPICE model import (COMP-08).
  */
 
-import { useRef, useCallback } from 'react';
-import { useUiStore } from '@/store/uiStore';
-import { useCircuitStore } from '@/store/circuitStore';
+import { useCallback, useRef } from 'react';
 import { COMPONENT_LIBRARY } from '@/circuit/componentLibrary';
 import type { SimulationController } from '@/simulation/controller';
+import { useCircuitStore } from '@/store/circuitStore';
+import { useUiStore } from '@/store/uiStore';
 import styles from './PropertyPanel.module.css';
 
 interface PropertyPanelProps {
@@ -46,7 +46,7 @@ export function PropertyPanel({ controller }: PropertyPanelProps) {
       // Reset input so same file can be re-selected
       e.target.value = '';
     },
-    [controller]
+    [controller],
   );
 
   const handleValueChange = useCallback(
@@ -54,16 +54,14 @@ export function PropertyPanel({ controller }: PropertyPanelProps) {
       if (!selectedId) return;
       updateComponentValue(selectedId, e.target.value);
     },
-    [selectedId, updateComponentValue]
+    [selectedId, updateComponentValue],
   );
 
   // Empty state when no component selected
   if (!component) {
     return (
       <div className={styles.container}>
-        <div className={styles.emptyState}>
-          Select a component to view its properties.
-        </div>
+        <div className={styles.emptyState}>Select a component to view its properties.</div>
       </div>
     );
   }
@@ -86,7 +84,8 @@ export function PropertyPanel({ controller }: PropertyPanelProps) {
     <div className={styles.container}>
       <div className={styles.header}>
         <span className={styles.refDesignator}>{component.refDesignator}</span>
-        <span className={styles.componentType}>{def?.name ?? component.type}</span>
+        <span className={styles.componentType}>Component details</span>
+        <span className={styles.componentType}>· {def?.name ?? component.type}</span>
       </div>
 
       <div className={styles.fieldGroup}>
