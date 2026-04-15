@@ -34,9 +34,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
+import { setCollabActive, useCircuitStore } from '@/store/circuitStore';
 import type { PeerUser } from '@/store/presenceStore';
 import { type PeerState, usePresenceStore } from '@/store/presenceStore';
-import { setCollabActive, useCircuitStore } from '@/store/circuitStore';
 import { bindCircuitToYjs } from './circuitBinding';
 import { useCollabUndoManager } from './useCollabUndoManager';
 import { useYIndexedDB } from './useYIndexedDB';
@@ -55,9 +55,7 @@ function isCollabEnabled(): boolean {
 }
 
 function collabWsUrl(): string {
-  return (
-    (import.meta.env?.VITE_COLLAB_WS_URL as string | undefined) ?? DEFAULT_WS_URL
-  );
+  return (import.meta.env?.VITE_COLLAB_WS_URL as string | undefined) ?? DEFAULT_WS_URL;
 }
 
 /**
@@ -87,7 +85,10 @@ function assignPresenceColor(userId: string): string {
 export function useCollabProvider(
   circuitId: string | null,
   user: CollabUser | null,
-): { providerRef: React.RefObject<WebsocketProvider | null>; docRef: React.RefObject<Y.Doc | null> } {
+): {
+  providerRef: React.RefObject<WebsocketProvider | null>;
+  docRef: React.RefObject<Y.Doc | null>;
+} {
   const providerRef = useRef<WebsocketProvider | null>(null);
   const docRef = useRef<Y.Doc | null>(null);
 
@@ -197,12 +198,18 @@ export function useCollabProvider(
       // Tear down any prior binding before installing a fresh one.
       bindCleanupRef.current?.();
       bindCleanupRef.current = bindCircuitToYjs(doc, useCircuitStore);
+      // Testing hook: signal to Playwright that the Yjs provider is synced.
+      // This attribute is read by E2E specs (phase6/crdt.spec.ts) via
+      // waitForFunction(() => document.querySelector('[data-collab-connected="true"]') !== null)
+      // It has no effect on production behavior.
+      document.documentElement.setAttribute('data-collab-connected', 'true');
     };
     provider.on('sync', onSync);
 
     return () => {
       provider.off('sync', onSync);
       provider.awareness.off('change', onAwarenessChange);
+      document.documentElement.removeAttribute('data-collab-connected');
 
       // Plan 06-04 — tear down binding before destroying provider/doc.
       bindCleanupRef.current?.();
@@ -233,18 +240,11 @@ export function useCollabProvider(
 // functions so they can be throttled/debounced at the call site without
 // fighting React closures.
 
-export function publishCursor(
-  provider: WebsocketProvider | null,
-  x: number,
-  y: number,
-): void {
+export function publishCursor(provider: WebsocketProvider | null, x: number, y: number): void {
   provider?.awareness.setLocalStateField('cursor', { x, y });
 }
 
-export function publishSelection(
-  provider: WebsocketProvider | null,
-  ids: string[],
-): void {
+export function publishSelection(provider: WebsocketProvider | null, ids: string[]): void {
   provider?.awareness.setLocalStateField('selection', ids);
 }
 

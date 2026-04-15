@@ -24,6 +24,7 @@ export default defineConfig({
         /phase-04\/.*\.spec\.ts$/,
         /phase5\/.*\.spec\.ts$/,
         /phase5-offline\/.*\.spec\.ts$/,
+        /phase6\/.*\.spec\.ts$/,
       ],
     },
     {
@@ -61,6 +62,20 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         baseURL: 'http://localhost:4173',
+      },
+    },
+    {
+      // Phase 6 Circuit CRDT E2E suite (Plan 06-05).
+      // Single-browser smoke tests run against pnpm dev (port 5175).
+      // Two-browser CRDT sync tests require wrangler dev (port 8787) and
+      // are skipped in CI via process.env.CI guard in the spec.
+      //
+      // Run with: pnpm exec playwright test --project=phase6
+      name: 'phase6',
+      testMatch: /phase6\/.*\.spec\.ts$/,
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:5175',
       },
     },
   ],
