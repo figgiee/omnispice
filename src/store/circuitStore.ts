@@ -500,6 +500,15 @@ export const useCircuitStore = create<CircuitState>()(
         },
 
         collapseSubcircuit: (componentIds, name, isNested) => {
+          // Plan 06-04 — collab guard: subcircuit topology changes are not
+          // CRDT-safe in Phase 6. The action is a no-op during live sessions.
+          if (collabActive) {
+            console.warn(
+              '[OmniSpice] collapseSubcircuit is disabled during a collaboration session. ' +
+                'Subcircuit collapse is not CRDT-safe. Disconnect to collapse.',
+            );
+            return null;
+          }
           // Silent no-op per UI-SPEC §9.3: empty selection or single-item.
           if (componentIds.length < 2) return null;
           // V1 single-level guard (Plan 05-03 locked decision #2): callers
@@ -716,3 +725,99 @@ export const useCircuitStore = create<CircuitState>()(
     },
   ),
 );
+
+// ---------------------------------------------------------------------------
+// Plan 06-04 — Exported helpers for CRDT conflict resolution
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolves concurrent refDesignator collisions that can arise when two peers
+ * call addComponent simultaneously with the same component type.
+ *
+ * The conflict scenario: both clients generate 'R1'. After CRDT merge both
+ * entries exist in Y.Map under different UUIDs, but the displayed
+ * refDesignator of both components is 'R1'.
+ *
+ * Resolution: sort the conflicting components deterministically by their UUID
+ * (UUIDs are globally unique and comparable as strings), keep the
+ * lexicographically-first UUID's designator, and auto-increment the rest.
+ *
+ * This function is pure — it takes the current components Map and returns a
+ * corrected Map without mutating either. Callers (e.g. the yComponents
+ * observer in circuitBinding.ts) apply it after each remote sync and write
+ * the corrected Map back to Zustand via setState.
+ *
+ * Known limitation (documented): there is a sub-100 ms window between a
+ * remote add arriving via Y.Map observe and this function running where
+ * duplicate designators can briefly coexist in the UI. This is acceptable
+ * for Phase 6 v1 — the correction fires on the next microtask tick.
+ */
+export function resolveRefDesignatorConflicts(
+  components: Map<string, import('@/circuit/types').Component>,
+): Map<string, import('@/circuit/types').Component> {
+  // Group component IDs by their current refDesignator.
+  const byRef = new Map<string, string[]>();
+  for (const [id, comp] of components) {
+    const existing = byRef.get(comp.refDesignator);
+    if (existing) {
+      existing.push(id);
+    } else {
+      byRef.set(comp.refDesignator, [id]);
+    }
+  }
+
+  // Find groups with more than one component — those are collisions.
+  let hasConflicts = false;
+  for (const ids of byRef.values()) {
+    if (ids.length > 1) {
+      hasConflicts = true;
+      break;
+    }
+  }
+  if (!hasConflicts) return components;
+
+  const result = new Map(components);
+
+  for (const [ref, ids] of byRef) {
+    if (ids.length <= 1) continue;
+
+    // Sort by UUID for a deterministic cross-client winner. The
+    // lexicographically-smallest UUID keeps the original designator;
+    // the rest get auto-incremented suffixes.
+    ids.sort();
+
+    // Extract the numeric suffix and SPICE prefix from the winning ref.
+    const match = /^([A-Za-z_]+)(\d+)$/.exec(ref);
+    if (!match) continue;
+    // match[1] and match[2] are guaranteed non-undefined by the regex groups above.
+    const prefix = match[1] as string;
+    const winningNumber = parseInt(match[2] as string, 10);
+
+    // Collect all currently-used numbers for this prefix to avoid further
+    // collisions when assigning incremented designators.
+    const usedNumbers = new Set<number>();
+    for (const comp of result.values()) {
+      const m = /^([A-Za-z_]+)(\d+)$/.exec(comp.refDesignator);
+      if (m && m[1] === prefix && m[2] !== undefined) {
+        usedNumbers.add(parseInt(m[2], 10));
+      }
+    }
+
+    // The first (winner) keeps its designator; losers get the next free number.
+    for (let i = 1; i < ids.length; i++) {
+      const loserId = ids[i];
+      if (!loserId) continue;
+      const loser = result.get(loserId);
+      if (!loser) continue;
+
+      // Find next free number above the winning one.
+      let next = winningNumber + 1;
+      while (usedNumbers.has(next)) next++;
+      usedNumbers.add(next);
+
+      result.set(loserId, { ...loser, refDesignator: `${prefix}${next}` });
+    }
+  }
+
+  return result;
+}

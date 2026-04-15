@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it } from 'vitest';
-import { useCircuitStore } from '../circuitStore';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { setCollabActive, useCircuitStore } from '../circuitStore';
 
 function resetStore() {
   useCircuitStore.setState({
@@ -341,6 +341,43 @@ describe('circuitStore', () => {
       }
       // Wire count preserved
       expect(after.wires.size).toBe(originalWireCount);
+    });
+  });
+
+  describe('collapseSubcircuit — collab guard (Plan 06-04)', () => {
+    it('returns null and warns when collabActive is true', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const r1 = useCircuitStore.getState().addComponent('resistor', { x: 0, y: 0 });
+      const r2 = useCircuitStore.getState().addComponent('resistor', { x: 100, y: 0 });
+
+      setCollabActive(true);
+      const result = useCircuitStore.getState().collapseSubcircuit([r1, r2], 'TestSub');
+
+      expect(result).toBeNull();
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('collapseSubcircuit is disabled during a collaboration session'),
+      );
+      // Circuit must be unchanged — no subcircuit component added.
+      const state = useCircuitStore.getState();
+      const types = [...state.circuit.components.values()].map((c) => c.type);
+      expect(types).not.toContain('subcircuit');
+
+      setCollabActive(false);
+      warnSpy.mockRestore();
+    });
+
+    it('proceeds normally when collabActive is false', () => {
+      const r1 = useCircuitStore.getState().addComponent('resistor', { x: 0, y: 0 });
+      const r2 = useCircuitStore.getState().addComponent('resistor', { x: 100, y: 0 });
+
+      setCollabActive(false);
+      const subId = useCircuitStore.getState().collapseSubcircuit([r1, r2], 'TestSub');
+
+      expect(subId).not.toBeNull();
+      if (!subId) throw new Error('expected subId to be non-null');
+      const sub = useCircuitStore.getState().circuit.components.get(subId);
+      expect(sub?.type).toBe('subcircuit');
     });
   });
 });
