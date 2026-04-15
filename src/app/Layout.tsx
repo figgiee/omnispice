@@ -208,11 +208,11 @@ function LayoutContent() {
       <Group orientation="horizontal" className={styles.outerGroup}>
         {/* Sidebar panel */}
         <Panel
-          defaultSize={240}
-          minSize={200}
-          maxSize={320}
+          defaultSize="240px"
+          minSize="200px"
+          maxSize="320px"
           collapsible
-          collapsedSize={40}
+          collapsedSize="40px"
           panelRef={sidebarPanelRef}
           onResize={(size) => {
             if (size.inPixels < 50 && !sidebarCollapsed) {
@@ -248,11 +248,11 @@ function LayoutContent() {
               <Separator className={`${styles.resizeHandle} ${styles.resizeHandleVertical}`} />
 
               <Panel
-                defaultSize={280}
-                minSize={80}
+                defaultSize="280px"
+                minSize="80px"
                 maxSize="55%"
                 collapsible
-                collapsedSize={32}
+                collapsedSize="32px"
                 panelRef={bottomPanelRef}
               >
                 <BottomPanel controller={controller} />
