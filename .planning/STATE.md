@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 06-circuit-crdt-06-03-PLAN.md
-last_updated: "2026-04-15T08:21:40.876Z"
+status: verifying
+stopped_at: Completed 06-circuit-crdt 06-04-PLAN.md
+last_updated: "2026-04-15T08:30:22.177Z"
 last_activity: 2026-04-15
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 42
-  completed_plans: 40
+  completed_plans: 41
   percent: 0
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 
 Phase: 05 (collaboration-and-polish) — EXECUTING
 Plan: 11 of 11
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-15
 
 Progress: [░░░░░░░░░░] 0%
@@ -78,6 +78,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05-collaboration-and-polish P11 | 9 | 5 tasks | 10 files |
 | Phase 06-circuit-crdt P01 | 25 | 3 tasks | 3 files |
 | Phase 06-circuit-crdt P03 | 15m | 1 tasks | 4 files |
+| Phase 06-circuit-crdt P04 | 327 | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -178,6 +179,9 @@ Recent decisions affecting current work:
 - [Phase 06-circuit-crdt]: bindCircuitToYjs takes StoreApi parameter (not singleton) to enable isolated test stores
 - [Phase 06-circuit-crdt]: collabActive is a module-level flag (not Zustand state) to avoid circular dependency between store and collab layer
 - [Phase 06-circuit-crdt]: IDB key circuit-${circuitId} for y-indexeddb vs omnispice-circuit for Zustand persist ensures no slot collision
+- [Phase 06-circuit-crdt]: activeYDoc state (not ref) drives useYIndexedDB and useCollabUndoManager reactively in useCollabProvider
+- [Phase 06-circuit-crdt]: bindCircuitToYjs called inside provider sync event to ensure server state wins before local writes propagate
+- [Phase 06-circuit-crdt]: useCollabProvider returns { providerRef, docRef } so Canvas accesses Y.Doc for onNodeDragStop without a context
 
 ### Pending Todos
 
@@ -196,6 +200,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-15T08:21:40.873Z
-Stopped at: Completed 06-circuit-crdt-06-03-PLAN.md
+Last session: 2026-04-15T08:30:22.174Z
+Stopped at: Completed 06-circuit-crdt 06-04-PLAN.md
 Resume file: None
