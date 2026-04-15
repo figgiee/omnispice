@@ -40,11 +40,12 @@
 
 import { buildPortToNetMap, computeNets } from '@/circuit/graph';
 import { generateNetlistWithMap } from '@/circuit/netlister';
-import type { AnalysisConfig, Circuit } from '@/circuit/types';
+import type { AnalysisConfig, Circuit, Component } from '@/circuit/types';
 import { useOverlayStore } from '@/overlay/overlayStore';
 import { useCircuitStore } from '@/store/circuitStore';
 import { useSimulationStore } from '@/store/simulationStore';
 import type { VectorData } from './protocol';
+import { linearSamples, netlistWithSubstitution } from './sweepHelpers';
 import {
   type AcParams,
   TieredSimulationController,
@@ -87,6 +88,37 @@ function hasAcSource(circuit: Circuit): boolean {
     if (comp.type === 'ac_voltage' || comp.type === 'ac_current') return true;
   }
   return false;
+}
+
+/**
+ * Plan 05-07 — find a component with a `__sweep` parameter tag.
+ *
+ * The sweep contract is a lightweight string: the scrubber (Plan 05-05)
+ * or a future parameter-knob UI sets `component.parameters.__sweep =
+ * "min,max,steps"` when the user wants to fan-out the result. The
+ * orchestrator picks the FIRST matching component (one-parameter sweep
+ * only in V1; 2-D sweeps are deferred).
+ *
+ * Returns `null` when no sweep is requested — the fan-out lane stays
+ * idle in that case.
+ */
+interface SweepRequest {
+  component: Component;
+  min: number;
+  max: number;
+  steps: number;
+}
+function findSweepRequest(circuit: Circuit): SweepRequest | null {
+  for (const comp of circuit.components.values()) {
+    const spec = comp.parameters?.__sweep;
+    if (!spec) continue;
+    const parts = spec.split(',').map((s) => Number(s.trim()));
+    if (parts.length !== 3 || parts.some((n) => !Number.isFinite(n))) continue;
+    const [min, max, stepsRaw] = parts as [number, number, number];
+    const steps = Math.max(1, Math.floor(stepsRaw));
+    return { component: comp, min, max, steps };
+  }
+  return null;
 }
 
 /**
@@ -184,6 +216,45 @@ function driveStoreChange(circuit: Circuit): void {
       .catch(() => {
         // silent
       });
+  }
+
+  // Lane 4: Parameter sweep fan-out — only if a component carries a
+  // `__sweep` tag. Fires in parallel with the DC lane; each sample point
+  // hits the TieredSimulationController's sweep cache so repeated scrubs
+  // are free after the first pass.
+  const sweepReq = findSweepRequest(circuit);
+  if (sweepReq) {
+    const { component: sweepComp, min, max, steps } = sweepReq;
+    const values = linearSamples(min, max, steps);
+    const refDesignator = sweepComp.refDesignator;
+    const paramName = `${refDesignator}.value`;
+    const samplePromises = values.map((v) => {
+      const swapped = netlistWithSubstitution(netlist, refDesignator, v);
+      // `controller` is non-null here because the early return at the top
+      // of driveStoreChange guards it — but TypeScript can't narrow
+      // through the .map closure so we alias to a local.
+      const ctrl = controller;
+      if (!ctrl) return Promise.resolve<VectorData[]>([]);
+      return ctrl.runSweepPoint(swapped, refDesignator, v);
+    });
+    Promise.all(samplePromises)
+      .then((allVectors) => {
+        useSimulationStore.getState().setSweepResults({
+          componentId: sweepComp.id,
+          paramName,
+          values,
+          vectors: allVectors,
+        });
+      })
+      .catch((err: Error) => {
+        console.debug('[orchestrator] sweep fan-out failed:', err.message);
+      });
+  } else {
+    // No sweep on this circuit — make sure any stale results disappear
+    // so SweepFanOut can unmount cleanly.
+    if (useSimulationStore.getState().sweepResults !== null) {
+      useSimulationStore.getState().setSweepResults(null);
+    }
   }
 }
 

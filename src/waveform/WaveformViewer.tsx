@@ -7,14 +7,15 @@
  * oscilloscope-style waveform traces.
  */
 
-import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import uPlot from 'uplot';
 import 'uplot/dist/uPlot.min.css';
 import { useSimulationStore } from '@/store/simulationStore';
 import { useCursor } from './hooks/useCursor';
-import { useMeasurements } from './hooks/useMeasurements';
 import type { MeasurementType } from './hooks/useMeasurements';
+import { useMeasurements } from './hooks/useMeasurements';
 import { formatValue } from './measurements';
+import { SweepFanOut } from './SweepFanOut';
 import styles from './WaveformViewer.module.css';
 
 /**
@@ -67,26 +68,23 @@ export function WaveformViewer() {
   const measureState = useMeasurements(results, selectedSignal);
 
   // Toggle signal visibility in legend (D-25)
-  const toggleSignal = useCallback(
-    (index: number) => {
-      setVisibleSignals((prev) => {
-        const next = new Set(prev);
-        if (next.has(index)) {
-          next.delete(index);
-        } else {
-          next.add(index);
-        }
+  const toggleSignal = useCallback((index: number) => {
+    setVisibleSignals((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
 
-        // Update uPlot series visibility
-        if (plotRef.current) {
-          plotRef.current.setSeries(index, { show: !prev.has(index) });
-        }
+      // Update uPlot series visibility
+      if (plotRef.current) {
+        plotRef.current.setSeries(index, { show: !prev.has(index) });
+      }
 
-        return next;
-      });
-    },
-    [],
-  );
+      return next;
+    });
+  }, []);
 
   // Select signal for measurements
   const selectSignal = useCallback((index: number) => {
@@ -153,7 +151,7 @@ export function WaveformViewer() {
           ticks: { stroke: '#1e2d52', width: 1 },
           font: '12px "JetBrains Mono Variable", Consolas, monospace',
           labelFont: '11px "Inter Variable", sans-serif',
-          label: results[0]?.unit === 's' ? 'Time (s)' : results[0]?.name ?? '',
+          label: results[0]?.unit === 's' ? 'Time (s)' : (results[0]?.name ?? ''),
         },
         {
           stroke: '#9fa8c4',
@@ -232,10 +230,14 @@ export function WaveformViewer() {
     cursorState.clearCursors();
   }, [cursorState]);
 
-  // Empty state: no simulation results
+  // Empty state: no simulation results. A parameter sweep may still be
+  // active (the fan-out lane populates its own store slot) — render the
+  // SweepFanOut so the student can see the family of curves even before
+  // they've committed a separate transient/AC run.
   if (results.length === 0) {
     return (
       <div className={styles.container}>
+        <SweepFanOut />
         <div className={styles.emptyState}>
           No simulation data yet. Run a simulation to see waveforms here.
         </div>
@@ -245,6 +247,10 @@ export function WaveformViewer() {
 
   return (
     <div className={styles.container}>
+      {/* Plan 05-07 — parameter-sweep fan-out renders above the main
+          waveform when sweepResults is populated. Returns null otherwise,
+          so the main chart layout is untouched in the normal path. */}
+      <SweepFanOut />
       {/* Chart area */}
       <div
         ref={chartRef}
@@ -277,14 +283,11 @@ export function WaveformViewer() {
             {formatValue(Math.abs(cursorState.deltaTime), results[0]?.unit ?? '')}
           </div>
           {cursorState.cursor2Values.map((cv) => {
-            const v1 = cursorState.cursor1Values.find(
-              (v) => v.signalName === cv.signalName,
-            );
+            const v1 = cursorState.cursor1Values.find((v) => v.signalName === cv.signalName);
             if (!v1) return null;
             return (
               <div key={cv.signalName}>
-                Delta {cv.signalName}:{' '}
-                {formatValue(Math.abs(cv.value - v1.value), cv.unit)}
+                Delta {cv.signalName}: {formatValue(Math.abs(cv.value - v1.value), cv.unit)}
               </div>
             );
           })}
@@ -293,10 +296,7 @@ export function WaveformViewer() {
 
       {/* Measurement overlays (D-28) */}
       {measureState.measurements.length > 0 && (
-        <div
-          className={styles.measurementOverlay}
-          style={{ bottom: 80, right: 8 }}
-        >
+        <div className={styles.measurementOverlay} style={{ bottom: 80, right: 8 }}>
           {measureState.measurements.map((m) => (
             <div key={m.type}>{m.result.formatted}</div>
           ))}
@@ -336,9 +336,7 @@ export function WaveformViewer() {
                 selectSignal(signalIdx);
               }}
               style={
-                isSelected
-                  ? { borderBottom: `2px solid ${SIGNAL_COLORS[colorIdx]}` }
-                  : undefined
+                isSelected ? { borderBottom: `2px solid ${SIGNAL_COLORS[colorIdx]}` } : undefined
               }
               data-testid={`legend-${vec.name}`}
             >
