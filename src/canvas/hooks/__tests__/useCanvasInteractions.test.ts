@@ -42,6 +42,7 @@ const mockRemoveComponent = vi.fn();
 const mockRemoveWire = vi.fn();
 const mockRotateComponent = vi.fn();
 const mockAddComponents = vi.fn();
+const mockCollapseSubcircuit = vi.fn();
 const mockUndo = vi.fn();
 const mockRedo = vi.fn();
 const mockCircuitState = {
@@ -57,6 +58,7 @@ const mockCircuitState = {
   removeWire: mockRemoveWire,
   rotateComponent: mockRotateComponent,
   addComponents: mockAddComponents,
+  collapseSubcircuit: mockCollapseSubcircuit,
 };
 
 vi.mock('@/store/circuitStore', () => ({
@@ -77,9 +79,13 @@ vi.mock('@/store/circuitStore', () => ({
 // Mock uiStore
 let mockSelectedComponentIds: string[] = [];
 let mockSelectedWireIds: string[] = [];
+let mockCurrentSubcircuitId: string | null = null;
 const mockSetSelectedComponentIds = vi.fn();
 const mockSetActiveTool = vi.fn();
 const mockSetTempPanActive = vi.fn();
+const mockAscendSubcircuit = vi.fn(() => {
+  mockCurrentSubcircuitId = null;
+});
 const mockUiState = () => ({
   selectedComponentIds: mockSelectedComponentIds,
   selectedWireIds: mockSelectedWireIds,
@@ -87,6 +93,8 @@ const mockUiState = () => ({
   setActiveTool: mockSetActiveTool,
   setTempPanActive: mockSetTempPanActive,
   tempPanActive: false,
+  currentSubcircuitId: mockCurrentSubcircuitId,
+  ascendSubcircuit: mockAscendSubcircuit,
 });
 
 vi.mock('@/store/uiStore', () => ({
@@ -132,6 +140,7 @@ describe('useCanvasInteractions', () => {
     mockNodes.length = 0;
     mockSelectedComponentIds = [];
     mockSelectedWireIds = [];
+    mockCurrentSubcircuitId = null;
   });
 
   function setupHook() {
@@ -271,6 +280,7 @@ describe('Phase 5 hotkeys', () => {
     mockNodes.length = 0;
     mockSelectedComponentIds = [];
     mockSelectedWireIds = [];
+    mockCurrentSubcircuitId = null;
   });
 
   function setupHook() {

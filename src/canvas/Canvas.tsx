@@ -30,6 +30,7 @@ import '@xyflow/react/dist/style.css';
 import type { ComponentType } from '@/circuit/types';
 import { useCircuitStore } from '@/store/circuitStore';
 import { useUiStore } from '@/store/uiStore';
+import { Breadcrumb } from './Breadcrumb';
 import styles from './Canvas.module.css';
 import { nodeTypes } from './components/nodeTypes';
 import { pinTypeFor } from './components/usePinClassName';
@@ -269,6 +270,8 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
 
   return (
     <div className={styles.canvas}>
+      {/* Plan 05-03: hierarchy breadcrumb (renders null at top level). */}
+      <Breadcrumb />
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -294,6 +297,12 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
         // hints and any downstream UI listeners.
         panActivationKeyCode="Space"
         onNodeDoubleClick={(_event, node) => {
+          // Plan 05-03: double-clicking a subcircuit block descends into it.
+          // All other node types keep the Phase 1 frame-node behaviour.
+          if (node.type === 'subcircuit') {
+            useUiStore.getState().setCurrentSubcircuitId(node.id);
+            return;
+          }
           const w = node.measured?.width ?? node.width ?? 0;
           const h = node.measured?.height ?? node.height ?? 0;
           setCenter(node.position.x + w / 2, node.position.y + h / 2, {

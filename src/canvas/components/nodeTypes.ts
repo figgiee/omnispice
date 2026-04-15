@@ -9,6 +9,7 @@ import { MosfetNode } from './MosfetNode';
 import { NetLabelNode } from './NetLabelNode';
 import { OpAmpNode } from './OpAmpNode';
 import { ResistorNode } from './ResistorNode';
+import { SubcircuitNode } from './SubcircuitNode';
 import { TransformerNode } from './TransformerNode';
 import { VoltageSourceNode } from './VoltageSourceNode';
 
@@ -57,4 +58,7 @@ export const nodeTypes: NodeTypes = {
 
   // Phase 5 Pillar 1 — net label pseudo-component
   net_label: NetLabelNode,
+
+  // Phase 5 Pillar 1 Part 2 (Plan 05-03) — collapsed subcircuit block
+  subcircuit: SubcircuitNode,
 };

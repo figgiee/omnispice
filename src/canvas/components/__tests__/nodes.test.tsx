@@ -325,6 +325,8 @@ describe('nodeTypes registry', () => {
     'ground',
     // Phase 5 Pillar 1 — net label pseudo-component
     'net_label',
+    // Phase 5 Pillar 1 Part 2 (Plan 05-03) — collapsed subcircuit block
+    'subcircuit',
   ];
 
   it('has entries for all ComponentType values', () => {
@@ -334,7 +336,7 @@ describe('nodeTypes registry', () => {
     }
   });
 
-  it('has exactly 23 entries (22 real components + 1 net label)', () => {
-    expect(Object.keys(nodeTypes).length).toBe(23);
+  it('has exactly 24 entries (22 real components + net label + subcircuit)', () => {
+    expect(Object.keys(nodeTypes).length).toBe(24);
   });
 });

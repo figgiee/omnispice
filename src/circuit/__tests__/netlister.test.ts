@@ -441,7 +441,12 @@ describe('COMPONENT_LIBRARY coverage', () => {
     for (const def of Object.values(COMPONENT_LIBRARY)) {
       expect(def.name).toBeTruthy();
       expect(def.category).toBeTruthy();
-      expect(def.ports.length).toBeGreaterThan(0);
+      // Plan 05-03: `subcircuit` is a library placeholder whose exposed
+      // pins are derived per-instance at collapse time, so the library
+      // definition legitimately has no ports.
+      if (def.type !== 'subcircuit') {
+        expect(def.ports.length).toBeGreaterThan(0);
+      }
       // spicePrefix may be empty for ground and for Phase 5 net_label
       // (both are pseudo-components that never hit the SPICE netlister).
       if (def.type !== 'ground' && def.type !== 'net_label') {

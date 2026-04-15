@@ -25,6 +25,7 @@ export function useCanvasInteractions() {
   const removeWire = useCircuitStore((s) => s.removeWire);
   const rotateComponent = useCircuitStore((s) => s.rotateComponent);
   const addComponents = useCircuitStore((s) => s.addComponents);
+  const collapseSubcircuit = useCircuitStore((s) => s.collapseSubcircuit);
 
   // UI store state and actions
   const selectedComponentIds = useUiStore((s) => s.selectedComponentIds);
@@ -147,10 +148,49 @@ export function useCanvasInteractions() {
     { preventDefault: true },
   );
 
-  // Escape cancels any in-progress operation
+  // Escape cancels any in-progress operation.
+  // Plan 05-03: Esc also ascends out of a subcircuit when one is active
+  // and no text input is focused. If both apply (descended AND something
+  // to cancel), ascend takes precedence because it's the more visible
+  // user-facing effect and matches the breadcrumb click semantics.
   useHotkeys('escape', () => {
+    const active = typeof document !== 'undefined' ? document.activeElement : null;
+    const isTextInput =
+      !!active &&
+      (active.tagName === 'INPUT' ||
+        active.tagName === 'TEXTAREA' ||
+        (active as HTMLElement).isContentEditable);
+    if (isTextInput) return;
+    if (useUiStore.getState().currentSubcircuitId !== null) {
+      useUiStore.getState().ascendSubcircuit();
+      return;
+    }
     setActiveTool('select');
   });
+
+  // Plan 05-03: Ctrl+G collapses the current multi-selection into a
+  // subcircuit. Silent no-op when fewer than 2 components are selected
+  // (UI-SPEC §9.3) or when already inside a subcircuit (V1 guard).
+  useHotkeys(
+    'ctrl+g, meta+g',
+    (e) => {
+      e.preventDefault();
+      const ids = useUiStore.getState().selectedComponentIds;
+      if (ids.length < 2) return;
+      const isNested = useUiStore.getState().currentSubcircuitId !== null;
+      if (isNested) return;
+      const defaultName = `Subcircuit ${Date.now().toString(36).slice(-4)}`;
+      const name =
+        typeof window !== 'undefined' && typeof window.prompt === 'function'
+          ? (window.prompt('Name this subcircuit:', defaultName) ?? defaultName)
+          : defaultName;
+      const subId = collapseSubcircuit(ids, name || defaultName, false);
+      if (subId) {
+        setSelectedComponentIds([subId]);
+      }
+    },
+    { preventDefault: true },
+  );
 
   // Zoom in (Ctrl+=)
   useHotkeys(

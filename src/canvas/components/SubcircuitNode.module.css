@@ -1,0 +1,54 @@
+/**
+ * Subcircuit block — Phase 5 Pillar 1 Part 2 (Plan 05-03).
+ *
+ * Titled rectangle with a fold-corner glyph per UI-SPEC §7.12. Uses the
+ * same border stroke + selected-accent treatment as other component
+ * nodes so the visual language stays consistent.
+ */
+
+.block {
+  min-width: 140px;
+  min-height: 80px;
+  background: var(--bg-elevated, var(--surface-primary));
+  border: 2px solid var(--component-stroke, var(--border-default));
+  border-radius: 4px;
+  padding: var(--space-md, 12px);
+  position: relative;
+  box-sizing: border-box;
+  font-family: var(--font-body, system-ui, sans-serif);
+  cursor: grab;
+  user-select: none;
+}
+
+.block[data-selected='true'] {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 1px var(--accent-primary);
+}
+
+.foldCorner {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted, var(--text-secondary));
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.title {
+  font-size: var(--font-size-heading, 14px);
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.subtitle {
+  margin-top: 2px;
+  font-size: var(--font-size-label, 10px);
+  color: var(--text-muted, var(--text-secondary));
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
