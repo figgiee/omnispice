@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Layout } from './app/Layout';
 import { OfflineBanner } from './app/OfflineBanner';
 import { useRegisterSW } from './app/useRegisterSW';
+import { HoverTooltip } from './canvas/overlays/HoverTooltip';
 import type { Component } from './circuit/types';
 import { SharedCircuitViewer } from './components/share/SharedCircuitViewer';
 import { useOverlaySync } from './overlay/useOverlaySync';
@@ -201,6 +202,10 @@ function App() {
       <OfflineBanner />
       <Layout />
       <ShortcutHelpOverlay />
+      {/* Plan 05-07 — floating V/I/P tooltip anchored to hovered React Flow
+          nodes. Mounted at the root so it can render over the canvas and
+          any panel without being clipped by React Flow's overflow:hidden. */}
+      <HoverTooltip />
     </>
   );
 }
