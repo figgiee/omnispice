@@ -332,7 +332,7 @@ export function Sidebar() {
                 ref={searchInputRef}
                 value={search}
                 onValueChange={setSearch}
-                placeholder="Search components... (Ctrl+K)"
+                placeholder="Search components..."
                 className={styles.searchInput}
                 aria-label="Search components"
               />

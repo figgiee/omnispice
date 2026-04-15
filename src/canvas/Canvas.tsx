@@ -284,17 +284,29 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
       }
 
       // Wire dropped on empty space → show QuickPlaceMenu filtered by source pin type.
+      // sourcePortId in wireDragStore is "nodeId:handleName" — resolve to real port UUID.
       if (sourcePortId && sourcePinType) {
-        const e = event as MouseEvent;
-        const flowPos = screenToFlowPosition({ x: e.clientX, y: e.clientY });
-        setQuickPlace({
-          screenX: e.clientX,
-          screenY: e.clientY,
-          flowX: flowPos.x,
-          flowY: flowPos.y,
-          sourcePortId,
-          sourcePinType,
-        });
+        const [nodeId, handleName] = sourcePortId.split(':');
+        const realPortId =
+          nodeId && handleName
+            ? useCircuitStore
+                .getState()
+                .circuit.components.get(nodeId)
+                ?.ports.find((p) => p.name === handleName)?.id
+            : undefined;
+
+        if (realPortId) {
+          const e = event as MouseEvent;
+          const flowPos = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+          setQuickPlace({
+            screenX: e.clientX,
+            screenY: e.clientY,
+            flowX: flowPos.x,
+            flowY: flowPos.y,
+            sourcePortId: realPortId,
+            sourcePinType,
+          });
+        }
       }
     },
     [screenToFlowPosition],
