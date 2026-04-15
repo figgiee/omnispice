@@ -48,12 +48,12 @@ describe('ShortcutHelpOverlay', () => {
     expect(screen.queryByTestId('shortcut-help-overlay')).toBeNull();
   });
 
-  it('renders all pillar sections with kbd tags', () => {
+  it('renders all sections with kbd tags', () => {
     render(<ShortcutHelpOverlay />);
     dispatchToggle();
 
-    expect(screen.getByText('SCHEMATIC HONESTY')).toBeTruthy();
-    expect(screen.getByText('MODELESSNESS')).toBeTruthy();
-    expect(screen.getByText('LIVE FEEDBACK')).toBeTruthy();
+    expect(screen.getByText('PLACING COMPONENTS')).toBeTruthy();
+    expect(screen.getByText('EDITING')).toBeTruthy();
+    expect(screen.getByText('SIMULATION')).toBeTruthy();
   });
 });
