@@ -71,3 +71,22 @@
   color: var(--text-secondary);
   line-height: var(--line-height-label);
 }
+
+.fixBtn {
+  flex-shrink: 0;
+  align-self: center;
+  padding: 2px 10px;
+  font-size: var(--font-size-label);
+  font-family: var(--font-body);
+  background: var(--surface-primary);
+  color: var(--accent-primary);
+  border: 1px solid var(--accent-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 100ms ease;
+}
+
+.fixBtn:hover {
+  background: var(--surface-hover);
+}

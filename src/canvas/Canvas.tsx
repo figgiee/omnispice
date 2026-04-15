@@ -27,7 +27,7 @@ import {
   useReactFlow,
   useStore as useReactFlowStore,
 } from '@xyflow/react';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '@xyflow/react/dist/style.css';
 import type { ComponentType } from '@/circuit/types';
 import { getCircuitYMaps, LOCAL_ORIGIN } from '@/collab/circuitBinding';
@@ -45,6 +45,7 @@ import { useUiStore } from '@/store/uiStore';
 import { ChangeCalloutLayer } from '@/ui/ChangeCalloutLayer';
 import { Breadcrumb } from './Breadcrumb';
 import styles from './Canvas.module.css';
+import { CanvasContextMenu, type ContextMenuTarget } from './CanvasContextMenu';
 import { nodeTypes } from './components/nodeTypes';
 import { pinTypeFor } from './components/usePinClassName';
 import { edgeTypes } from './edges/edgeTypes';
@@ -110,6 +111,9 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
   const rfTransform = useReactFlowStore((s) => s.transform) as readonly [number, number, number];
   // Selection ids for remote selection broadcasting.
   const selectedComponentIds = useUiStore((s) => s.selectedComponentIds);
+
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState<ContextMenuTarget | null>(null);
 
   // Ref to track the highlight timeout for cleanup
   const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -270,6 +274,26 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
 
   const isValidConnection = useCallback(() => true, []);
 
+  const handleNodeContextMenu = useCallback((event: React.MouseEvent, node: Node) => {
+    event.preventDefault();
+    setContextMenu({ x: event.clientX, y: event.clientY, nodeId: node.id });
+  }, []);
+
+  const handleEdgeContextMenu = useCallback((event: React.MouseEvent, edge: Edge) => {
+    event.preventDefault();
+    setContextMenu({ x: event.clientX, y: event.clientY, edgeId: edge.id });
+  }, []);
+
+  const handlePaneContextMenu = useCallback(
+    (event: React.MouseEvent | MouseEvent) => {
+      event.preventDefault();
+      const e = event as React.MouseEvent;
+      const flowPos = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+      setContextMenu({ x: e.clientX, y: e.clientY, flowX: flowPos.x, flowY: flowPos.y });
+    },
+    [screenToFlowPosition],
+  );
+
   /**
    * Handle drop events for component placement from sidebar.
    * Reads component type from dataTransfer, converts screen coordinates
@@ -424,6 +448,9 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
         onMouseMove={handleMouseMove}
         onPaneClick={handlePaneClick}
         onNodeDragStop={handleNodeDragStop}
+        onNodeContextMenu={handleNodeContextMenu}
+        onEdgeContextMenu={handleEdgeContextMenu}
+        onPaneContextMenu={handlePaneContextMenu}
       >
         <Background
           variant={BackgroundVariant.Dots}
@@ -476,6 +503,9 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
           </svg>
         )}
       </ReactFlow>
+      {contextMenu && (
+        <CanvasContextMenu target={contextMenu} onClose={() => setContextMenu(null)} />
+      )}
     </div>
   );
 }

@@ -59,7 +59,7 @@
   --font-size-heading: 16px;
   --font-size-mono: 12px;
   --font-weight-regular: 400;
-  --font-weight-semibold: 600;
+  --font-weight-semibold: 500;
   --line-height-body: 1.5;
   --line-height-label: 1.4;
   --line-height-heading: 1.3;
@@ -72,7 +72,8 @@
   --canvas-bg: #1a1a2e;
   --canvas-grid-dot: rgba(42, 63, 110, 0.4);
   --canvas-grid-major: rgba(42, 63, 110, 0.6);
-  --component-stroke: #e8eaf6;
+  --component-stroke: #c5cae9;
+  --component-stroke-width: 1.5;
   --wire-stroke: #4fc3f7;
   --wire-selected: #81d4fa;
   /* Phase 5 Plan 05-07 — wire voltage-colouring tokens (UI-SPEC §7.7). */
