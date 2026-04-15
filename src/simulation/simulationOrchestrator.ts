@@ -38,14 +38,18 @@
  * for the scrub-committed path.
  */
 
-import type { AnalysisConfig, Circuit } from '@/circuit/types';
-import { generateNetlistWithMap } from '@/circuit/netlister';
 import { buildPortToNetMap, computeNets } from '@/circuit/graph';
-import { useCircuitStore } from '@/store/circuitStore';
+import { generateNetlistWithMap } from '@/circuit/netlister';
+import type { AnalysisConfig, Circuit } from '@/circuit/types';
 import { useOverlayStore } from '@/overlay/overlayStore';
+import { useCircuitStore } from '@/store/circuitStore';
 import { useSimulationStore } from '@/store/simulationStore';
-import { TieredSimulationController, type AcParams, type TranParams } from './TieredSimulationController';
 import type { VectorData } from './protocol';
+import {
+  type AcParams,
+  TieredSimulationController,
+  type TranParams,
+} from './TieredSimulationController';
 
 /** DC op-point analysis config — the always-live lane uses this. */
 const DC_OP_CONFIG: AnalysisConfig = { type: 'dc_op' };
@@ -122,7 +126,13 @@ function writeDcOverlay(circuit: Circuit, vectors: VectorData[]): void {
       edgeVoltages[wireId] = voltages[netName] ?? 0;
     }
   }
-  useOverlayStore.getState().setOverlay(voltages, currents, edgeVoltages);
+  // Plan 05-07 — `wireVoltages` is keyed by net NAME, not wire ID. This
+  // mirrors the shape WireEdge wants (look up net → voltage → colour)
+  // without recomputing the net graph on every render.
+  // Ground net (SPICE name "0") is intentionally included so WireEdge can
+  // detect it and render the neutral cyan instead of a blue rail colour.
+  const wireVoltages: Record<string, number> = { ...voltages };
+  useOverlayStore.getState().setOverlay(voltages, currents, edgeVoltages, wireVoltages);
 }
 
 /**
@@ -141,17 +151,26 @@ function driveStoreChange(circuit: Circuit): void {
     // just means there's nothing to simulate yet.
     console.debug('[orchestrator] netlist generation skipped:', err);
     useOverlayStore.getState().clear();
+    useOverlayStore.getState().setSimStatus('not-run');
     return;
   }
+
+  // Plan 05-07 — mark computing BEFORE the worker round-trip so the
+  // HoverTooltip status line flips to "computing…" during the DC lane.
+  useOverlayStore.getState().setSimStatus('computing');
 
   // Lane 1: DC op-point — always-live
   controller
     .runDcOpPoint(netlist)
-    .then((vectors) => writeDcOverlay(circuit, vectors))
+    .then((vectors) => {
+      writeDcOverlay(circuit, vectors);
+      useOverlayStore.getState().setSimStatus('live');
+    })
     .catch((err: Error) => {
       // Log but don't toast — debounced failure noise is a classic
       // live-simulator anti-pattern per RESEARCH §3.7.
       console.debug('[orchestrator] DC op-point failed:', err.message);
+      useOverlayStore.getState().setSimStatus('error');
     });
 
   // Lane 2: AC sweep — debounced, only if the circuit has an AC source
