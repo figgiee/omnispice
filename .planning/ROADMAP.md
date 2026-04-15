@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Classroom Features** - Instructor dashboard, assignment management, and comparison mode — the revenue unlock
 - [ ] **Phase 4: Institutional Features** - LMS integration, guided labs, lab report export — the site license unlock
 - [ ] **Phase 5: Editor Craft and Collaboration** - Schematic-honest, modeless, live-reactive editor (five pillars from 05-VISION-CEILING.md) plus real-time co-editing presence, offline support, and Circuit Insights
-- [ ] **Phase 6: Circuit CRDT** - Upgrade presence-only Yjs to full real-time co-editing: two users see each other's circuit changes live, with correct collaborative undo and offline-first persistence
+- [x] **Phase 6: Circuit CRDT** - Upgrade presence-only Yjs to full real-time co-editing: two users see each other's circuit changes live, with correct collaborative undo and offline-first persistence (completed 2026-04-15)
 
 ## Phase Details
 
@@ -162,14 +162,14 @@ Plans:
   4. Ctrl+Z in a collab session undoes only the local user's edits — a peer's interleaved edits are never erased
   5. Both users add components simultaneously; after 1 second both canvases contain all components (no data loss)
   6. A solo user (no collab session) has identical offline persistence behavior to Phase 5 — no regression
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 - [x] 06-01-PLAN.md — TDD: Y.Map binding helpers (circuitBinding.ts + yMapToCircuit.ts) with LOCAL_ORIGIN echo guard
 - [x] 06-02-PLAN.md — Y.UndoManager + zundo bridge (split undo: collab vs. solo)
 - [x] 06-03-PLAN.md — y-indexeddb integration + persist bypass (collabActive flag prevents double-write)
 - [x] 06-04-PLAN.md — Integration wiring + safety guards (wire primitives into useCollabProvider + Canvas + store guards)
-- [ ] 06-05-PLAN.md — Two-browser E2E validation (Playwright: add/edit/delete/undo/concurrent scenarios)
+- [x] 06-05-PLAN.md — Two-browser E2E validation (Playwright: add/edit/delete/undo/concurrent scenarios)
 **Key risks**:
   - zundo temporal.pause() API may differ between zundo v1 and v2 — verify installed version before 06-02
   - Y.UndoManager trackedOrigins must use the same Symbol instance as circuitBinding.ts — module singleton pattern required
@@ -188,4 +188,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Classroom Features | 4/7 | In Progress|  |
 | 4. Institutional Features | 0/TBD | Not started | - |
 | 5. Editor Craft and Collaboration | 0/11 | Not started | - |
-| 6. Circuit CRDT | 4/5 | In Progress|  |
+| 6. Circuit CRDT | 5/5 | Complete   | 2026-04-15 |

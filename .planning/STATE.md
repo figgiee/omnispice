@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 06-circuit-crdt 06-04-PLAN.md
-last_updated: "2026-04-15T08:30:22.177Z"
+stopped_at: Completed 06-circuit-crdt 06-05-PLAN.md
+last_updated: "2026-04-15T08:35:57.860Z"
 last_activity: 2026-04-15
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 42
-  completed_plans: 41
+  completed_plans: 42
   percent: 0
 ---
 
@@ -79,6 +79,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 06-circuit-crdt P01 | 25 | 3 tasks | 3 files |
 | Phase 06-circuit-crdt P03 | 15m | 1 tasks | 4 files |
 | Phase 06-circuit-crdt P04 | 327 | 3 tasks | 5 files |
+| Phase 06-circuit-crdt P05 | 420 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -182,6 +183,8 @@ Recent decisions affecting current work:
 - [Phase 06-circuit-crdt]: activeYDoc state (not ref) drives useYIndexedDB and useCollabUndoManager reactively in useCollabProvider
 - [Phase 06-circuit-crdt]: bindCircuitToYjs called inside provider sync event to ensure server state wins before local writes propagate
 - [Phase 06-circuit-crdt]: useCollabProvider returns { providerRef, docRef } so Canvas accesses Y.Doc for onNodeDragStop without a context
+- [Phase 06-circuit-crdt]: dropComponent DnD helper used instead of R-key shortcut in phase6 E2E — stable across Phase 5 plan revisions
+- [Phase 06-circuit-crdt]: data-collab-connected attribute added to documentElement in onSync callback as E2E testing hook; removed in provider cleanup
 
 ### Pending Todos
 
@@ -200,6 +203,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-15T08:30:22.174Z
-Stopped at: Completed 06-circuit-crdt 06-04-PLAN.md
+Last session: 2026-04-15T08:35:57.858Z
+Stopped at: Completed 06-circuit-crdt 06-05-PLAN.md
 Resume file: None
