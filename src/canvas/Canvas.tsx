@@ -14,6 +14,7 @@ import {
   Background,
   BackgroundVariant,
   type Connection,
+  ConnectionMode,
   Controls,
   type Edge,
   MiniMap,
@@ -384,6 +385,8 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
         onConnectStart={handleConnectStart}
         onConnectEnd={handleConnectEnd}
         isValidConnection={isValidConnection}
+        connectionMode={ConnectionMode.Loose}
+        connectionRadius={40}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         defaultEdgeOptions={{ type: 'wire' }}
