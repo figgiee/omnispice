@@ -28,12 +28,49 @@ export type ComponentType =
   | 'pwl_voltage'
   | 'dc_current'
   | 'ac_current'
-  | 'ground';
+  | 'ground'
+  /**
+   * Phase 5 Pillar 1 — pseudo-component that overrides the name of the
+   * net it sits on. Not emitted to SPICE; its `data.netName` becomes
+   * the net's SPICE identifier. See `NetLabelNode.tsx` and `computeNets`.
+   */
+  | 'net_label';
+
+/**
+ * Pin electrical type (Phase 5 Pillar 1 — Schematic Honesty).
+ *
+ * Drives the live compatibility feedback system in the schematic editor:
+ * - signal: data/analog nets (resistor pins, BJT base, op-amp inputs)
+ * - power: power rail endpoints (voltage-source +, Vcc buses)
+ * - ground: ground reference (ground symbol, shield grounds)
+ * - supply: supply-side pins (voltage/current source, op-amp Vcc/Vee)
+ *
+ * See src/circuit/pinCompat.ts for the compatibility matrix.
+ */
+export type PinType = 'signal' | 'power' | 'ground' | 'supply';
+
+/**
+ * Pin signal direction (used for future bus/direction-aware routing).
+ */
+export type PinDirection = 'in' | 'out' | 'inout';
 
 export interface Port {
   id: string;
   name: string;
   netId: string | null;
+  /**
+   * Phase 5 — pin electrical type. Optional at the TS level so legacy
+   * saved circuits and unrelated test fixtures still compile; `createPorts`
+   * always populates it with `'signal'` as the fallback.
+   */
+  pinType?: PinType;
+  /**
+   * Phase 5 — pin signal direction. Optional at the TS level (same
+   * rationale as `pinType`); `createPorts` always fills `'inout'`.
+   */
+  direction?: PinDirection;
+  /** Optional human-readable label like 'C','B','E' for BJTs. */
+  label?: string;
 }
 
 export interface Component {
@@ -46,6 +83,12 @@ export interface Component {
   rotation: number;
   spiceModel?: string;
   parameters?: Record<string, string>;
+  /**
+   * Phase 5 Pillar 1 — only populated on `net_label` components. The
+   * string is used by `computeNets` to override the generated net name
+   * and is surfaced directly in the rendered netlist.
+   */
+  netLabel?: string;
 }
 
 export interface Wire {
@@ -59,6 +102,12 @@ export interface Net {
   id: string;
   name: string;
   portIds: string[];
+  /**
+   * Phase 5 Pillar 1 — when a `net_label` pseudo-component touches this net,
+   * its `netLabel` field is hoisted here so downstream tooling (netlister,
+   * overlays, UI) can distinguish user-named nets from auto-generated ones.
+   */
+  netLabel?: string;
 }
 
 export interface Circuit {

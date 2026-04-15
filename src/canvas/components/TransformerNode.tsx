@@ -1,15 +1,28 @@
-import { Handle, Position, type NodeProps } from '@xyflow/react';
-import type { CircuitNodeData } from './types';
-import { useValueEdit } from './useValueEdit';
+import { Handle, type NodeProps, Position } from '@xyflow/react';
 import styles from './ComponentNode.module.css';
+import type { CircuitNodeData } from './types';
+import { usePinClassName } from './usePinClassName';
+import { useValueEdit } from './useValueEdit';
 
 /**
  * Transformer symbol: two coupled inductors with polarity dots.
  * viewBox: 60x48, four pins (pri_plus top-left, pri_minus bottom-left,
  * sec_plus top-right, sec_minus bottom-right).
+ *
+ * Note: handle ids use `pri_plus` etc, but COMPONENT_LIBRARY.transformer.ports
+ * uses `pri+` / `pri-` / `sec+` / `sec-` names. usePinClassName falls back
+ * to 'signal' when the lookup misses, which is correct for transformers.
  */
-export function TransformerNode({ data, selected }: NodeProps) {
+export function TransformerNode({ id, data, selected }: NodeProps) {
   const nodeData = data as CircuitNodeData;
+  // Transformer library ports are named pri+/pri-/sec+/sec- but the Handle
+  // ids use underscores. Lookup falls back to 'signal' (correct default for
+  // transformer coils) when the lookup misses — every transformer pin is
+  // signal inout in the library anyway.
+  const priPlusClass = usePinClassName('transformer', 'pri+', id);
+  const priMinusClass = usePinClassName('transformer', 'pri-', id);
+  const secPlusClass = usePinClassName('transformer', 'sec+', id);
+  const secMinusClass = usePinClassName('transformer', 'sec-', id);
   const { isEditing, editValue, setEditValue, inputRef, startEditing, handleKeyDown } =
     useValueEdit(nodeData.value);
 
@@ -70,28 +83,28 @@ export function TransformerNode({ data, selected }: NodeProps) {
         type="target"
         position={Position.Left}
         id="pri_plus"
-        className={styles.pin}
+        className={priPlusClass}
         style={{ top: '12.5%' }}
       />
       <Handle
         type="target"
         position={Position.Left}
         id="pri_minus"
-        className={styles.pin}
+        className={priMinusClass}
         style={{ top: '87.5%' }}
       />
       <Handle
         type="source"
         position={Position.Right}
         id="sec_plus"
-        className={styles.pin}
+        className={secPlusClass}
         style={{ top: '12.5%' }}
       />
       <Handle
         type="source"
         position={Position.Right}
         id="sec_minus"
-        className={styles.pin}
+        className={secMinusClass}
         style={{ top: '87.5%' }}
       />
     </div>

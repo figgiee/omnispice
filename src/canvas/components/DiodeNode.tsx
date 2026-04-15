@@ -2,6 +2,7 @@ import { Handle, type NodeProps, Position } from '@xyflow/react';
 import { useOverlayStore } from '@/overlay/overlayStore';
 import styles from './ComponentNode.module.css';
 import type { CircuitNodeData } from './types';
+import { usePinClassName } from './usePinClassName';
 import { useValueEdit } from './useValueEdit';
 
 /**
@@ -9,8 +10,10 @@ import { useValueEdit } from './useValueEdit';
  * Variants: standard diode, zener (bent bar), schottky (S-bar).
  * viewBox: 40x32, two pins (anode left, cathode right).
  */
-export function DiodeNode({ data, selected }: NodeProps) {
+export function DiodeNode({ id, data, selected }: NodeProps) {
   const nodeData = data as CircuitNodeData;
+  const anodeClass = usePinClassName(nodeData.type ?? 'diode', 'anode', id);
+  const cathodeClass = usePinClassName(nodeData.type ?? 'diode', 'cathode', id);
   const { isEditing, editValue, setEditValue, inputRef, startEditing, handleKeyDown } =
     useValueEdit(nodeData.value);
   const { isVisible, branchCurrents } = useOverlayStore();
@@ -88,8 +91,8 @@ export function DiodeNode({ data, selected }: NodeProps) {
         </span>
       )}
 
-      <Handle type="target" position={Position.Left} id="anode" className={styles.pin} />
-      <Handle type="source" position={Position.Right} id="cathode" className={styles.pin} />
+      <Handle type="target" position={Position.Left} id="anode" className={anodeClass} />
+      <Handle type="source" position={Position.Right} id="cathode" className={cathodeClass} />
     </div>
   );
 }

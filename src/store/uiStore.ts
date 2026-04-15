@@ -39,6 +39,13 @@ export interface UiState {
    * command palette without an explicit click).
    */
   cursorPosition: { x: number; y: number } | null;
+  /**
+   * Plan 05-02 Task 4 — in-flight net label capture. When the user types a
+   * printable character with exactly one wire selected, `beginNetLabelInput`
+   * seeds this with the wire id and first char. Subsequent keypresses append
+   * via `appendNetLabelChar`; Enter commits, Escape cancels.
+   */
+  pendingNetLabel: { wireId: string; chars: string } | null;
 
   setActiveTool: (tool: ActiveTool) => void;
   setBottomTab: (tab: BottomTab) => void;
@@ -53,9 +60,20 @@ export interface UiState {
   setTempPanActive: (v: boolean) => void;
   setInsertCursor: (pos: { x: number; y: number } | null) => void;
   setCursorPosition: (pos: { x: number; y: number } | null) => void;
+  /** Plan 05-02 Task 4 — net label type-to-capture gesture. */
+  beginNetLabelInput: (wireId: string, firstChar: string) => void;
+  appendNetLabelChar: (c: string) => void;
+  backspaceNetLabelChar: () => void;
+  cancelNetLabel: () => void;
+  /**
+   * Consumed by the commit step — reads the buffered chars and clears the
+   * pending state. The caller is responsible for actually creating the
+   * label in the circuit store. Returns the buffered value.
+   */
+  consumeNetLabel: () => { wireId: string; chars: string } | null;
 }
 
-export const useUiStore = create<UiState>()((set) => ({
+export const useUiStore = create<UiState>()((set, get) => ({
   activeTool: 'select',
   bottomTab: 'errors',
   sidebarCollapsed: false,
@@ -67,6 +85,7 @@ export const useUiStore = create<UiState>()((set) => ({
   tempPanActive: false,
   insertCursor: null,
   cursorPosition: null,
+  pendingNetLabel: null,
 
   setActiveTool: (tool) => set({ activeTool: tool }),
 
@@ -89,4 +108,32 @@ export const useUiStore = create<UiState>()((set) => ({
   setInsertCursor: (pos) => set({ insertCursor: pos }),
 
   setCursorPosition: (pos) => set({ cursorPosition: pos }),
+
+  beginNetLabelInput: (wireId, firstChar) => set({ pendingNetLabel: { wireId, chars: firstChar } }),
+
+  appendNetLabelChar: (c) => {
+    const current = get().pendingNetLabel;
+    if (!current) return;
+    set({ pendingNetLabel: { wireId: current.wireId, chars: current.chars + c } });
+  },
+
+  backspaceNetLabelChar: () => {
+    const current = get().pendingNetLabel;
+    if (!current) return;
+    const next = current.chars.slice(0, -1);
+    if (next.length === 0) {
+      set({ pendingNetLabel: null });
+    } else {
+      set({ pendingNetLabel: { wireId: current.wireId, chars: next } });
+    }
+  },
+
+  cancelNetLabel: () => set({ pendingNetLabel: null }),
+
+  consumeNetLabel: () => {
+    const current = get().pendingNetLabel;
+    if (!current) return null;
+    set({ pendingNetLabel: null });
+    return current;
+  },
 }));

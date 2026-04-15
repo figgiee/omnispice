@@ -10,7 +10,7 @@ import { del as idbDel, get as idbGet, set as idbSet } from 'idb-keyval';
 import { temporal } from 'zundo';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { COMPONENT_LIBRARY } from '@/circuit/componentLibrary';
+import { COMPONENT_LIBRARY, type ComponentPortDefinition } from '@/circuit/componentLibrary';
 import type { Circuit, Component, ComponentType, Port, Wire } from '@/circuit/types';
 import { mapReplacer, mapReviver } from './mapSerialization';
 
@@ -68,6 +68,19 @@ export interface CircuitState {
   ) => void;
   /** Replace the entire circuit (e.g., after LTspice import). Resets refCounters. */
   setCircuit: (circuit: Circuit) => void;
+  /**
+   * Phase 5 Pillar 1 — split the given wire with a net-label pseudo-component
+   * at the provided flow-space position. Replaces the original wire with two
+   * new wires that both touch the label's `pin1`. The label's `netLabel` is
+   * what `computeNets` will promote to the net's SPICE name.
+   *
+   * Returns the new label component ID so callers can select it.
+   */
+  splitWireWithNetLabel: (
+    wireId: string,
+    position: { x: number; y: number },
+    netLabel: string,
+  ) => string | null;
 }
 
 function createEmptyCircuit(): Circuit {
@@ -87,14 +100,19 @@ function generateId(): string {
 
 /**
  * Create Port objects from a component definition's port config.
+ *
+ * Phase 5: pin metadata (`pinType`, `direction`, `label`) is forwarded from
+ * the library definition. Missing fields fall back to `signal`/`inout` so
+ * legacy saved circuits (pre-Phase 5) keep loading without a crash.
  */
-function createPorts(
-  portDefs: { name: string; position: 'left' | 'right' | 'top' | 'bottom' }[],
-): Port[] {
+function createPorts(portDefs: ComponentPortDefinition[]): Port[] {
   return portDefs.map((def) => ({
     id: generateId(),
     name: def.name,
     netId: null,
+    pinType: def.pinType ?? 'signal',
+    direction: def.direction ?? 'inout',
+    ...(def.label ? { label: def.label } : {}),
   }));
 }
 
@@ -276,6 +294,56 @@ export const useCircuitStore = create<CircuitState>()(
             circuit,
             refCounters: {},
           });
+        },
+
+        splitWireWithNetLabel: (wireId, position, netLabel) => {
+          const state = get();
+          const wire = state.circuit.wires.get(wireId);
+          if (!wire) return null;
+
+          const def = COMPONENT_LIBRARY.net_label;
+          const labelId = generateId();
+          const labelPorts = createPorts(def.ports);
+          const pinId = labelPorts[0]?.id;
+          if (!pinId) return null;
+
+          const labelComponent: Component = {
+            id: labelId,
+            type: 'net_label',
+            refDesignator: `NL_${labelId.slice(0, 4)}`,
+            value: netLabel,
+            ports: labelPorts,
+            position,
+            rotation: 0,
+            netLabel,
+          };
+
+          const wireA: Wire = {
+            id: generateId(),
+            sourcePortId: wire.sourcePortId,
+            targetPortId: pinId,
+            bendPoints: [],
+          };
+          const wireB: Wire = {
+            id: generateId(),
+            sourcePortId: pinId,
+            targetPortId: wire.targetPortId,
+            bendPoints: [],
+          };
+
+          set((s) => {
+            const components = new Map(s.circuit.components);
+            components.set(labelId, labelComponent);
+            const wires = new Map(s.circuit.wires);
+            wires.delete(wireId);
+            wires.set(wireA.id, wireA);
+            wires.set(wireB.id, wireB);
+            return {
+              circuit: { ...s.circuit, components, wires },
+            };
+          });
+
+          return labelId;
         },
       }),
       {

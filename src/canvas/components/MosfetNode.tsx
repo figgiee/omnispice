@@ -1,16 +1,21 @@
-import { Handle, Position, type NodeProps } from '@xyflow/react';
-import type { CircuitNodeData } from './types';
-import { useValueEdit } from './useValueEdit';
+import { Handle, type NodeProps, Position } from '@xyflow/react';
 import styles from './ComponentNode.module.css';
+import type { CircuitNodeData } from './types';
+import { usePinClassName } from './usePinClassName';
+import { useValueEdit } from './useValueEdit';
 
 /**
  * MOSFET symbol (NMOS/PMOS).
  * PMOS has an inversion bubble on the gate.
  * viewBox: 48x48, three pins (gate left, drain top, source bottom).
  */
-export function MosfetNode({ data, selected }: NodeProps) {
+export function MosfetNode({ id, data, selected }: NodeProps) {
   const nodeData = data as CircuitNodeData;
   const isPmos = nodeData.type === 'pmos';
+  const mosType = nodeData.type ?? 'nmos';
+  const gateClass = usePinClassName(mosType, 'gate', id);
+  const drainClass = usePinClassName(mosType, 'drain', id);
+  const sourceClass = usePinClassName(mosType, 'source', id);
   const { isEditing, editValue, setEditValue, inputRef, startEditing, handleKeyDown } =
     useValueEdit(nodeData.value);
 
@@ -43,7 +48,14 @@ export function MosfetNode({ data, selected }: NodeProps) {
         {isPmos ? (
           <>
             {/* PMOS: inversion bubble on gate */}
-            <circle cx={17} cy={24} r={3} stroke="var(--component-stroke)" strokeWidth={1.5} fill="none" />
+            <circle
+              cx={17}
+              cy={24}
+              r={3}
+              stroke="var(--component-stroke)"
+              strokeWidth={1.5}
+              fill="none"
+            />
             {/* Arrow pointing outward from channel */}
             <polygon points="26,22 26,26 30,24" fill="var(--component-stroke)" />
           </>
@@ -68,9 +80,9 @@ export function MosfetNode({ data, selected }: NodeProps) {
         </span>
       )}
 
-      <Handle type="target" position={Position.Left} id="gate" className={styles.pin} />
-      <Handle type="source" position={Position.Top} id="drain" className={styles.pin} />
-      <Handle type="source" position={Position.Bottom} id="source" className={styles.pin} />
+      <Handle type="target" position={Position.Left} id="gate" className={gateClass} />
+      <Handle type="source" position={Position.Top} id="drain" className={drainClass} />
+      <Handle type="source" position={Position.Bottom} id="source" className={sourceClass} />
     </div>
   );
 }

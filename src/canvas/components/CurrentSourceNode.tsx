@@ -2,14 +2,18 @@ import { Handle, type NodeProps, Position } from '@xyflow/react';
 import { useOverlayStore } from '@/overlay/overlayStore';
 import styles from './ComponentNode.module.css';
 import type { CircuitNodeData } from './types';
+import { usePinClassName } from './usePinClassName';
 import { useValueEdit } from './useValueEdit';
 
 /**
  * Current source symbol: circle with arrow pointing up.
  * viewBox: 36x36, two pins (in at bottom, out at top).
  */
-export function CurrentSourceNode({ data, selected }: NodeProps) {
+export function CurrentSourceNode({ id, data, selected }: NodeProps) {
   const nodeData = data as CircuitNodeData;
+  const iType = nodeData.type ?? 'dc_current';
+  const inClass = usePinClassName(iType, 'in', id);
+  const outClass = usePinClassName(iType, 'out', id);
   const { isEditing, editValue, setEditValue, inputRef, startEditing, handleKeyDown } =
     useValueEdit(nodeData.value);
   const { isVisible, branchCurrents } = useOverlayStore();
@@ -62,8 +66,8 @@ export function CurrentSourceNode({ data, selected }: NodeProps) {
         </span>
       )}
 
-      <Handle type="target" position={Position.Bottom} id="in" className={styles.pin} />
-      <Handle type="source" position={Position.Top} id="out" className={styles.pin} />
+      <Handle type="target" position={Position.Bottom} id="in" className={inClass} />
+      <Handle type="source" position={Position.Top} id="out" className={outClass} />
     </div>
   );
 }

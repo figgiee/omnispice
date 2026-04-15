@@ -2,14 +2,18 @@ import { Handle, type NodeProps, Position } from '@xyflow/react';
 import { useOverlayStore } from '@/overlay/overlayStore';
 import styles from './ComponentNode.module.css';
 import type { CircuitNodeData } from './types';
+import { usePinClassName } from './usePinClassName';
 import { useValueEdit } from './useValueEdit';
 
 /**
  * Voltage source symbol: circle with +/- labels.
  * viewBox: 36x36, two pins (positive top, negative bottom).
  */
-export function VoltageSourceNode({ data, selected }: NodeProps) {
+export function VoltageSourceNode({ id, data, selected }: NodeProps) {
   const nodeData = data as CircuitNodeData;
+  const vType = nodeData.type ?? 'dc_voltage';
+  const positiveClass = usePinClassName(vType, 'positive', id);
+  const negativeClass = usePinClassName(vType, 'negative', id);
   const { isEditing, editValue, setEditValue, inputRef, startEditing, handleKeyDown } =
     useValueEdit(nodeData.value);
   const { isVisible, branchCurrents } = useOverlayStore();
@@ -81,8 +85,8 @@ export function VoltageSourceNode({ data, selected }: NodeProps) {
         </span>
       )}
 
-      <Handle type="source" position={Position.Top} id="positive" className={styles.pin} />
-      <Handle type="target" position={Position.Bottom} id="negative" className={styles.pin} />
+      <Handle type="source" position={Position.Top} id="positive" className={positiveClass} />
+      <Handle type="target" position={Position.Bottom} id="negative" className={negativeClass} />
     </div>
   );
 }

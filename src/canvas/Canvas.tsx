@@ -19,6 +19,7 @@ import {
   MiniMap,
   type Node,
   type OnConnect,
+  type OnConnectStart,
   type OnEdgesChange,
   type OnNodesChange,
   ReactFlow,
@@ -31,12 +32,15 @@ import { useCircuitStore } from '@/store/circuitStore';
 import { useUiStore } from '@/store/uiStore';
 import styles from './Canvas.module.css';
 import { nodeTypes } from './components/nodeTypes';
+import { pinTypeFor } from './components/usePinClassName';
 import { edgeTypes } from './edges/edgeTypes';
 import { useCanvasInteractions } from './hooks/useCanvasInteractions';
 import { useMagneticSnap } from './hooks/useMagneticSnap';
+import { useNetLabelInput } from './hooks/useNetLabelInput';
 import { useTypeToPlace } from './hooks/useTypeToPlace';
 import { useWireRouting } from './hooks/useWireRouting';
 import { ValidationWarnings } from './overlays/ValidationWarnings';
+import { useWireDragStore } from './stores/wireDragStore';
 
 /** MIME type for drag-and-drop component transfers from sidebar. */
 const DND_MIME_TYPE = 'application/omnispice-component';
@@ -71,6 +75,11 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
   // Plan 05-06 Task 4: type-to-place gesture. Listens for printable letters
   // while uiStore.insertCursor is active + no component selected.
   useTypeToPlace();
+  // Plan 05-02 Task 4: type-on-selected-wire → creates a net label. This hook
+  // MUST run after useTypeToPlace so that when a wire is selected, the net
+  // label capture claims the key first (both hooks use window capture-phase
+  // listeners but react in selection-guarded branches).
+  useNetLabelInput();
 
   /**
    * D-21: Error navigation receive side.
@@ -119,17 +128,68 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
 
   /**
    * Handle new connections from React Flow.
-   * Calls circuitStore.addWire when a connection is completed.
+   *
+   * React Flow's `connection.sourceHandle` is the `<Handle id="...">` attribute
+   * (which every node component sets to the port NAME like "pin1", "base").
+   * The circuit store, however, keys ports by their globally-unique UUID. We
+   * resolve the port name → UUID via the source/target nodes' `Component.ports`
+   * so wires survive circuitToEdges lookups and render on screen.
+   *
+   * Plan 05-02 Rule 1 fix: previously this passed the port NAME directly to
+   * addWire, which broke the circuitToEdges source/target resolution and
+   * prevented edges from rendering at all.
    */
   const handleConnect = useCallback(
     (connection: Connection) => {
-      if (connection.sourceHandle && connection.targetHandle) {
-        addWire(connection.sourceHandle, connection.targetHandle);
+      if (
+        connection.source &&
+        connection.target &&
+        connection.sourceHandle &&
+        connection.targetHandle
+      ) {
+        const circuit = useCircuitStore.getState().circuit;
+        const sourceComp = circuit.components.get(connection.source);
+        const targetComp = circuit.components.get(connection.target);
+        const sourcePort = sourceComp?.ports.find((p) => p.name === connection.sourceHandle);
+        const targetPort = targetComp?.ports.find((p) => p.name === connection.targetHandle);
+        if (sourcePort && targetPort) {
+          addWire(sourcePort.id, targetPort.id);
+        }
       }
       onConnect(connection);
     },
     [addWire, onConnect],
   );
+
+  /**
+   * Phase 5 Pillar 1 — wire drag lifecycle.
+   *
+   * onConnectStart: look up the source handle's pinType in the component
+   * library via the node's ComponentType, push into wireDragStore. Every
+   * subscribed pin re-colors live via `usePinClassName`.
+   *
+   * onConnectEnd: clear the store so pins revert to their base colours.
+   *
+   * isValidConnection: always `true` per locked decision D-01 — students
+   * must be allowed to complete any wire, even electrically wrong ones.
+   * The compat matrix drives VISUAL feedback only.
+   */
+  const handleConnectStart: OnConnectStart = useCallback(
+    (_event, { nodeId, handleId }) => {
+      if (!nodeId || !handleId) return;
+      const node = getNode(nodeId);
+      if (!node) return;
+      const pinType = pinTypeFor(node.type as ComponentType, handleId);
+      useWireDragStore.getState().start(`${nodeId}:${handleId}`, pinType);
+    },
+    [getNode],
+  );
+
+  const handleConnectEnd = useCallback(() => {
+    useWireDragStore.getState().end();
+  }, []);
+
+  const isValidConnection = useCallback(() => true, []);
 
   /**
    * Handle drop events for component placement from sidebar.
@@ -215,6 +275,9 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={handleConnect}
+        onConnectStart={handleConnectStart}
+        onConnectEnd={handleConnectEnd}
+        isValidConnection={isValidConnection}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         defaultEdgeOptions={{ type: 'wire' }}

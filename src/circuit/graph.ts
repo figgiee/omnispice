@@ -6,7 +6,7 @@
  * always map to the special net "0".
  */
 
-import type { Component, Wire, Net } from './types';
+import type { Component, Net, Wire } from './types';
 
 /**
  * Union-Find data structure for efficient net merging.
@@ -71,9 +71,7 @@ class UnionFind {
 /**
  * Build a lookup map from port ID to the port's owner component.
  */
-function buildPortIndex(
-  components: Map<string, Component>
-): Map<string, Component> {
+function buildPortIndex(components: Map<string, Component>): Map<string, Component> {
   const index = new Map<string, Component>();
   for (const comp of components.values()) {
     for (const port of comp.ports) {
@@ -90,6 +88,10 @@ function buildPortIndex(
  * 2. For each wire, union the source and target ports.
  * 3. For ground components, mark their port group as net "0".
  * 4. Assign unique net names to remaining groups.
+ * 5. Phase 5: walk each group for `net_label` pseudo-components and, if
+ *    present, override the group's user-facing name with `netLabel`.
+ *    Multiple conflicting labels on the same net → pick the
+ *    lexicographically first and `console.warn`.
  *
  * Also mutates each port's netId to the assigned net name.
  *
@@ -97,7 +99,7 @@ function buildPortIndex(
  */
 export function computeNets(
   components: Map<string, Component>,
-  wires: Map<string, Wire>
+  wires: Map<string, Wire>,
 ): Map<string, Net> {
   const uf = new UnionFind();
   const portIndex = buildPortIndex(components);
@@ -140,19 +142,55 @@ export function computeNets(
   // Determine which root is the ground net
   const groundGroupRoot = groundRoot !== null ? uf.find(groundRoot) : null;
 
+  // Phase 5: collect net labels per group root. A group may contain multiple
+  // `net_label` pseudo-components; pick the lexicographically smallest name
+  // and warn on conflicts so the user knows which label "won".
+  const labelsByRoot = new Map<string, string[]>();
+  for (const comp of components.values()) {
+    if (comp.type !== 'net_label') continue;
+    const label = comp.netLabel?.trim();
+    if (!label) continue;
+    for (const port of comp.ports) {
+      const root = uf.find(port.id);
+      const arr = labelsByRoot.get(root) ?? [];
+      arr.push(label);
+      labelsByRoot.set(root, arr);
+    }
+  }
+
+  const resolvedLabelByRoot = new Map<string, string>();
+  for (const [root, labels] of labelsByRoot) {
+    const unique = [...new Set(labels)].sort((a, b) => a.localeCompare(b));
+    const winner = unique[0];
+    if (!winner) continue;
+    if (unique.length > 1) {
+      // Multi-label conflict — pick the first alphabetically.
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[omnispice] Net has ${unique.length} conflicting labels: ${unique.join(', ')}. Using "${winner}".`,
+      );
+    }
+    resolvedLabelByRoot.set(root, winner);
+  }
+
   // Assign net names
   const nets = new Map<string, Net>();
   let netCounter = 1;
 
   for (const [root, members] of groups) {
     const isGround = root === groundGroupRoot;
-    const netName = isGround ? '0' : `net_${netCounter++}`;
+    const labelOverride = !isGround ? resolvedLabelByRoot.get(root) : undefined;
+    const defaultName = `net_${netCounter++}`;
+    const netName = isGround ? '0' : (labelOverride ?? defaultName);
+    // Net ID stays auto-generated so the overlay store (which keys by netId)
+    // keeps working; the SPICE-facing `name` is what the netlister emits.
     const netId = isGround ? 'gnd' : `net_${netCounter - 1}`;
 
     const net: Net = {
       id: netId,
       name: netName,
       portIds: [...members],
+      ...(labelOverride ? { netLabel: labelOverride } : {}),
     };
     nets.set(net.id, net);
 

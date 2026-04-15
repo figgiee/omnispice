@@ -29,8 +29,27 @@
   /* Spacing */
   --space-xs: 4px;
   --space-sm: 8px;
+  --space-md: 12px;
   --space-lg: 16px;
   --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
+
+  /* Phase 5 — pillar 1 pin tokens (UI-SPEC §4.2) */
+  --pin-signal:         #4fc3f7;  /* = --accent-primary */
+  --pin-power:          #f06292;
+  --pin-ground:         #9fa8c4;  /* = --text-secondary */
+  --pin-supply:         #ffa726;  /* = --color-warning */
+  --pin-compat-ok:      #66bb6a;  /* = --color-success */
+  --pin-compat-neutral: #6b7494;  /* = --text-muted */
+  --pin-compat-error:   #ef5350;  /* = --color-error */
+
+  /* Phase 5 — motion tokens (UI-SPEC §11.1) */
+  --duration-instant: 0ms;
+  --duration-fast:    120ms;
+  --duration-medium:  200ms;
+  --duration-slow:    400ms;
+  --easing-standard:  cubic-bezier(0.2, 0, 0, 1);
 
   /* Typography */
   --font-body: "Inter Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
