@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-11-PLAN.md
-last_updated: "2026-04-15T06:35:45.124Z"
+stopped_at: Completed 06-circuit-crdt/06-01-PLAN.md
+last_updated: "2026-04-15T08:15:18.905Z"
 last_activity: 2026-04-15
 progress:
-  total_phases: 5
-  completed_phases: 4
-  total_plans: 37
-  completed_plans: 36
+  total_phases: 6
+  completed_phases: 5
+  total_plans: 42
+  completed_plans: 38
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 ## Current Position
 
 Phase: 05 (collaboration-and-polish) — EXECUTING
-Plan: 9 of 11
+Plan: 10 of 11
 Status: Ready to execute
 Last activity: 2026-04-15
 
@@ -76,6 +76,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05-collaboration-and-polish P07 | 45min | 6 tasks | 22 files |
 | Phase 05-collaboration-and-polish P03 | 21min | 5 tasks | 20 files |
 | Phase 05-collaboration-and-polish P11 | 9 | 5 tasks | 10 files |
+| Phase 06-circuit-crdt P01 | 25 | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -171,6 +172,9 @@ Recent decisions affecting current work:
 - [Phase 05-collaboration-and-polish]: Plan 05-03: .subckt internal nets are namespaced {subref}_net_N; formal parameters use exposed-port names so block header and X{ref} line up pin-for-pin; nested subcircuits throw at netlister (defense-in-depth beyond UI guard)
 - [Phase 05-collaboration-and-polish]: ChangeCalloutLayer mounted inside Canvas.tsx (inside ReactFlowProvider) so useStore(s => s.transform) is available — same pattern as PresenceLayer
 - [Phase 05-collaboration-and-polish]: dispatchChangeCallout lives in circuitStore (not uiStore) to avoid circular dependency — ChangeCalloutLayer listens via window event
+- [Phase 06-circuit-crdt]: JSON strings in Y.Map<string> over nested Y.Maps — simpler hydration + cleanup, last-write-wins conflict resolution adequate for circuit editor
+- [Phase 06-circuit-crdt]: store.setState() bypasses zundo for remote edits — prevents remote changes from polluting local undo stack
+- [Phase 06-circuit-crdt]: bindCircuitToYjs takes StoreApi parameter (not singleton) to enable isolated test stores
 
 ### Pending Todos
 
@@ -189,6 +193,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-15T06:35:45.120Z
-Stopped at: Completed 05-11-PLAN.md
+Last session: 2026-04-15T08:15:18.902Z
+Stopped at: Completed 06-circuit-crdt/06-01-PLAN.md
 Resume file: None

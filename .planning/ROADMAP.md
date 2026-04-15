@@ -162,10 +162,10 @@ Plans:
   4. Ctrl+Z in a collab session undoes only the local user's edits — a peer's interleaved edits are never erased
   5. Both users add components simultaneously; after 1 second both canvases contain all components (no data loss)
   6. A solo user (no collab session) has identical offline persistence behavior to Phase 5 — no regression
-**Plans:** 5 plans
+**Plans:** 1/5 plans executed
 
 Plans:
-- [ ] 06-01-PLAN.md — TDD: Y.Map binding helpers (circuitBinding.ts + yMapToCircuit.ts) with LOCAL_ORIGIN echo guard
+- [x] 06-01-PLAN.md — TDD: Y.Map binding helpers (circuitBinding.ts + yMapToCircuit.ts) with LOCAL_ORIGIN echo guard
 - [ ] 06-02-PLAN.md — Y.UndoManager + zundo bridge (split undo: collab vs. solo)
 - [ ] 06-03-PLAN.md — y-indexeddb integration + persist bypass (collabActive flag prevents double-write)
 - [ ] 06-04-PLAN.md — Integration wiring + safety guards (wire primitives into useCollabProvider + Canvas + store guards)
@@ -188,4 +188,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Classroom Features | 4/7 | In Progress|  |
 | 4. Institutional Features | 0/TBD | Not started | - |
 | 5. Editor Craft and Collaboration | 0/11 | Not started | - |
-| 6. Circuit CRDT | 0/5 | Not started | - |
+| 6. Circuit CRDT | 1/5 | In Progress|  |
