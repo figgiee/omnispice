@@ -11,6 +11,7 @@ import { labsRouter } from './routes/labs';
 import { ltiRouter } from './routes/lti';
 import { ltiAdminRouter } from './routes/ltiAdmin';
 import { scheduled } from './scheduled';
+import yjsApp from './yjs';
 
 export type Bindings = {
   DB: D1Database;
@@ -20,6 +21,9 @@ export type Bindings = {
   // Phase 4 — LTI 1.3 tool keys
   LTI_PRIVATE_KEY: string;   // PKCS8 PEM, via `wrangler secret put`
   LTI_PUBLIC_KID: string;    // stable kid advertised in /lti/.well-known/jwks.json
+  // Phase 5 — Yjs collaboration transport (presence-only).
+  // See worker/src/yjs.ts + wrangler.toml [[durable_objects.bindings]].
+  Y_DURABLE_OBJECTS: DurableObjectNamespace;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
@@ -38,6 +42,13 @@ app.use(
 // LMSes call /lti/* without a Clerk session; Clerk sessions are minted
 // *after* id_token verification during the launch flow (04-02).
 app.route('/lti', ltiRouter);
+
+// Phase 5-09 — Yjs presence-only collaboration transport.
+// Mounted BEFORE Clerk middleware because WebSocket upgrade requests
+// carry no cookie/session headers reliably. Auth is delegated to the
+// circuit id acting as the room key — downstream Phase 6 work can add
+// per-room capability tokens if needed.
+app.route('/', yjsApp);
 
 // Clerk middleware on protected routes only
 app.use('/api/circuits/*', clerkMiddleware());
@@ -75,3 +86,7 @@ export default {
 // against a `{fetch, scheduled}` module. vitest tests use `app.fetch` so
 // we ensure `app.fetch` still resolves through the default export above.
 export { app };
+
+// Phase 5-09 — re-export the Yjs Durable Object class so wrangler can bind
+// it to the `Y_DURABLE_OBJECTS` namespace declared in wrangler.toml.
+export { YDurableObjects } from './yjs';

@@ -24,10 +24,20 @@ import {
   type OnNodesChange,
   ReactFlow,
   useReactFlow,
+  useStore as useReactFlowStore,
 } from '@xyflow/react';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import '@xyflow/react/dist/style.css';
 import type { ComponentType } from '@/circuit/types';
+import { PresenceLayer } from '@/collab/PresenceLayer';
+import { PresenceList } from '@/collab/PresenceList';
+import { useCollabRoomId, useCollabUser } from '@/collab/useCollabIdentity';
+import {
+  publishCursor,
+  publishSelection,
+  publishViewport,
+  useCollabProvider,
+} from '@/collab/useCollabProvider';
 import { useCircuitStore } from '@/store/circuitStore';
 import { useUiStore } from '@/store/uiStore';
 import { Breadcrumb } from './Breadcrumb';
@@ -45,6 +55,23 @@ import { useWireDragStore } from './stores/wireDragStore';
 
 /** MIME type for drag-and-drop component transfers from sidebar. */
 const DND_MIME_TYPE = 'application/omnispice-component';
+
+/**
+ * Plan 05-09 — minimal leading-edge throttle. Calls `fn` immediately on
+ * the first call, then silently drops every subsequent call until `ms`
+ * have elapsed. We use this (instead of pulling in lodash) to cap the
+ * Yjs awareness cursor publish rate at 20 Hz per the plan's locked spec.
+ */
+function throttle<T extends (...args: unknown[]) => void>(fn: T, ms: number): T {
+  let last = 0;
+  return ((...args: Parameters<T>) => {
+    const now = Date.now();
+    if (now - last >= ms) {
+      last = now;
+      fn(...args);
+    }
+  }) as T;
+}
 
 export interface CanvasProps {
   nodes: Node[];
@@ -66,6 +93,19 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
   // Phase 5: Spacebar-hold temp pan (Pillar 2 modelessness)
   const tempPanActive = useUiStore((s) => s.tempPanActive);
 
+  // Phase 5-09: Yjs presence-only collaboration provider lifecycle.
+  // Clerk identity is provided by a test override / guest fallback;
+  // Clerk hook injection is deliberately kept out of Canvas to avoid
+  // dragging Clerk into the canvas module's test closure (Clerk needs
+  // a <ClerkProvider> which Canvas tests don't mount).
+  const collabRoomId = useCollabRoomId();
+  const collabUser = useCollabUser();
+  const providerRef = useCollabProvider(collabRoomId, collabUser);
+  // Subscribe to React Flow transform so viewport publishing is reactive.
+  const rfTransform = useReactFlowStore((s) => s.transform) as readonly [number, number, number];
+  // Selection ids for remote selection broadcasting.
+  const selectedComponentIds = useUiStore((s) => s.selectedComponentIds);
+
   // Ref to track the highlight timeout for cleanup
   const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -81,6 +121,39 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
   // label capture claims the key first (both hooks use window capture-phase
   // listeners but react in selection-guarded branches).
   useNetLabelInput();
+
+  /**
+   * Plan 05-09 — publish local selection to remote peers whenever the
+   * uiStore selection changes. Cheap: awareness only fires when the
+   * publisher changes state.
+   */
+  useEffect(() => {
+    publishSelection(providerRef.current, selectedComponentIds);
+  }, [selectedComponentIds, providerRef]);
+
+  /**
+   * Plan 05-09 — publish local React Flow viewport (pan + zoom) to
+   * remote peers whenever it changes. Consumers of the peer viewport:
+   * PresenceList click-to-frame action.
+   */
+  useEffect(() => {
+    const [x, y, zoom] = rfTransform;
+    publishViewport(providerRef.current, { x, y, zoom });
+  }, [rfTransform, providerRef]);
+
+  /**
+   * Plan 05-09 — throttled cursor publisher. 50 ms window = 20 Hz cap
+   * per the plan's locked awareness rate spec. The throttled function
+   * is stable for the lifetime of the component (useMemo, empty deps)
+   * so the leading-edge state is preserved across mouse moves.
+   */
+  const publishCursorThrottled = useMemo(
+    () =>
+      throttle((x: unknown, y: unknown) => {
+        publishCursor(providerRef.current, x as number, y as number);
+      }, 50),
+    [providerRef],
+  );
 
   /**
    * D-21: Error navigation receive side.
@@ -223,9 +296,10 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
   );
 
   /**
-   * Handle mouse move for wire routing preview, magnetic snap, and live
-   * cursor-position tracking (Plan 05-06: template insertion uses this as
-   * a fallback anchor when there is no explicit click cursor).
+   * Handle mouse move for wire routing preview, magnetic snap, live
+   * cursor-position tracking (Plan 05-06: template insertion uses this
+   * as a fallback anchor when there is no explicit click cursor), and
+   * Plan 05-09 throttled remote cursor publishing.
    */
   const handleMouseMove = useCallback(
     (event: React.MouseEvent) => {
@@ -234,11 +308,13 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
         y: event.clientY,
       });
       useUiStore.getState().setCursorPosition(position);
+      // Plan 05-09: throttled to 20 Hz to avoid WebSocket flood.
+      publishCursorThrottled(position.x, position.y);
       if (isRouting) {
         checkSnap(position);
       }
     },
-    [isRouting, screenToFlowPosition, checkSnap],
+    [isRouting, screenToFlowPosition, checkSnap, publishCursorThrottled],
   );
 
   /**
@@ -339,6 +415,10 @@ export function Canvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }
         />
         {/* D-23: Validation warning icons on problem components */}
         <ValidationWarnings />
+        {/* Plan 05-09: remote peer cursors, selection tints, ghost chips. */}
+        <PresenceLayer />
+        {/* Plan 05-09: top-right peer avatar bar (click-to-frame). */}
+        <PresenceList />
         {/* Magnetic snap feedback overlay */}
         {isSnapping && snapTarget && (
           <svg
